@@ -134,6 +134,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, command palette
   row, page dots, code block, folder picker, stat tile, celebration and day-summary cards. Build each with the
   screen that uses it.
+- **App icon on macOS 26+:** only the `AppIcon` asset set exists. The Icon Composer `.icon` file with light,
+  dark and tinted appearances (DESIGN_SYSTEM §6.1) isn't made yet.
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
@@ -157,6 +159,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Violet, green, red badge glyphs | Nearest defined dark glyph | DESIGN_SYSTEM §2.4 only defines five |
 | Key cap label in the gallery | "SF Mono" | What ships; the canvas used Geist Mono as a stand-in |
 | README scope | No AI mentions, including the product's AI features | The user's rule; the README only showcases shipped work |
+| App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717`. The menu bar icon (not built yet) still follows `System.png` |
 
 ---
 

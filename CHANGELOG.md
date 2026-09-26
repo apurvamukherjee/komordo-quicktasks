@@ -8,6 +8,13 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### App icon — 2026-09-27
+
+#### Added
+- **App icon** for every macOS size: a black body with a stopwatch ring in the Board's column spectrum
+  (violet → blue → teal → lime) and a check inside it. Small sizes use thicker strokes. Rendered from one
+  SwiftUI drawing by `scripts/render-app-icon.swift`.
+
 ### Board, single list — 2026-09-27
 
 #### Added

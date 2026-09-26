@@ -229,7 +229,7 @@ Provider logos (Google, Microsoft, Notion, and so on) follow each brand's guidel
 
 | Asset | Spec |
 | --- | --- |
-| App icon | A 1024×1024 master on Apple's macOS icon grid: a timer ring in the teal → lime gradient on `#171717`. On macOS 26+ it's built in **Icon Composer**, so it adapts to light, dark, and tinted appearances. An `AppIcon` set in the asset catalog covers macOS 14–15 |
+| App icon | A 1024×1024 master on Apple's macOS icon grid: a near-black body (`#141416` → `#030303`) with a faint teal and lime spotlight, a stopwatch ring in the column spectrum (violet → blue → teal → lime, gap under the crown) with a soft glow, and a white check inside it. Below 64 px the strokes thicken and the track drops out. Rendered by `scripts/render-app-icon.swift`. On macOS 26+ it's built in **Icon Composer**, so it adapts to light, dark, and tinted appearances. An `AppIcon` set in the asset catalog covers macOS 14–15 |
 | Menu bar icon | An image set rendered as a **template image** (black plus alpha), 18×18 pt at @1x and @2x, so macOS tints it for light and dark menu bars |
 | Menu bar states | **Idle:** the mark. **Running:** the mark plus the time as text. **Attention** (Google needs reconnecting): the mark with a small dot cut into its top-right. Template images can't be colored, so the difference is the shape |
 
