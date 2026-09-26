@@ -40,6 +40,11 @@ enum Palette {
     static let mint = Color(ColorResource.mint)
     static let dangerLine = Color(ColorResource.dangerLine)
 
+    // Message text on tinted banners: pale enough to read on the 10–12% tint, still clearly in the tone's hue.
+    static let bannerDangerText = Color(ColorResource.bannerDangerText)
+    static let bannerWarningText = Color(ColorResource.bannerWarningText)
+    static let bannerInfoText = Color(ColorResource.bannerInfoText)
+
     // The dark resting stop of each border-beam tone, so the lit arc reads as travelling light.
     static let beamLiveBase = Color(ColorResource.beamLiveBase)
     static let beamSprintBase = Color(ColorResource.beamSprintBase)
