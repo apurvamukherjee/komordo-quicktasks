@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Komodo/Resources/Assets.xcassets/AppIcon.appiconset/icon_128x128@2x.png" alt="The Komodo app icon: a glowing stopwatch ring with a check inside, on black" width="128">
+<img src="docs/media/app-icon.png" alt="The Komodo app icon: a glowing stopwatch ring with a check inside, on black" width="128">
 
 # Komodo
 
