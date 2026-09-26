@@ -19,4 +19,27 @@ struct DurationFormatTests {
     func short(seconds: TimeInterval, expected: String) {
         #expect(DurationFormat.short(seconds) == expected)
     }
+
+    @Test func hoursMinutesPadsBothFields() {
+        #expect(DurationFormat.hoursMinutes(0) == "00:00")
+        #expect(DurationFormat.hoursMinutes(5_400) == "01:30")
+        #expect(DurationFormat.hoursMinutes(36_000) == "10:00")
+    }
+
+    @Test(
+        arguments: [
+            ("1:30", 5_400),
+            ("01:30", 5_400),
+            (" 0:45 ", 2_700),
+            ("45", 2_700),
+            ("0", 0),
+        ] as [(String, TimeInterval)])
+    func parsesValidInput(text: String, expected: TimeInterval) {
+        #expect(DurationFormat.parseHoursMinutes(text) == expected)
+    }
+
+    @Test(arguments: ["", "1:5", "1:60", "a:30", "1:30:00", "-5", "1:-1"])
+    func rejectsInvalidInput(text: String) {
+        #expect(DurationFormat.parseHoursMinutes(text) == nil)
+    }
 }
