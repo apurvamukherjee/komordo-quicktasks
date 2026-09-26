@@ -47,7 +47,9 @@ The README is Komodo's front page, so it must always show the product as it is t
    open Komodo.app --args -design-gallery -galleryScrollTo <section>
    screencapture -x -o -l <window-id> docs/media/<name>.png
    ```
-   Crop the title bar and scale to 1600 px wide.
+   For the Board, launch with `-sampleTime artboard -homeWindowSize 1440x820 -ApplePersistenceIgnoreState YES` so
+   the sample day and window size match every time. Crop the title bar where it adds nothing, and scale to
+   1600 px wide. Move the pointer off the window before recording.
 3. **Video:** record with `screencapture -v -V 8 -R <x,y,w,h> motion.mov`, then export a GIF for inline playback
    and an MP4 for full quality:
    ```bash
