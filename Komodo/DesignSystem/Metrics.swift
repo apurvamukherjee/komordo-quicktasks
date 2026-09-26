@@ -14,10 +14,12 @@ enum Space {
 enum Radius {
     static let chip: CGFloat = 8
     static let control: CGFloat = 10
+    static let tile: CGFloat = 14  // control bar tiles, floating timer, popovers, swatches (canvas)
     static let card: CGFloat = 18
     static let sheet: CGFloat = 20
     static let hero: CGFloat = 22
     static let column: CGFloat = 26
+    static let stage: CGFloat = 28  // Today stage (DESIGN_SYSTEM §4.2)
 }
 
 enum Layout {
