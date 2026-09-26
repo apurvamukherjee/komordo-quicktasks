@@ -131,4 +131,5 @@ open Komodo.app --args -sampleTime artboard
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the commit conventions and how this README is kept up to date.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the commit conventions and how this README is kept up to date, and
+[CHANGELOG.md](CHANGELOG.md) for everything that has landed so far.
