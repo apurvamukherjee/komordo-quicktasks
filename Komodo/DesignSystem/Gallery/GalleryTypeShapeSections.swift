@@ -58,7 +58,7 @@
                     // SF Mono is what ships; the canvas previews used Geist Mono as a stand-in.
                     row("kbd · SF Mono 10.5") {
                         HStack(spacing: 6) {
-                            ForEach(["⌘⇧B", "⌘⌥F", "⌘⇧T", "⌘F"], id: \.self) { KeyCap(keys: $0) }
+                            ForEach(["⌘⇧B", "⌘⌥F", "⌘⇧T", "⌘F"], id: \.self) { KeyCap($0) }
                         }
                     }
                 }
@@ -73,21 +73,6 @@
                     .frame(width: 190, alignment: .leading)
                 sample()
             }
-        }
-    }
-
-    private struct KeyCap: View {
-        var keys: String
-
-        var body: some View {
-            let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
-            Text(keys)
-                .font(Typography.kbd)
-                .foregroundStyle(Palette.textTertiary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(Color.white.opacity(0.07), in: shape)
-                .overlay(shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
         }
     }
 
