@@ -2,6 +2,10 @@
 
 A native macOS to-do list and focus timer. Swift 6, SwiftUI, macOS 14+, Apple silicon only. Local-only: SQLite (GRDB), no server.
 
+## Start here
+- `docs/HANDOFF.md`: where the work stands, the next task, decisions made, gotchas, and open questions. Update it at the end of every milestone.
+- `CHANGELOG.md`: everything that has landed. Add to it with every milestone.
+
 ## Source of truth
 - Behavior: `docs/FEATURES.md`
 - Implementation: `docs/ARCHITECTURE.md` (stack, data model, project layout §12, conventions §13, quality gates §14)
@@ -28,3 +32,4 @@ If the docs disagree: FEATURES wins on behavior, the canvas PNGs and HTML win on
 - Commit small and often: roughly 20–25 commits per task, each one building on its own. Never push; the maintainer pushes.
 - Whenever a feature lands, update `README.md` in the same task: flip its row from 🚧 to ✅, tick the roadmap, and add fresh screenshots and a demo video captured from the running app into `docs/media/` (steps in CONTRIBUTING.md). Never use the canvas PNGs as screenshots.
 - The README is a product showcase. It never mentions AI, AI tools or AI features.
+- At the end of every milestone, update `CHANGELOG.md` and `docs/HANDOFF.md` (status, next task, gaps, decisions, and the prompt for the next session).
