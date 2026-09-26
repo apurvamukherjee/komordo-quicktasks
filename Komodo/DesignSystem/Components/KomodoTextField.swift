@@ -14,10 +14,18 @@ struct KomodoTextField<Accessory: View>: View {
     enum Density {
         /// 36 pt.
         case regular
+        /// 34 pt, matching the toolbar buttons beside it.
+        case toolbar
         /// 28 pt, inside dense rows.
         case compact
 
-        var height: CGFloat { self == .regular ? 36 : 28 }
+        var height: CGFloat {
+            switch self {
+            case .regular: 36
+            case .toolbar: 34
+            case .compact: 28
+            }
+        }
     }
 
     var placeholder: String
@@ -25,6 +33,8 @@ struct KomodoTextField<Accessory: View>: View {
     var variant: Variant = .standard
     var density: Density = .regular
     var error: String?
+    /// Takes keyboard focus as soon as it appears, for inline editors.
+    var focusesOnAppear = false
     @ViewBuilder var accessory: Accessory
 
     @FocusState private var isFocused: Bool
@@ -59,6 +69,7 @@ struct KomodoTextField<Accessory: View>: View {
             .opacity(isEnabled ? 1 : 0.4)
             .animation(Motion.fast, value: isFocused)
             .onHover { isHovered = $0 }
+            .onAppear { if focusesOnAppear { isFocused = true } }
             if let error {
                 Text(error).font(.system(size: 11)).foregroundStyle(Palette.dangerText)
             }
@@ -80,11 +91,11 @@ struct KomodoTextField<Accessory: View>: View {
 extension KomodoTextField where Accessory == EmptyView {
     init(
         _ placeholder: String, text: Binding<String>, variant: Variant = .standard, density: Density = .regular,
-        error: String? = nil
+        error: String? = nil, focusesOnAppear: Bool = false
     ) {
         self.init(
             placeholder: placeholder, text: text, variant: variant, density: density, error: error,
-            accessory: { EmptyView() })
+            focusesOnAppear: focusesOnAppear, accessory: { EmptyView() })
     }
 }
 
