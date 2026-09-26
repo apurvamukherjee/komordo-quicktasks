@@ -13,9 +13,9 @@ Plan your day, press Start, and let the current task stay with you, above every 
 
 <br>
 
-<img src="docs/media/live-task.gif" alt="The live task card: focus dial and odometer digits counting down, the border beam, Time's Up in red with its controls, the day meter and a break countdown" width="100%">
+<img src="docs/media/board.gif" alt="The Komodo Board: Backlog, This week and Today on its glowing stage, with the live task's focus dial counting down" width="100%">
 
-<sub>Recorded from the running app · <a href="docs/media/live-task.mp4">watch in full quality</a></sub>
+<sub>Recorded from the running app · <a href="docs/media/board.mp4">watch in full quality</a></sub>
 
 </div>
 
@@ -38,7 +38,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | :-: | --- | --- | :-: |
 | 🎨 | **Obsidian Spectrum design system** | True-black canvas, cursor spotlight on every surface, border beam, focus dial and odometer digits, all honoring Reduce Motion | ✅ Available |
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
-| 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot), with Today on its own glowing stage | 🚧 In development |
+| 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
 | ⏱️ | **Focus mode** | Work top-down through Today with a live focus dial, Pomodoro sprints, breaks and a docked Focus Panel | 🚧 In development |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, and expands on hover | 🚧 In development |
 | 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | 🚧 In development |
@@ -47,6 +47,15 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action | 🚧 In development |
 | 💾 | **Backup and restore** | One-click zip export and a verified restore, all on your Mac | 🚧 In development |
+
+## The Board
+
+<p align="center"><img src="docs/media/board.png" alt="The Board: sidebar with lists and today's focus, Backlog and This week columns, and Today with the day meter, the live task and the Up next queue" width="100%"></p>
+
+- **Time has temperature.** Backlog is cold violet, This week is warm blue with a seven-day strip, and Today is hot, on its own stage.
+- **Plan in seconds.** Type `Write spec 45m` and the estimate is filled in. Drag cards between columns, or use Space, ⌥↑ and ⌥↓.
+- **Know when you'll be done.** Every queued task shows when it should start, and the day meter shows when the day ends.
+- **One live task.** Start, pause, skip, take a break, or use the bolt on any card to switch. The dial and digits never drift, because time comes from the clock, not from counting ticks.
 
 ## The design system
 
@@ -102,6 +111,12 @@ In a Debug build, **Debug → Design System Gallery** (⌥⇧⌘G) opens the gal
 open Komodo.app --args -design-gallery -galleryScrollTo motion
 ```
 
+The Board runs on sample data for now. To see it exactly as designed (Saturday, Sep 26 at 2:14 PM), launch with:
+
+```bash
+open Komodo.app --args -sampleTime artboard
+```
+
 ## Roadmap
 
 - [x] Design tokens and asset-catalog color sets
@@ -109,7 +124,8 @@ open Komodo.app --args -design-gallery -galleryScrollTo motion
 - [x] Design system gallery
 - [x] Components: buttons, chips, fields, task card, live task card, control bar, day meter, toasts, banners
 - [ ] Menu bar app, Settings, Gmail → Calendar, backup
-- [ ] Board, inspector, quick add, scheduling
+- [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue (in-memory for now)
+- [ ] Inspector, scheduling, and saving to SQLite
 - [ ] Focus Panel, floating timer, celebrations, day summary, command palette
 - [ ] Reports, Trash, recurring tasks
 
