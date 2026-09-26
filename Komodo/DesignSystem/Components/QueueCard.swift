@@ -13,6 +13,12 @@ struct QueueCard: View {
 
     @State private var isHovered = false
 
+    private var chips: some View {
+        ForEach(model.chips(includingSubtasks: true)) { Chip($0.text, tint: $0.tint, icon: $0.icon) }
+    }
+
+    private var startsChip: some View { Chip("starts ~\(startsAt)", tint: .lime) }
+
     var body: some View {
         HStack(alignment: .top, spacing: 13) {
             VStack(spacing: 6) {
@@ -41,10 +47,17 @@ struct QueueCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     ListBadge(letter: model.listLetter, color: model.listColor, side: 20)
                 }
-                HStack(spacing: 6) {
-                    ForEach(model.chips(includingSubtasks: true)) { Chip($0.text, tint: $0.tint, icon: $0.icon) }
-                    Spacer(minLength: 6)
-                    Chip("starts ~\(startsAt)", tint: .lime)
+                // The start projection stays right-aligned when it fits and wraps with the chips when it doesn't.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) {
+                        chips
+                        Spacer(minLength: 6)
+                        startsChip
+                    }
+                    FlowLayout {
+                        chips
+                        startsChip
+                    }
                 }
                 HStack(spacing: 10) {
                     ProgressBar(value: model.progress, fill: .live)

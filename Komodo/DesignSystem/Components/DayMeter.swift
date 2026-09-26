@@ -13,22 +13,16 @@ struct DayMeter: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 11) {
-            HStack(alignment: .bottom) {
-                HStack(alignment: .firstTextBaseline, spacing: 7) {
-                    (Text("\(done)") + Text("/\(total)").fontWeight(.semibold).foregroundColor(Palette.textMuted))
-                        .font(.system(size: 28, weight: .heavy).monospacedDigit())
-                        .tracking(-0.84)
-                        .foregroundStyle(Palette.textPrimary)
-                    Text("DONE")
-                        .font(.system(size: 11, weight: .heavy))
-                        .tracking(0.88)
-                        .foregroundStyle(Palette.limeText)
+            // Stats sit beside the count when there's room and wrap under it in a narrow column.
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .bottom) {
+                    count
+                    Spacer(minLength: Space.s3)
+                    stats
                 }
-                Spacer(minLength: Space.s3)
-                HStack(spacing: 18) {
-                    stat("EST LEFT", DurationFormat.short(estimateLeft))
-                    stat("FOCUSED", DurationFormat.short(focused))
-                    stat("ENDS AROUND", endsAround, color: Palette.limeText)
+                VStack(alignment: .leading, spacing: 10) {
+                    count
+                    stats
                 }
             }
             HStack(spacing: 4) {
@@ -43,6 +37,28 @@ struct DayMeter: View {
             TileSurface(radius: Space.s4)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var count: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            (Text("\(done)") + Text("/\(total)").fontWeight(.semibold).foregroundColor(Palette.textMuted))
+                .font(.system(size: 28, weight: .heavy).monospacedDigit())
+                .tracking(-0.84)
+                .foregroundStyle(Palette.textPrimary)
+            Text("DONE")
+                .font(.system(size: 11, weight: .heavy))
+                .tracking(0.88)
+                .foregroundStyle(Palette.limeText)
+        }
+    }
+
+    private var stats: some View {
+        HStack(spacing: 18) {
+            stat("EST LEFT", DurationFormat.short(estimateLeft))
+            stat("FOCUSED", DurationFormat.short(focused))
+            stat("ENDS AROUND", endsAround, color: Palette.limeText)
+        }
+        .fixedSize()
     }
 
     private func stat(_ label: String, _ value: String, color: Color = Palette.textPrimary) -> some View {

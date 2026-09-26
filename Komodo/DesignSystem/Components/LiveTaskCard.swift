@@ -110,31 +110,18 @@ private struct LiveTaskContent: View {
         }
     }
 
+    /// Dial beside the digits; in a narrow column the digits drop below the dial instead of overflowing.
     private var dialPanel: some View {
-        let progress = model.estimate > 0 ? min(1, elapsed / model.estimate) : 0
-        return HStack(spacing: 18) {
-            FocusDial(clock: clock, estimate: model.estimate, tone: tone, metrics: .board) { _ in
-                VStack(spacing: 1) {
-                    Text("\(Int(progress * 100))%")
-                        .font(.system(size: 20, weight: .heavy).monospacedDigit())
-                        .tracking(-0.4)
-                        .foregroundStyle(Palette.textPrimary)
-                    Text("OF EST")
-                        .font(.system(size: 9, weight: .heavy))
-                        .tracking(0.9)
-                        .foregroundStyle(Palette.textMuted)
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 18) {
+                dial
+                readout.frame(maxWidth: .infinity, alignment: .leading)
             }
-            VStack(alignment: .leading, spacing: 8) {
-                LiveDigits(tone: tone, text: TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed))
-                Text(caption)
-                    .font(.system(size: 12).monospacedDigit())
-                    .foregroundStyle(Palette.textSecondary)
-                if let sprint = model.sprint {
-                    SprintDots(sprint: sprint)
-                }
+            VStack(spacing: Space.s3) {
+                dial
+                readout
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 14)
         .padding(.horizontal, Space.s4)
@@ -142,6 +129,34 @@ private struct LiveTaskContent: View {
         .overlay(
             RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
+    }
+
+    private var dial: some View {
+        let progress = model.estimate > 0 ? min(1, elapsed / model.estimate) : 0
+        return FocusDial(clock: clock, estimate: model.estimate, tone: tone, metrics: .board) { _ in
+            VStack(spacing: 1) {
+                Text("\(Int(progress * 100))%")
+                    .font(.system(size: 20, weight: .heavy).monospacedDigit())
+                    .tracking(-0.4)
+                    .foregroundStyle(Palette.textPrimary)
+                Text("OF EST")
+                    .font(.system(size: 9, weight: .heavy))
+                    .tracking(0.9)
+                    .foregroundStyle(Palette.textMuted)
+            }
+        }
+    }
+
+    private var readout: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            LiveDigits(tone: tone, text: TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed))
+            Text(caption)
+                .font(.system(size: 12).monospacedDigit())
+                .foregroundStyle(Palette.textSecondary)
+            if let sprint = model.sprint {
+                SprintDots(sprint: sprint)
+            }
+        }
     }
 
     private var caption: String {
