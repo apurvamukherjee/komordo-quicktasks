@@ -10,8 +10,9 @@ struct WeightedHStack: SwiftUI.Layout {
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = proposal.width ?? idealWidth(subviews)
         let widths = columnWidths(total: width, count: subviews.count)
+        // A concrete height (the Board filling its window) wins; otherwise take the tallest child.
         let height =
-            zip(subviews, widths)
+            proposal.height ?? zip(subviews, widths)
             .map { subview, columnWidth in
                 subview.sizeThatFits(ProposedViewSize(width: columnWidth, height: nil)).height
             }
