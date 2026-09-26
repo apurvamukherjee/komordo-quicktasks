@@ -30,6 +30,22 @@ enum Palette {
     static let danger = Color(ColorResource.danger)
     static let dangerText = Color(ColorResource.dangerText)
     static let onAccent = Color(ColorResource.onAccent)
+    static let onTeal = Color(ColorResource.onTeal)
+    static let onBlue = Color(ColorResource.onBlue)
+    static let onPink = Color(ColorResource.onPink)
+    static let onAmber = Color(ColorResource.onAmber)
+
+    // Second stops of the Time's Up and break gradients (beam, arc, halo). Never used as text.
+    static let ember = Color(ColorResource.ember)
+    static let mint = Color(ColorResource.mint)
+    static let dangerLine = Color(ColorResource.dangerLine)
+
+    // The dark resting stop of each border-beam tone, so the lit arc reads as travelling light.
+    static let beamLiveBase = Color(ColorResource.beamLiveBase)
+    static let beamSprintBase = Color(ColorResource.beamSprintBase)
+    static let beamPausedBase = Color(ColorResource.beamPausedBase)
+    static let beamTimesUpBase = Color(ColorResource.beamTimesUpBase)
+    static let beamBreakBase = Color(ColorResource.beamBreakBase)
 
     // The lighter step used for text inside tinted chips (DESIGN_SYSTEM §2.2).
     static let limeText = Color(ColorResource.limeText)
