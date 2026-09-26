@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Task inspector</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.in-panel{width:380px;border-radius:22px;background:linear-gradient(180deg,#111114,#0b0b0d);border:1px solid rgba(255,255,255,0.08);box-shadow:-24px 0 60px -30px rgba(0,0,0,0.9);display:flex;flex-direction:column;}
+.in-sec{border-radius:16px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.in-row{display:flex;align-items:center;gap:10px;min-height:30px;}
+.in-key{width:78px;flex-shrink:0;font-size:12px;color:#8e8e93;font-weight:600;}
+.in-val{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);font-size:12.5px;font-weight:600;color:#e5e5ea;}
+.in-dur{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:13px;width:64px;justify-content:center;}
+.in-sub{display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;transition:background 140ms ease;}
+.in-sub:hover{background:rgba(255,255,255,0.05);}
+.in-tool{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#a1a1a6;font-size:12px;font-weight:700;transition:background 140ms ease,color 140ms ease;}
+.in-tool:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.in-lock{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;background:rgba(255,255,255,0.06);font-size:10.5px;font-weight:700;color:#a1a1a6;}
+.in-odo{display:inline-flex;height:1em;line-height:1em;overflow:hidden;}
+.in-digit{display:inline-block;height:1em;width:0.6em;overflow:hidden;text-align:center;}
+.in-strip{display:flex;flex-direction:column;transition:transform 480ms var(--spring);}
+.in-strip span{display:block;height:1em;line-height:1em;}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="box-sizing:border-box;width:1340px;height:1110px;padding:48px;display:flex;flex-direction:column;gap:28px;background:radial-gradient(800px 420px at 80% -6%,rgba(45,217,196,0.08),transparent 62%),#000000;">
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="k-label" style="color:#b5f23d;">TASK INSPECTOR · P0</div>
+    <div style="font-size:30px;font-weight:800;letter-spacing:-0.03em;">Everything about one task</div>
+    <div style="font-size:13px;color:#a1a1a6;">Native .inspector on the trailing edge, 380pt. Click a card to open, Esc closes, ⌘↑ / ⌘↓ steps through tasks. Subtasks are clickable here.</div>
+  </div>
+
+  <div style="display:flex;gap:40px;align-items:flex-start;">
+    <sc-for list="{{panels}}" as="p" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="k-label" style="color:{{p.capColor}};">{{p.caption}}</div>
+        <div class="in-panel k-enter" style="--i:{{p.i}};">
+
+          <sc-if value="{{p.live}}" hint-placeholder-val="{{false}}">
+            <div class="k-beam" style="margin:12px 12px 0;border-radius:18px;">
+              <div style="border-radius:16.5px;background:radial-gradient(120% 100% at 0% 0%,rgba(45,217,196,0.2),transparent 60%),#0d0e10;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+                <svg width="46" height="46" viewBox="0 0 46 46" style="flex-shrink:0;">
+                  <defs><linearGradient id="inRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd9c4"></stop><stop offset="1" stop-color="#b5f23d"></stop></linearGradient></defs>
+                  <circle cx="23" cy="23" r="18" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5"></circle>
+                  <circle cx="23" cy="23" r="18" fill="none" stroke="url(#inRing)" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="{{liveOffset}}" transform="rotate(-90 23 23)" style="transition:stroke-dashoffset 900ms ease;"></circle>
+                </svg>
+                <div style="display:flex;flex-direction:column;gap:3px;flex-grow:1;">
+                  <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:0.08em;color:#c9f76a;"><span class="k-dot k-ping" style="width:6px;height:6px;background:#b5f23d;"></span>LIVE · FOCUS MODE</div>
+                  <span class="in-odo k-num" style="font-size:30px;font-weight:700;letter-spacing:-0.03em;text-shadow:0 0 22px rgba(181,242,61,0.4);">
+                    <sc-for list="{{digits}}" as="d" hint-placeholder-count="5">
+                      <sc-if value="{{d.colon}}" hint-placeholder-val="{{false}}"><span style="display:inline-block;width:0.3em;text-align:center;opacity:0.6;">:</span></sc-if>
+                      <sc-if value="{{d.num}}" hint-placeholder-val="{{true}}"><span class="in-digit"><span class="in-strip" style="{{d.style}}"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span></sc-if>
+                    </sc-for>
+                  </span>
+                </div>
+                <button class="k-act" aria-label="Pause"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg></button>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:16px 14px 12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <button class="{{p.checkCls}}" aria-label="Complete task" onClick="{{p.toggleDone}}" style="margin-top:2px;"><sc-if value="{{p.done}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            <div style="flex-grow:1;display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:17px;font-weight:700;letter-spacing:-0.015em;line-height:22px;{{p.titleStyle}}">{{p.title}}</div>
+              <sc-if value="{{p.live}}" hint-placeholder-val="{{false}}"><span class="in-lock" title="Pause to edit"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Pause to edit</span></sc-if>
+            </div>
+            <button class="k-icon" aria-label="More"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+            <button class="k-icon" aria-label="Close inspector"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+          </div>
+
+          <div style="padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div class="in-sec sg" style="--sg:181 242 61;">
+              <div class="in-row"><span class="in-key">List</span><span class="in-val"><span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9.5px;background:{{p.color}};color:#06110a;">{{p.badge}}</span>{{p.list}}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div>
+              <div class="in-row"><span class="in-key">Estimate</span><span class="in-val in-dur" style="{{p.lockStyle}}">{{p.est}}</span><sc-if value="{{p.live}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></sc-if><span style="margin-left:auto;font-size:12px;color:#8e8e93;">Taken</span><span class="k-num" style="font-size:13px;font-weight:700;{{p.takenStyle}}">{{p.taken}}</span></div>
+              <div class="in-row"><span class="in-key">Schedule</span><span class="in-val" style="color:#8fbaff;border-color:rgba(77,141,255,0.3);background:rgba(77,141,255,0.1);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>{{p.schedule}}</span><button class="k-icon" aria-label="Clear schedule" style="width:24px;height:24px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></div>
+              <div class="in-row"><span class="in-key">Repeat</span><span class="in-val">{{p.repeat}}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span></div>
+            </div>
+
+            <div class="in-sec sg" style="--sg:181 242 61;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span class="k-label">SUBTASKS</span>
+                <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#c7c7cc;">
+                  <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2.5"></circle><circle cx="8" cy="8" r="6" fill="none" stroke="#b5f23d" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="37.7" stroke-dashoffset="{{p.dialOffset}}" transform="rotate(-90 8 8)" style="transition:stroke-dashoffset 400ms cubic-bezier(0.34,1.56,0.64,1);"></circle></svg>
+                  {{p.subCount}}
+                </span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <sc-for list="{{p.subs}}" as="s" hint-placeholder-count="3">
+                  <button class="in-sub" onClick="{{s.toggle}}" style="text-align:left;">
+                    <span class="{{s.cls}}"><sc-if value="{{s.done}}" hint-placeholder-val="{{false}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></span>
+                    <span style="flex-grow:1;{{s.textStyle}}">{{s.title}}</span>
+                  </button>
+                </sc-for>
+                <div class="in-sub" style="color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b5f23d" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add subtask</div>
+              </div>
+            </div>
+
+            <div class="in-sec sg" style="--sg:45 217 196;">
+              <span class="k-label">NOTES</span>
+              <div style="border-radius:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.07);">
+                <div style="padding:10px 12px;font-size:13px;line-height:1.55;color:#e5e5ea;">{{p.note}}<br><span style="color:#5ce6d4;text-decoration:underline;">Figma: https://figma.com/file/…</span></div>
+                <div style="display:flex;align-items:center;gap:2px;padding:6px 8px;border-top:1px solid rgba(255,255,255,0.06);">
+                  <button class="in-tool" aria-label="Bold" style="font-weight:800;">B</button>
+                  <button class="in-tool" aria-label="Italic" style="font-style:italic;">I</button>
+                  <button class="in-tool" aria-label="Underline" style="text-decoration:underline;">U</button>
+                  <button class="in-tool" aria-label="Strikethrough" style="text-decoration:line-through;">S</button>
+                  <button class="in-tool" aria-label="Link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg></button>
+                  <button class="in-tool" aria-label="Bulleted list"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"></path><circle cx="4.5" cy="6" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="18" r="1"></circle></svg></button>
+                  <button class="in-tool" aria-label="Numbered list" style="font-size:11px;">1.</button>
+                  <div style="flex-grow:1;"></div>
+                  <button class="k-btn k-btn-sm k-soft" style="height:24px;border-radius:999px;font-size:11px;">✕ Clear</button>
+                </div>
+              </div>
+              <button onClick="{{p.toggleLinks}}" style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#c7c7cc;text-align:left;"><span class="{{p.linksCls}}"></span>Open links when this task starts</button>
+            </div>
+
+            <sc-if value="{{p.gmail}}" hint-placeholder-val="{{false}}">
+              <div class="in-sec sg" style="--sg:255 181 71;flex-direction:row;align-items:center;gap:12px;">
+                <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,138,106,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff8a6a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></div>
+                <div style="flex-grow:1;display:flex;flex-direction:column;gap:2px;">
+                  <div class="k-label" style="font-size:10px;">SOURCE · GMAIL</div>
+                  <div style="font-size:13px;font-weight:600;">Apurva · “Re: Design review”</div>
+                  <div style="font-size:11.5px;color:#8e8e93;">Added to Komodo · From Gmail · Sep 24</div>
+                </div>
+                <a href="#" style="font-size:12px;font-weight:700;color:#5ce6d4;text-decoration:none;">Open ↗</a>
+              </div>
+            </sc-if>
+
+            <div class="in-sec sg" style="--sg:139 124 255;flex-direction:row;align-items:center;gap:12px;">
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:2px;">
+                <div class="k-label" style="font-size:10px;">SESSIONS</div>
+                <div class="k-num" style="font-size:13px;font-weight:600;">{{p.sessions}}</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+                <div style="width:6px;height:40%;border-radius:2px;background:#8b7cff;opacity:0.5;"></div>
+                <div style="width:6px;height:80%;border-radius:2px;background:#8b7cff;opacity:0.6;"></div>
+                <div style="width:6px;height:55%;border-radius:2px;background:#8b7cff;opacity:0.7;"></div>
+                <div style="width:6px;height:100%;border-radius:2px;background:#8b7cff;box-shadow:0 0 8px #8b7cff;"></div>
+              </div>
+              <a href="#" style="font-size:12px;font-weight:700;color:#b0a6ff;text-decoration:none;">View</a>
+            </div>
+          </div>
+
+          <div style="padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;color:#8e8e93;">{{p.footer}}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1340,"height":1110}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      left: 2292,
+      done: [false, false, false],
+      links: [true, true, false],
+      subs: [
+        [{ t: 'Collect feedback', d: true }, { t: 'Draft agenda', d: false }, { t: 'Book room', d: false }],
+        [{ t: 'Pull last sprint notes', d: true }, { t: 'List open questions', d: true }, { t: 'Share deck link', d: false }],
+        [{ t: 'Scan the passport page', d: false }, { t: 'Fill section B', d: false }]
+      ]
+    };
+  }
+  componentDidMount() { var self = this; this.iv = setInterval(function () { self.setState({ left: self.state.left > 0 ? self.state.left - 1 : 2292 }); }, 1000); }
+  componentWillUnmount() { clearInterval(this.iv); }
+  pad(n) { return (n < 10 ? '0' : '') + n; }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var base = [
+      { caption: 'NORMAL · SUBTASKS + NOTES', capColor: '#a1a1a6', title: 'Design review prep', badge: 'W', color: '#b5f23d', list: 'Work', est: '01:00', taken: '00:24', schedule: 'Thu, Oct 1 · 2:30 PM', repeat: "Doesn't repeat", note: 'Walk through the floating timer states first, then the Focus Panel.', sessions: '3 · 1hr 12min total', footer: 'Created Sep 20 · Edited 2 min ago', live: false, gmail: false },
+      { caption: 'LIVE · TITLE & ESTIMATE LOCKED', capColor: '#c9f76a', title: 'Design review prep with Apurva', badge: 'W', color: '#b5f23d', list: 'Work', est: '01:00', taken: '21:48', schedule: 'Today · 2:00 PM', repeat: 'Weekly on Sat', note: 'Notes stay editable while the task is live.', sessions: '4 · 1hr 33min total', footer: 'Created Sep 12 · Live since 1:52 PM', live: true, gmail: false },
+      { caption: 'FROM GMAIL · SOURCE ROW', capColor: '#ffc978', title: 'Due: Submit visa form', badge: 'P', color: '#2dd9c4', list: 'Personal', est: '00:30', taken: '00:00', schedule: 'Sat, Oct 10 · all day', repeat: "Doesn't repeat", note: 'Deadline found in email: “Submit by Oct 10”.', sessions: 'No sessions yet', footer: 'Created by Gmail → Calendar · Sep 24', live: false, gmail: true }
+    ];
+    var panels = base.map(function (b, i) {
+      var subs = s.subs[i];
+      var doneCount = subs.filter(function (x) { return x.d; }).length;
+      return Object.assign({}, b, {
+        i: i + 1,
+        done: s.done[i],
+        checkCls: 'k-check' + (s.done[i] ? ' k-check-on' : ''),
+        titleStyle: s.done[i] ? 'color:#8e8e93;text-decoration:line-through;' : '',
+        lockStyle: b.live ? 'opacity:0.55;' : '',
+        takenStyle: b.live ? 'color:#c9f76a;' : 'color:#e5e5ea;',
+        subCount: doneCount + '/' + subs.length,
+        dialOffset: (37.7 * (1 - doneCount / subs.length)).toFixed(1),
+        linksCls: 'k-tog' + (s.links[i] ? ' k-tog-on' : ''),
+        toggleLinks: function () { var l = s.links.slice(); l[i] = !l[i]; self.setState({ links: l }); },
+        toggleDone: function () { var d = s.done.slice(); d[i] = !d[i]; self.setState({ done: d }); },
+        subs: subs.map(function (x, j) {
+          return {
+            title: x.t, done: x.d,
+            cls: 'k-check' + (x.d ? ' k-check-on' : ''),
+            textStyle: x.d ? 'color:#8e8e93;text-decoration:line-through;' : 'color:#e5e5ea;',
+            toggle: function () {
+              var all = s.subs.map(function (arr) { return arr.slice(); });
+              all[i][j] = { t: x.t, d: !x.d };
+              self.setState({ subs: all });
+            }
+          };
+        })
+      });
+    });
+    var str = this.pad(Math.floor(s.left / 60)) + ':' + this.pad(s.left % 60);
+    return {
+      panels: panels,
+      digits: str.split('').map(function (ch) { return ch === ':' ? { colon: true, num: false, style: '' } : { colon: false, num: true, style: 'transform:translateY(-' + (Number(ch) * 10) + '%);' }; }),
+      liveOffset: (113.1 * (s.left / 3600)).toFixed(1),
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

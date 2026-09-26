@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Trash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.tr-nav{display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:9px;font-size:13px;font-weight:500;color:#a1a1a6;}
+.tr-grid{display:grid;grid-template-columns:minmax(0,2.2fr) 110px 150px 170px 200px;align-items:center;gap:12px;padding:0 16px;}
+.tr-row{height:52px;border-radius:12px;transition:background 140ms ease;}
+.tr-row:hover{background:rgba(255,255,255,0.045);}
+.tr-row .k-reveal{opacity:0;transform:translateX(6px);transition:opacity 160ms ease,transform 220ms var(--ease);}
+.tr-row:hover .k-reveal{opacity:1;transform:none;}
+@keyframes tr-toast{from{opacity:0;transform:translate(-50%,12px);}to{opacity:1;transform:translate(-50%,0);}}
+.tr-toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);animation:tr-toast 360ms var(--spring) both;}
+@keyframes tr-drain{from{width:100%;}to{width:0%;}}
+@keyframes tr-glow{0%,100%{box-shadow:0 0 0 0 rgba(139,124,255,0.0),0 0 60px -20px rgba(139,124,255,0.5);}50%{box-shadow:0 0 0 10px rgba(139,124,255,0.06),0 0 80px -16px rgba(139,124,255,0.7);}}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="box-sizing:border-box;width:1320px;height:1210px;padding:48px;display:flex;flex-direction:column;gap:24px;background:radial-gradient(800px 420px at 20% -6%,rgba(139,124,255,0.08),transparent 62%),#000000;">
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="k-label" style="color:#b5f23d;">TRASH · P1</div>
+    <div style="font-size:30px;font-weight:800;letter-spacing:-0.03em;">Deleted lists and tasks, kept 30 days</div>
+    <div style="font-size:13px;color:#a1a1a6;">Restore puts an item back where it was. Hover a row for actions, or right-click for the same menu. Try Restore.</div>
+  </div>
+
+  <div class="k-win" style="position:relative;height:660px;display:flex;">
+    <div style="position:absolute;top:18px;left:18px;display:flex;gap:8px;"><span class="k-tl" style="background:#ff5f57;"></span><span class="k-tl" style="background:#febc2e;"></span><span class="k-tl" style="background:#28c840;"></span></div>
+    <aside style="width:220px;flex-shrink:0;background:linear-gradient(180deg,rgba(22,22,26,0.9),rgba(12,12,14,0.95));border-right:1px solid rgba(255,255,255,0.06);padding:52px 10px 14px;display:flex;flex-direction:column;gap:2px;">
+      <div class="tr-nav"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10v9.5h13V10"></path></svg>Home</div>
+      <div class="tr-nav"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"></path></svg>Reports</div>
+      <div style="flex-grow:1;"></div>
+      <div class="tr-nav" style="color:#ffffff;background:rgba(255,255,255,0.08);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"></path></svg><span style="flex-grow:1;">Trash</span><span class="k-num" style="font-size:11.5px;color:#8e8e93;">{{count}}</span></div>
+      <div class="tr-nav"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>Settings</div>
+    </aside>
+    <main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;padding:26px 24px 20px;gap:16px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-0.03em;">Trash</div>
+          <div style="font-size:12.5px;color:#a1a1a6;">Items are deleted after 30 days</div>
+        </div>
+        <button class="k-btn k-danger-ghost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"></path></svg>Empty Trash</button>
+      </div>
+      <div class="sg" style="--sg:139 124 255;border-radius:18px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);padding:6px;display:flex;flex-direction:column;flex-grow:1;">
+        <div class="tr-grid k-label" style="height:36px;font-size:10.5px;color:#8e8e93;"><span>ITEM</span><span>TYPE</span><span>FROM LIST</span><span>DELETED</span><span></span></div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+          <div class="tr-grid tr-row k-enter" style="--i:{{r.i}};">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <sc-if value="{{r.isList}}" hint-placeholder-val="{{false}}"><span class="k-badge" style="background:{{r.color}};color:#06110a;">{{r.badge}}</span></sc-if>
+              <sc-if value="{{r.isTask}}" hint-placeholder-val="{{true}}"><span style="width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;"></span></sc-if>
+              <span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{r.title}}</span>
+            </div>
+            <span class="{{r.typeCls}}" style="justify-self:start;">{{r.type}}</span>
+            <span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#c7c7cc;"><span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9.5px;background:{{r.color}};color:#06110a;">{{r.badge}}</span>{{r.from}}</span>
+            <span style="display:flex;flex-direction:column;gap:1px;"><span style="font-size:12.5px;color:#e5e5ea;">{{r.deleted}}</span><span style="font-size:11px;{{r.leftStyle}}">{{r.left}}</span></span>
+            <div class="k-reveal" style="display:flex;justify-content:flex-end;gap:6px;">
+              <button class="k-btn k-btn-sm k-soft" onClick="{{r.restore}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>Restore</button>
+              <button class="k-btn k-btn-sm k-danger-ghost">Delete now</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+    <sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+      <div class="tr-toast k-pop" style="display:flex;flex-direction:column;overflow:hidden;min-width:380px;">
+        <div style="display:flex;align-items:center;gap:12px;height:48px;padding:0 10px 0 14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+          <span style="font-size:13px;font-weight:600;flex-grow:1;">Restored “{{toastTitle}}”</span>
+          <button class="k-btn k-btn-sm" onClick="{{undo}}" style="color:#b5f23d;">Undo</button>
+        </div>
+        <div style="height:2px;background:rgba(255,255,255,0.06);"><div style="height:100%;background:#b5f23d;animation:tr-drain 5s linear forwards;"></div></div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div class="k-label">EMPTY</div>
+    <div class="k-win sg" style="--sg:139 124 255;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+      <div style="width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,rgba(139,124,255,0.22),rgba(139,124,255,0.05));border:1px solid rgba(139,124,255,0.3);display:flex;align-items:center;justify-content:center;animation:tr-glow 3.2s ease-in-out infinite;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#b0a6ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"></path></svg>
+      </div>
+      <div style="font-size:18px;font-weight:700;">Trash is empty.</div>
+      <div style="font-size:13px;color:#a1a1a6;">Deleted lists and tasks wait here for 30 days.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1320,"height":1210}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.all = [
+      { id: 1, title: 'Old onboarding copy', list: false, badge: 'W', color: '#b5f23d', from: 'Work', deleted: 'Today, 11:02 AM', days: 30 },
+      { id: 2, title: 'Growth', list: true, badge: 'G', color: '#ffb547', from: 'Growth', deleted: 'Sep 24', days: 28 },
+      { id: 3, title: 'Book dentist', list: false, badge: 'P', color: '#2dd9c4', from: 'Personal', deleted: 'Sep 18', days: 22 },
+      { id: 4, title: 'Spike: menu bar only mode', list: false, badge: 'S', color: '#4d8dff', from: 'Side project', deleted: 'Sep 9', days: 13 },
+      { id: 5, title: 'Draft App Store keywords', list: false, badge: 'L', color: '#ff6ad5', from: 'Launch', deleted: 'Aug 30', days: 3 },
+      { id: 6, title: 'Q3 retro notes', list: false, badge: 'W', color: '#b5f23d', from: 'Work', deleted: 'Aug 28', days: 1 }
+    ];
+    this.state = { gone: [], toast: false, toastTitle: '' };
+  }
+  componentWillUnmount() { clearTimeout(this.to); }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var rows = this.all.filter(function (r) { return s.gone.indexOf(r.id) < 0; }).map(function (r, i) {
+      return {
+        i: i, title: r.title, isList: r.list, isTask: !r.list, badge: r.badge, color: r.color, from: r.from, deleted: r.deleted,
+        type: r.list ? 'List' : 'Task', typeCls: 'k-chip' + (r.list ? ' k-chip-violet' : ''),
+        left: r.days <= 3 ? r.days + (r.days === 1 ? ' day left' : ' days left') : r.days + ' days left',
+        leftStyle: r.days <= 3 ? 'color:#ffc978;font-weight:700;' : 'color:#8e8e93;',
+        restore: function () {
+          clearTimeout(self.to);
+          self.setState({ gone: s.gone.concat([r.id]), toast: true, toastTitle: r.title });
+          self.to = setTimeout(function () { self.setState({ toast: false }); }, 5000);
+        }
+      };
+    });
+    return {
+      rows: rows, count: rows.length, toast: s.toast, toastTitle: s.toastTitle,
+      undo: function () { clearTimeout(self.to); self.setState({ gone: s.gone.slice(0, -1), toast: false }); },
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

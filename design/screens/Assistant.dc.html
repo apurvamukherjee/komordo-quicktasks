@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Assistant</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.as-col{width:360px;display:flex;flex-direction:column;}
+.as-cap{display:flex;align-items:center;justify-content:space-between;height:16px;margin-bottom:10px;}
+.as-pop{width:360px;height:520px;display:flex;flex-direction:column;border-radius:16px;background:radial-gradient(120% 40% at 50% -8%,rgba(181,242,61,0.08),transparent 65%),rgba(22,22,26,0.95);}
+.as-head{height:50px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 10px 0 14px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.as-mark{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#2dd9c4,#b5f23d);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px -4px rgba(181,242,61,0.8);}
+.as-mac{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;background:rgba(53,212,131,0.12);color:#5fe3a1;font-size:10.5px;font-weight:600;white-space:nowrap;}
+.as-body{position:relative;flex-grow:1;min-height:0;padding:12px 14px;display:flex;flex-direction:column;overflow:hidden;}
+.as-foot{flex-shrink:0;padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,0.07);}
+.as-input{height:42px;border-radius:12px;padding:0 6px 0 12px;gap:6px;}
+.as-mic{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.as-mic:hover{background:rgba(255,255,255,0.14);color:#ffffff;transform:scale(1.08);}
+.as-mic:active{transform:scale(0.9);}
+.as-mic-on{position:relative;background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.85);}
+.as-mic-on:hover{background:#c6ff52;color:#06110a;}
+.as-send{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;font-size:14px;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.as-send:hover{background:rgba(255,255,255,0.1);color:#ffffff;}
+.as-send:active{transform:scale(0.9);}
+.as-sug{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px 0 11px;border-radius:999px;background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.09);font-size:12.5px;font-weight:500;color:#e5e5ea;align-self:flex-start;transition:transform 200ms var(--spring),background 160ms ease,border-color 160ms ease;}
+.as-sug:hover{transform:translateY(-2px);background:rgba(181,242,61,0.07);border-color:rgba(181,242,61,0.25);}
+.as-at{color:#c9f76a;font-weight:600;}
+.as-you{font-size:10.5px;font-weight:600;color:#8e8e93;text-align:right;margin-bottom:5px;}
+.as-bub{align-self:flex-end;max-width:292px;padding:9px 12px;border-radius:14px 14px 4px 14px;background:linear-gradient(160deg,rgba(181,242,61,0.14),rgba(45,217,196,0.08));border:1px solid rgba(181,242,61,0.24);font-size:13px;line-height:18px;color:#ffffff;}
+.as-bar{width:4px;border-radius:2px;background:linear-gradient(180deg,#e2ffa8,#b5f23d 45%,#2dd9c4);box-shadow:0 0 10px -2px rgba(181,242,61,0.7);transform-origin:center;animation:as-wave 1s ease-in-out infinite;}
+@keyframes as-wave{0%,100%{transform:scaleY(0.22);}50%{transform:scaleY(1);}}
+.as-sk{border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.05) 30%,rgba(255,255,255,0.14) 50%,rgba(255,255,255,0.05) 70%,rgba(255,255,255,0.05) 100%);background-size:300% 100%;animation:as-shim 1.5s linear infinite;}
+@keyframes as-shim{from{background-position:100% 0;}to{background-position:0% 0;}}
+.as-skrow{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);}
+.as-spin{width:11px;height:11px;border-radius:50%;border:2px solid rgba(95,227,161,0.25);border-top-color:#5fe3a1;animation:k-rot 0.9s linear infinite;flex-shrink:0;}
+.as-row{display:flex;align-items:flex-start;gap:10px;padding:9px 10px 9px 11px;border-radius:12px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);transition:opacity 200ms ease,background 160ms ease;}
+.as-row-off{opacity:0.45;}
+.as-row-off .as-title{text-decoration:line-through;color:#a1a1a6;}
+.as-title{width:100%;height:22px;margin:-1px 0 0 -5px;padding:0 5px;border-radius:6px;border:1px solid transparent;background:transparent;outline:0;color:#ffffff;font-size:13.5px;font-weight:600;transition:background 140ms ease,border-color 140ms ease,box-shadow 160ms ease;}
+.as-title:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);}
+.as-title:focus{background:#141417;border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 3px rgba(45,217,196,0.14);}
+.as-ed{display:inline-flex;align-items:center;gap:4px;height:21px;padding:0 7px;border-radius:7px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent;transition:border-color 140ms ease,filter 140ms ease;}
+.as-ed:hover{border-color:rgba(255,255,255,0.22);filter:brightness(1.15);}
+.as-bubble{position:relative;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9ff8f,#b5f23d 55%,#8fd42a);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(214,255,140,0.6),0 8px 22px -6px rgba(181,242,61,0.8),0 0 34px -6px rgba(181,242,61,0.7);transition:transform 220ms var(--spring);}
+.as-bubble:hover{transform:scale(1.08);}
+.as-bubble:active{transform:scale(0.92);}
+.as-bring{position:absolute;inset:0;border-radius:50%;border:2px solid #b5f23d;pointer-events:none;animation:as-bring 1.6s var(--ease) infinite;}
+.as-bring2{animation-delay:0.8s;}
+@keyframes as-bring{0%{transform:scale(1);opacity:0.9;}100%{transform:scale(1.9);opacity:0;}}
+.as-miccring{position:absolute;inset:-1px;border-radius:9px;border:2px solid #b5f23d;pointer-events:none;animation:as-mring 1.4s var(--ease) infinite;}
+@keyframes as-mring{0%{transform:scale(1);opacity:0.9;}100%{transform:scale(1.6);opacity:0;}}
+.as-caret{display:inline-block;width:2px;height:15px;margin-left:2px;vertical-align:-2px;background:#b5f23d;box-shadow:0 0 8px rgba(181,242,61,0.9);}
+.as-word{animation:as-word 320ms var(--ease) backwards;}
+@keyframes as-word{from{opacity:0;filter:blur(4px);}to{opacity:1;filter:none;}}
+.as-okchip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 5px;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);font-size:12px;font-weight:600;color:#e5e5ea;white-space:nowrap;}
+.as-drop{animation:as-drop 520ms var(--spring) backwards;animation-delay:calc(var(--i,0) * 90ms + 120ms);}
+@keyframes as-drop{from{opacity:0;transform:translateY(-10px) scale(0.9);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="width:2000px;height:776px;position:relative;overflow:hidden;box-sizing:border-box;padding:36px 44px;border-radius:18px;background:radial-gradient(900px 480px at 92% 110%,rgba(181,242,61,0.08),transparent 60%),radial-gradient(800px 500px at 0% -10%,rgba(45,217,196,0.06),transparent 60%),#000000;">
+
+  <div style="height:80px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div class="k-label" style="color:#b5f23d;">KOMODO ASSISTANT · P2</div>
+      <div style="font-size:30px;font-weight:800;letter-spacing:-0.03em;line-height:34px;">Assistant</div>
+      <div style="font-size:13px;color:#a1a1a6;">Text or voice in, an editable preview out. Popover 360×520 above a 40pt bubble at the bottom right. <span style="color:#c9f76a;">@Task name</span> targets a task.</div>
+    </div>
+    <div class="sg k-tile" style="--sg:53 212 131;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;flex-shrink:0;">
+      <span class="k-chip k-chip-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+        On this Mac
+      </span>
+      <span class="k-chip k-chip-amber">Claude · your key</span>
+      <span style="max-width:470px;font-size:12.5px;line-height:18px;color:#c7c7cc;">Runs on Apple's on-device model; falls back to Claude with your key. Never writes without the preview.</span>
+    </div>
+  </div>
+
+  <div style="margin-top:26px;display:flex;gap:28px;">
+
+    <!-- 1 EMPTY -->
+    <div class="as-col">
+      <div class="as-cap"><span class="k-label">1 · EMPTY</span><span class="k-label" style="color:#8e8e93;">INPUT FOCUSED</span></div>
+      <div class="sg k-pop as-pop k-pop-in" style="--sg:181 242 61;">
+        <div class="as-head">
+          <span class="as-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></span>
+          <span style="font-size:14px;font-weight:700;">Assistant</span>
+          <span class="as-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+          <div style="flex-grow:1;"></div>
+          <button class="k-icon" aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <div class="as-body" style="padding-top:26px;">
+          <div style="width:52px;height:52px;border-radius:17px;background:radial-gradient(circle at 35% 30%,rgba(181,242,61,0.3),rgba(45,217,196,0.12) 60%,transparent),#121214;border:1px solid rgba(181,242,61,0.35);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -10px rgba(181,242,61,0.7);" class="k-float">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#c9f76a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg>
+          </div>
+          <div style="margin-top:16px;font-size:19px;font-weight:800;letter-spacing:-0.02em;">Good afternoon.</div>
+          <div style="margin-top:5px;font-size:13px;line-height:19px;color:#a1a1a6;">Type or talk. I'll turn it into tasks and show you a preview before anything changes.</div>
+          <div class="k-label" style="margin-top:22px;font-size:10px;color:#8e8e93;">TRY</div>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+            <button class="sg as-sug k-enter" style="--sg:181 242 61;--i:1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c9f76a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>
+              Brain dump my day
+            </button>
+            <button class="sg as-sug k-enter" style="--sg:77 141 255;--i:2;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8fbaff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              <span>Move <span class="as-at">@Review accounts</span> to tomorrow</span>
+            </button>
+            <button class="sg as-sug k-enter" style="--sg:53 212 131;--i:3;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              <span>Log 30min on <span class="as-at">@Gym</span></span>
+            </button>
+          </div>
+          <div style="flex-grow:1;"></div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8e8e93;">
+            <span class="k-kbd">@</span>targets a task
+            <span>·</span>
+            <span class="k-kbd">↵</span>send
+            <span>·</span>
+            hold mic to talk
+          </div>
+        </div>
+        <div class="as-foot">
+          <label class="k-field k-field-focus as-input">
+            <input aria-label="Message the assistant" placeholder="Type or hold mic to talk…">
+            <button class="as-mic" aria-label="Hold to talk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg></button>
+            <button class="as-send" aria-label="Send">↵</button>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+        <button class="as-bubble" aria-label="Komodo Assistant"><svg width="19" height="19" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></button>
+      </div>
+    </div>
+
+    <!-- 2 LISTENING -->
+    <div class="as-col">
+      <div class="as-cap"><span class="k-label" style="color:#c9f76a;">2 · LISTENING</span><span class="k-label" style="color:#8e8e93;">MIC HELD · LIVE TRANSCRIPT</span></div>
+      <div class="sg k-pop as-pop k-pop-in" style="--sg:181 242 61;border-color:rgba(181,242,61,0.3);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),0 0 50px -18px rgba(181,242,61,0.55),inset 0 1px 0 rgba(255,255,255,0.06);">
+        <div class="as-head">
+          <span class="as-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></span>
+          <span style="font-size:14px;font-weight:700;">Assistant</span>
+          <span class="as-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+          <div style="flex-grow:1;"></div>
+          <button class="k-icon" aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <div class="as-body" style="align-items:center;padding-top:40px;">
+          <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 11px;border-radius:999px;background:rgba(181,242,61,0.12);border:1px solid rgba(181,242,61,0.3);font-size:11.5px;font-weight:700;color:#c9f76a;">
+            <span class="k-dot k-ping" style="width:6px;height:6px;background:#b5f23d;"></span>
+            <span class="k-num">{{listenTime}}</span>
+          </div>
+          <div style="margin-top:26px;height:86px;display:flex;align-items:center;gap:3px;">
+            <sc-for list="{{bars}}" as="b" hint-placeholder-count="36">
+              <span class="as-bar" style="{{b.style}}"></span>
+            </sc-for>
+          </div>
+          <div style="margin-top:22px;font-size:15px;font-weight:700;letter-spacing:-0.01em;">Listening… release to send</div>
+          <div style="margin-top:4px;font-size:11.5px;color:#8e8e93;">Speech is transcribed on this Mac.</div>
+          <div style="margin-top:22px;align-self:stretch;min-height:96px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.035);border:1px dashed rgba(181,242,61,0.28);font-size:13.5px;line-height:21px;color:#ffffff;">
+            <div class="k-label" style="font-size:9.5px;color:#8e8e93;margin-bottom:5px;">TRANSCRIPT</div>
+            <sc-for list="{{words}}" as="w" hint-placeholder-count="6"><span class="as-word" style="{{w.style}}">{{w.t}} </span></sc-for><span class="as-caret k-blink"></span>
+          </div>
+        </div>
+        <div class="as-foot">
+          <div class="k-field as-input" style="border-color:rgba(181,242,61,0.45);box-shadow:0 0 0 4px rgba(181,242,61,0.1);background:#121410;">
+            <div style="flex-grow:1;display:flex;align-items:center;gap:8px;font-size:13px;color:#c9f76a;">
+              <div style="display:flex;align-items:center;gap:2px;height:16px;">
+                <span class="as-bar" style="height:14px;width:3px;animation-duration:0.8s;"></span>
+                <span class="as-bar" style="height:16px;width:3px;animation-duration:1.1s;animation-delay:-0.3s;"></span>
+                <span class="as-bar" style="height:12px;width:3px;animation-duration:0.9s;animation-delay:-0.5s;"></span>
+                <span class="as-bar" style="height:15px;width:3px;animation-duration:1.2s;animation-delay:-0.2s;"></span>
+              </div>
+              Listening…
+            </div>
+            <button class="as-mic as-mic-on" aria-label="Release to send" aria-pressed="true"><span class="as-miccring"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg></button>
+            <button class="as-send k-off" aria-label="Send">↵</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+        <button class="as-bubble" aria-label="Komodo Assistant, listening"><span class="as-bring"></span><span class="as-bring as-bring2"></span><svg width="19" height="19" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></button>
+      </div>
+    </div>
+
+    <!-- 3 THINKING -->
+    <div class="as-col">
+      <div class="as-cap"><span class="k-label">3 · THINKING</span><span class="k-label" style="color:#8e8e93;">SKELETON SHIMMER</span></div>
+      <div class="sg k-pop as-pop k-pop-in" style="--sg:53 212 131;">
+        <div class="as-head">
+          <span class="as-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></span>
+          <span style="font-size:14px;font-weight:700;">Assistant</span>
+          <span class="as-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+          <div style="flex-grow:1;"></div>
+          <button class="k-icon" aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <div class="as-body">
+          <div class="as-you">You · 2:14 PM</div>
+          <div class="as-bub k-pop-in">tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva</div>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:8px;">
+            <span class="k-chip k-chip-green" style="gap:7px;">
+              <span class="as-spin"></span>
+              Thinking on this Mac
+            </span>
+            <span style="font-size:11px;color:#8e8e93;">Apple on-device model</span>
+          </div>
+          <div class="as-sk" style="margin-top:14px;width:120px;height:10px;border-radius:5px;"></div>
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <div class="as-skrow">
+              <div class="as-sk" style="width:18px;height:18px;border-radius:6px;flex-shrink:0;"></div>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:8px;">
+                <div class="as-sk" style="width:62%;height:12px;"></div>
+                <div style="display:flex;gap:6px;"><div class="as-sk" style="width:110px;height:18px;"></div><div class="as-sk" style="width:44px;height:18px;"></div></div>
+              </div>
+            </div>
+            <div class="as-skrow">
+              <div class="as-sk" style="width:18px;height:18px;border-radius:6px;flex-shrink:0;animation-delay:-0.2s;"></div>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:8px;">
+                <div class="as-sk" style="width:78%;height:12px;animation-delay:-0.2s;"></div>
+                <div style="display:flex;gap:6px;"><div class="as-sk" style="width:56px;height:18px;animation-delay:-0.2s;"></div><div class="as-sk" style="width:44px;height:18px;animation-delay:-0.2s;"></div></div>
+              </div>
+            </div>
+            <div class="as-skrow">
+              <div class="as-sk" style="width:18px;height:18px;border-radius:6px;flex-shrink:0;animation-delay:-0.4s;"></div>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:8px;">
+                <div class="as-sk" style="width:50%;height:12px;animation-delay:-0.4s;"></div>
+                <div style="display:flex;gap:6px;"><div class="as-sk" style="width:70px;height:18px;animation-delay:-0.4s;"></div><div class="as-sk" style="width:52px;height:18px;animation-delay:-0.4s;"></div></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex-grow:1;"></div>
+          <div style="display:flex;justify-content:space-between;">
+            <div class="as-sk" style="width:84px;height:34px;border-radius:10px;"></div>
+            <div class="as-sk" style="width:84px;height:34px;border-radius:10px;"></div>
+          </div>
+        </div>
+        <div class="as-foot">
+          <label class="k-field as-input">
+            <input aria-label="Message the assistant" placeholder="Type or hold mic to talk…">
+            <button class="as-mic" aria-label="Hold to talk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg></button>
+            <button class="as-send" aria-label="Stop"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"></rect></svg></button>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+        <button class="as-bubble" aria-label="Komodo Assistant"><svg width="19" height="19" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></button>
+      </div>
+    </div>
+
+    <!-- 4 PROPOSAL -->
+    <div class="as-col">
+      <div class="as-cap"><span class="k-label">4 · PROPOSAL</span><span class="k-label" style="color:#c9f76a;">INTERACTIVE · UNTICK OR EDIT</span></div>
+      <div class="sg k-pop as-pop k-pop-in" style="--sg:181 242 61;">
+        <div class="as-head">
+          <span class="as-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></span>
+          <span style="font-size:14px;font-weight:700;">Assistant</span>
+          <span class="as-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+          <div style="flex-grow:1;"></div>
+          <button class="k-icon" aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <div class="as-body">
+          <div class="as-you">You · 2:14 PM</div>
+          <div class="as-bub">tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva</div>
+
+          <sc-if value="{{pShow}}" hint-placeholder-val="{{true}}">
+            <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;">
+              <span class="k-label" style="color:#c9f76a;">PROPOSED (3)</span>
+              <span style="font-size:11px;color:#8e8e93;">Click to edit · untick to leave out</span>
+            </div>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+              <sc-for list="{{props}}" as="p" hint-placeholder-count="3">
+                <div class="sg as-row k-enter {{p.rowCls}}" style="--sg:181 242 61;--i:{{p.i}};">
+                  <button class="k-check {{p.checkCls}}" role="checkbox" aria-checked="{{p.aria}}" aria-label="{{p.label}}" onClick="{{p.toggle}}" style="margin-top:2px;">
+                    <sc-if value="{{p.on}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if>
+                  </button>
+                  <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:5px;">
+                    <input class="as-title" aria-label="Task title" value="{{p.title}}" onInput="{{p.edit}}" onChange="{{p.edit}}">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9px;background:{{p.color}};color:{{p.glyph}};">{{p.list}}</span>
+                      <button class="as-ed" style="{{p.whenStyle}}">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>{{p.when}}
+                      </button>
+                      <button class="as-ed k-num" style="background:rgba(255,255,255,0.06);color:#c7c7cc;">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{p.est}}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="position:absolute;left:14px;right:14px;bottom:12px;display:flex;align-items:center;gap:8px;">
+              <button class="k-btn k-soft" onClick="{{discard}}">Discard</button>
+              <div style="flex-grow:1;font-size:11px;color:#8e8e93;text-align:center;">Undo anytime</div>
+              <button class="k-btn k-primary {{addCls}}" style="min-width:92px;" onClick="{{add}}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                {{addLabel}}
+              </button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{pAdded}}" hint-placeholder-val="{{false}}">
+            <div class="sg k-pop-in" style="--sg:53 212 131;margin-top:14px;padding:14px;border-radius:14px;background:rgba(53,212,131,0.08);border:1px solid rgba(53,212,131,0.3);display:flex;align-items:center;gap:10px;">
+              <span style="width:26px;height:26px;border-radius:50%;background:#35d483;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px -4px rgba(53,212,131,0.8);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#04150c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+              <span style="flex-grow:1;font-size:14px;font-weight:700;color:#5fe3a1;">{{addedMsg}}</span>
+              <button class="k-btn k-btn-sm k-soft" onClick="{{undo}}">Undo</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{pDiscarded}}" hint-placeholder-val="{{false}}">
+            <div class="k-pop-in" style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+              <span style="flex-grow:1;font-size:13px;color:#c7c7cc;">Discarded. Nothing changed.</span>
+              <button class="k-btn k-btn-sm k-soft" onClick="{{undo}}">Show again</button>
+            </div>
+          </sc-if>
+        </div>
+        <div class="as-foot">
+          <label class="k-field as-input">
+            <input aria-label="Message the assistant" placeholder="Type or hold mic to talk…">
+            <button class="as-mic" aria-label="Hold to talk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg></button>
+            <button class="as-send" aria-label="Send">↵</button>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+        <button class="as-bubble" aria-label="Komodo Assistant"><svg width="19" height="19" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></button>
+      </div>
+    </div>
+
+    <!-- 5 APPLIED -->
+    <div class="as-col">
+      <div class="as-cap"><span class="k-label" style="color:#5fe3a1;">5 · APPLIED</span><span class="k-label" style="color:#8e8e93;">ROWS COLLAPSE TO CHIPS</span></div>
+      <div class="sg k-pop as-pop k-pop-in" style="--sg:53 212 131;">
+        <div class="as-head">
+          <span class="as-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></span>
+          <span style="font-size:14px;font-weight:700;">Assistant</span>
+          <span class="as-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+          <div style="flex-grow:1;"></div>
+          <button class="k-icon" aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <div class="as-body">
+          <div class="as-you">You · 2:14 PM</div>
+          <div class="as-bub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva</div>
+
+          <div class="sg k-pop-in" style="--sg:53 212 131;margin-top:16px;padding:14px;border-radius:16px;background:radial-gradient(120% 90% at 0% 0%,rgba(53,212,131,0.16),transparent 60%),rgba(53,212,131,0.05);border:1px solid rgba(53,212,131,0.32);box-shadow:0 0 40px -18px rgba(53,212,131,0.7);display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="width:30px;height:30px;border-radius:50%;background:#35d483;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px -4px rgba(53,212,131,0.9);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#04150c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:1px;">
+                <div style="font-size:15px;font-weight:800;letter-spacing:-0.01em;color:#5fe3a1;">Added 3 tasks</div>
+                <div style="font-size:11.5px;color:#a1a1a6;">2 to Personal · 1 to Work</div>
+              </div>
+              <button class="k-btn k-btn-sm k-soft" style="gap:6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>
+                Undo
+              </button>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+              <span class="as-okchip as-drop" style="--i:0;"><span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9px;background:#2dd9c4;color:#04141a;">P</span>Gym<span style="color:#8fbaff;">· Tomorrow 7:00 AM</span></span>
+              <span class="as-okchip as-drop" style="--i:1;"><span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9px;background:#b5f23d;color:#06110a;">W</span>Finish the deck<span style="color:#8fbaff;">· Fri</span></span>
+              <span class="as-okchip as-drop" style="--i:2;"><span class="k-badge" style="width:18px;height:18px;border-radius:5px;font-size:9px;background:#2dd9c4;color:#04141a;">P</span>Call Apurva<span style="color:#c9f76a;">· Today</span></span>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;display:flex;align-items:flex-start;gap:9px;">
+            <span class="as-mark" style="width:22px;height:22px;border-radius:7px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path></svg></span>
+            <div style="font-size:13px;line-height:19px;color:#c7c7cc;">Done. Call Apurva is in Today's Focus queue. Anything else?</div>
+          </div>
+          <div style="flex-grow:1;"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="sg as-sug" style="--sg:181 242 61;height:30px;font-size:12px;">Plan tomorrow</button>
+            <button class="sg as-sug" style="--sg:181 242 61;height:30px;font-size:12px;"><span>Start <span class="as-at">@Call Apurva</span></span></button>
+          </div>
+        </div>
+        <div class="as-foot">
+          <label class="k-field as-input">
+            <input aria-label="Message the assistant" placeholder="Type or hold mic to talk…">
+            <button class="as-mic" aria-label="Hold to talk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg></button>
+            <button class="as-send" aria-label="Send">↵</button>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+        <button class="as-bubble" aria-label="Komodo Assistant"><svg width="19" height="19" viewBox="0 0 24 24" fill="#06110a"><path d="M11 3.5 12.8 8.7 18 10.5l-5.2 1.8L11 17.5l-1.8-5.2L4 10.5l5.2-1.8Z"></path><path d="M18.5 14.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"></path></svg></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2000,"height":776}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.words = 'tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva'.split(' ');
+    this.barList = [];
+    for (var i = 0; i < 36; i++) {
+      var x = (i - 17.5) / 17.5;
+      var env = Math.max(0.28, 1 - x * x * 0.8);
+      var h = Math.round(22 + env * 62 * (0.6 + ((i * 37) % 10) / 25));
+      var dur = (0.7 + ((i * 53) % 7) / 10).toFixed(2);
+      var del = (-((i * 29) % 13) / 10).toFixed(2);
+      this.barList.push({ style: 'height:' + Math.min(86, h) + 'px;animation-duration:' + dur + 's;animation-delay:' + del + 's;' });
+    }
+    this.state = {
+      t: 5,
+      rows: [
+        { title: 'Gym', when: 'Tomorrow 7:00 AM', est: '1hr', list: 'P', color: '#2dd9c4', glyph: '#04141a', tone: 'blue', on: true },
+        { title: 'Finish the deck', when: 'Fri', est: '3hr', list: 'W', color: '#b5f23d', glyph: '#06110a', tone: 'blue', on: true },
+        { title: 'Call Apurva', when: 'Today', est: '15min', list: 'P', color: '#2dd9c4', glyph: '#04141a', tone: 'lime', on: true }
+      ],
+      mode: 'proposal',
+      addedN: 0
+    };
+  }
+  componentDidMount() {
+    var self = this;
+    this.iv = setInterval(function () {
+      var t = self.state.t + 1;
+      if (t > self.words.length + 7) t = 0;
+      self.setState({ t: t });
+    }, 380);
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var shown = Math.min(s.t, this.words.length);
+    var words = [];
+    for (var i = 0; i < shown; i++) {
+      var last = i === shown - 1 && shown < this.words.length;
+      words.push({ t: this.words[i], style: last ? 'color:#c9f76a;' : '' });
+    }
+    var secs = Math.floor(s.t * 0.38);
+    var count = s.rows.filter(function (r) { return r.on; }).length;
+    var props = s.rows.map(function (r, k) {
+      return {
+        i: k + 1,
+        title: r.title, when: r.when, est: r.est, list: r.list, color: r.color, glyph: r.glyph,
+        on: r.on,
+        aria: r.on ? 'true' : 'false',
+        label: 'Include ' + r.title,
+        rowCls: r.on ? '' : 'as-row-off',
+        checkCls: r.on ? 'k-check-on' : '',
+        whenStyle: r.tone === 'lime' ? 'background:rgba(181,242,61,0.12);color:#c9f76a;' : 'background:rgba(77,141,255,0.12);color:#8fbaff;',
+        toggle: function () {
+          var rows = self.state.rows.map(function (x, j) { return j === k ? Object.assign({}, x, { on: !x.on }) : x; });
+          self.setState({ rows: rows });
+        },
+        edit: function (e) {
+          var v = e.target.value;
+          if (v === self.state.rows[k].title) return;
+          var rows = self.state.rows.map(function (x, j) { return j === k ? Object.assign({}, x, { title: v }) : x; });
+          self.setState({ rows: rows });
+        }
+      };
+    });
+    return {
+      bars: this.barList,
+      words: words,
+      listenTime: '0:' + (secs < 10 ? '0' : '') + secs,
+      props: props,
+      pShow: s.mode === 'proposal',
+      pAdded: s.mode === 'added',
+      pDiscarded: s.mode === 'discarded',
+      addLabel: count ? 'Add ' + count : 'Add',
+      addCls: count ? '' : 'k-off',
+      addedMsg: 'Added ' + s.addedN + (s.addedN === 1 ? ' task' : ' tasks'),
+      add: function () {
+        var n = self.state.rows.filter(function (r) { return r.on; }).length;
+        if (!n) return;
+        self.setState({ mode: 'added', addedN: n });
+      },
+      discard: function () { self.setState({ mode: 'discarded' }); },
+      undo: function () { self.setState({ mode: 'proposal' }); },
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

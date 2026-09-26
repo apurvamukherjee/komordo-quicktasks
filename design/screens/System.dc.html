@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — System surfaces</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.sy-h{display:flex;align-items:center;gap:10px;}
+.sy-idx{font-size:11px;font-weight:600;color:#b5f23d;}
+.sy-ref{font-size:11.5px;color:#8e8e93;}
+.sy-rule{flex-grow:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.12),transparent);}
+.sy-cap{font-size:10.5px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;}
+.sy-desk{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);}
+.sy-mbar{position:relative;z-index:2;height:26px;display:flex;align-items:center;gap:4px;padding:0 8px;font-size:13px;font-weight:500;color:#ffffff;background:rgba(18,18,20,0.62);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border-bottom:1px solid rgba(255,255,255,0.05);white-space:nowrap;}
+.sy-mbi{height:22px;padding:0 7px;border-radius:5px;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
+.sy-mbi-on{background:rgba(255,255,255,0.2);}
+.sy-menu{padding:5px;font-size:13px;color:#e5e5ea;display:flex;flex-direction:column;}
+.sy-mi{display:flex;align-items:center;gap:8px;width:100%;height:24px;padding:0 9px;border-radius:6px;text-align:left;font-size:13px;color:#e5e5ea;transition:background 140ms ease,color 140ms ease;}
+.sy-mi:hover{background:rgba(45,217,196,0.2);color:#ffffff;}
+.sy-mi svg{flex-shrink:0;color:#a1a1a6;}
+.sy-mi:hover svg{color:#ffffff;}
+.sy-mi-off{color:#5a5a5f;pointer-events:none;}
+.sy-mi-off svg{color:#5a5a5f;}
+.sy-mk{margin-left:auto;padding-left:16px;font-size:12.5px;color:#8e8e93;letter-spacing:0.03em;white-space:nowrap;}
+.sy-sep{height:1px;margin:5px 9px;background:rgba(255,255,255,0.08);flex-shrink:0;}
+.sy-mh{padding:5px 9px 3px;font-size:11.5px;font-weight:600;color:#a1a1a6;}
+.sy-stat{display:flex;align-items:center;gap:8px;padding:2px 9px 4px 11px;font-size:12px;color:#c7c7cc;}
+.sy-ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.sy-prog{height:3px;border-radius:99px;background:rgba(255,255,255,0.08);}
+.sy-prog div{height:100%;border-radius:99px;background:linear-gradient(90deg,#2dd9c4,#b5f23d);box-shadow:0 0 10px rgba(181,242,61,0.7);transition:width 900ms var(--ease);}
+.sy-glyph{display:block;}
+.sy-grid{background-color:rgba(255,255,255,0.02);background-image:linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:6px 6px;}
+.sy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:30px;border-radius:10px;overflow:hidden;}
+.sy-cell{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:500;}
+.sy-ico{position:relative;border-radius:22.5%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sy-ico-dark{background:radial-gradient(120% 90% at 30% 8%,#2c2c30,#171717 58%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),inset 0 0 0 1px rgba(255,255,255,0.05),0 10px 26px -10px rgba(0,0,0,0.9);}
+.sy-ico-light{background:linear-gradient(180deg,#ffffff,#e9e9ec);box-shadow:inset 0 -1px 0 rgba(0,0,0,0.06),0 10px 26px -10px rgba(0,0,0,0.9);}
+.sy-ico-tint{background:linear-gradient(180deg,#3b3b40,#1d1d20);box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 10px 26px -10px rgba(0,0,0,0.9);}
+.sy-ibeam{position:relative;padding:2px;border-radius:44px;background:conic-gradient(from var(--k-a),rgba(255,255,255,0.05) 0deg,#2dd9c4 50deg,#b5f23d 105deg,rgba(255,255,255,0.05) 170deg,rgba(255,255,255,0.05) 360deg);animation:k-spin 7s linear infinite;}
+.sy-halo{position:absolute;inset:-34px;border-radius:50%;background:radial-gradient(closest-side,rgba(181,242,61,0.34),rgba(45,217,196,0.16) 55%,transparent);filter:blur(18px);animation:sy-glow 3.6s ease-in-out infinite;pointer-events:none;}
+@keyframes sy-glow{0%,100%{opacity:0.7;transform:scale(0.96);}50%{opacity:1;transform:scale(1.04);}}
+.sy-note{display:flex;gap:11px;padding:12px 14px 12px 12px;border-radius:18px;background:rgba(40,40,44,0.72);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 40px -18px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform 260ms var(--spring);}
+.sy-note:hover{transform:translateY(-2px);}
+.sy-nb{height:26px;padding:0 12px;border-radius:8px;background:rgba(255,255,255,0.1);font-size:12px;font-weight:600;color:#ffffff;transition:background 140ms ease,transform 160ms var(--spring);}
+.sy-nb:hover{background:rgba(255,255,255,0.18);}
+.sy-nb:active{transform:scale(0.95);}
+.sy-nb-p{background:rgb(var(--sg) / 0.26);box-shadow:inset 0 0 0 1px rgb(var(--sg) / 0.4);}
+.sy-nb-p:hover{background:rgb(var(--sg) / 0.38);}
+.sy-bn{display:flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 12px;border-radius:10px;font-size:12.5px;font-weight:500;}
+.sy-bn-d{background:rgba(255,61,90,0.12);border:1px solid rgba(255,92,122,0.32);color:#ffd0d8;}
+.sy-bn-w{background:rgba(255,181,71,0.1);border:1px solid rgba(255,181,71,0.3);color:#ffe2b8;}
+.sy-bn-i{background:rgba(77,141,255,0.11);border:1px solid rgba(77,141,255,0.32);color:#d6e4ff;}
+.sy-bb{height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:700;flex-shrink:0;transition:filter 140ms ease,transform 160ms var(--spring),background 140ms ease;}
+.sy-bb:hover{filter:brightness(1.1);}
+.sy-bb:active{transform:scale(0.95);}
+.sy-x{width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease;}
+.sy-x:hover{background:rgba(255,255,255,0.1);color:#ffffff;}
+.sy-toast{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px 0 12px;border-radius:12px;background:linear-gradient(180deg,#1f1f23,#19191c);border:1px solid rgba(255,255,255,0.1);box-shadow:0 18px 36px -14px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);font-size:13px;color:#e5e5ea;}
+.sy-ta{height:28px;padding:0 10px;border-radius:8px;font-size:12.5px;font-weight:700;color:#c9f76a;transition:background 140ms ease;}
+.sy-ta:hover{background:rgba(181,242,61,0.12);}
+.sy-drain{position:absolute;left:14px;right:14px;bottom:3px;height:2px;border-radius:2px;background:rgba(255,255,255,0.06);}
+.sy-drain div{height:100%;border-radius:2px;background:linear-gradient(90deg,#2dd9c4,#b5f23d);box-shadow:0 0 8px rgba(181,242,61,0.7);transform-origin:left center;animation:sy-drain 5s linear infinite;}
+@keyframes sy-drain{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+.sy-stack{position:relative;width:380px;height:168px;}
+.sy-stack .sy-toast{position:absolute;left:0;right:0;bottom:0;transition:transform 420ms var(--spring),opacity 260ms ease;}
+.sy-t1{z-index:3;}
+.sy-t2{z-index:2;transform:translateY(-9px) scale(0.95);opacity:0.75;}
+.sy-t3{z-index:1;transform:translateY(-18px) scale(0.9);opacity:0.5;}
+.sy-stack:hover .sy-t2{transform:translateY(-52px);opacity:1;}
+.sy-stack:hover .sy-t3{transform:translateY(-104px);opacity:1;}
+.sy-dock{display:flex;align-items:flex-end;gap:8px;padding:6px 8px;border-radius:20px;background:rgba(44,44,48,0.5);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.12);}
+.sy-di{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#ffffff;}
+.sy-skel{height:8px;border-radius:4px;background:rgba(255,255,255,0.06);}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="box-sizing:border-box;width:1600px;height:2431px;background:radial-gradient(1100px 620px at 92% -8%,rgba(45,217,196,0.07),transparent 60%),radial-gradient(900px 700px at -5% 105%,rgba(139,124,255,0.06),transparent 60%),#000000;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 50px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.08);padding:44px 48px 48px;display:flex;flex-direction:column;gap:38px;">
+
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+      <linearGradient id="syRingG" gradientUnits="userSpaceOnUse" x1="22" y1="18" x2="80" y2="86"><stop offset="0" stop-color="#2dd9c4"></stop><stop offset="1" stop-color="#b5f23d"></stop></linearGradient>
+      <linearGradient id="syRingL" gradientUnits="userSpaceOnUse" x1="22" y1="18" x2="80" y2="86"><stop offset="0" stop-color="#12b3a0"></stop><stop offset="1" stop-color="#7fc41c"></stop></linearGradient>
+      <linearGradient id="syRingM" gradientUnits="userSpaceOnUse" x1="22" y1="18" x2="80" y2="86"><stop offset="0" stop-color="#ffffff"></stop><stop offset="1" stop-color="#b9b9c0"></stop></linearGradient>
+      <mask id="syCut" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#ffffff"></rect><circle cx="19.2" cy="5.2" r="5" fill="#000000"></circle></mask>
+    </defs>
+  </svg>
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="k-label" style="color:#b5f23d;">SYSTEM SURFACES · P0</div>
+      <h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-0.03em;">Menu bar, notifications, menus &amp; icons</h1>
+      <div style="font-size:13px;color:#a1a1a6;">Everything Komodo draws outside its own windows, plus in-window banners and toasts. Spec rows 30–34 · DESIGN_SYSTEM §6.1, §14.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="k-chip">macOS 14+ · native menus</span>
+      <span class="k-chip k-chip-green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+      <span class="k-chip k-num">Sat Sep 26 · 2:14 PM</span>
+    </div>
+  </header>
+
+  <!-- 01 MENU BAR MENU -->
+  <section style="display:flex;flex-direction:column;gap:14px;">
+    <div class="sy-h"><span class="sy-idx k-mono">01</span><span class="k-label" style="color:#ffffff;">MENU BAR MENU</span><span class="sy-ref">§14.1 · click the Komodo item in the menu bar</span><span class="sy-rule"></span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;">
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="sy-cap">IDLE · NO TIMER RUNNING</div>
+        <div class="sy-desk" style="height:352px;background:radial-gradient(90% 70% at 85% 0%,rgba(45,217,196,0.26),transparent 60%),radial-gradient(80% 70% at 0% 100%,rgba(139,124,255,0.3),transparent 62%),linear-gradient(160deg,#0f1319,#07080b);">
+          <div class="sy-mbar">
+            <span class="sy-mbi"><svg width="13" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8C7 7.5 5.5 8.4 4.7 9.9c-1.6 2.8-.4 6.9 1.1 9.2.8 1.1 1.7 2.3 2.8 2.3s1.6-.7 3-.7 1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.4-.9-2.1-3.9ZM14.3 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-1 2.7 1 .1 2-.5 2.7-1.3Z"></path></svg></span>
+            <span class="sy-mbi" style="font-weight:700;">Finder</span><span class="sy-mbi">File</span><span class="sy-mbi">Edit</span><span class="sy-mbi">View</span>
+            <span style="flex-grow:1;"></span>
+            <span class="sy-mbi sy-mbi-on" aria-label="Komodo menu bar item"><svg class="sy-glyph" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></svg></span>
+            <span class="sy-mbi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a4.8 4.8 0 0 1 6.4 0"></path><circle cx="12" cy="19.2" r="0.6" fill="#ffffff"></circle></svg></span>
+            <span class="sy-mbi"><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="0.75" y="0.75" width="21.5" height="11.5" rx="3.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"></rect><rect x="2.6" y="2.6" width="14" height="7.8" rx="2" fill="#ffffff"></rect><path d="M24 4.5v4" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round"></path></svg></span>
+            <span class="sy-mbi k-num" style="font-size:12.5px;">Sat 2:14 PM</span>
+          </div>
+          <div class="k-pop sg sy-menu k-pop-in" style="--sg:45 217 196;position:absolute;top:31px;right:10px;width:296px;">
+            <div class="sy-mh" style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg>Gmail → Calendar</div>
+            <div class="sy-stat"><span class="k-dot k-ping" style="background:#35d483;"></span>Checked 1 min ago · 3 added today</div>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"></path></svg>Scan now</button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg>Pause scanning</button>
+            <div class="sy-sep"></div>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"></rect><path d="M9 4.5v15"></path></svg>Open Komodo<span class="sy-mk">⌘⇧B</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"></path><circle cx="15" cy="6" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>Settings…<span class="sy-mk">⌘,</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg>Quit Komodo<span class="sy-mk">⌘Q</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="sy-cap">TIMER RUNNING · TIME SHOWS IN THE MENU BAR</div>
+        <div class="sy-desk" style="height:352px;background:radial-gradient(90% 70% at 85% 0%,rgba(181,242,61,0.2),transparent 60%),radial-gradient(80% 70% at 0% 100%,rgba(45,217,196,0.26),transparent 62%),linear-gradient(160deg,#0e1512,#07080b);">
+          <div class="sy-mbar">
+            <span class="sy-mbi"><svg width="13" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8C7 7.5 5.5 8.4 4.7 9.9c-1.6 2.8-.4 6.9 1.1 9.2.8 1.1 1.7 2.3 2.8 2.3s1.6-.7 3-.7 1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.4-.9-2.1-3.9ZM14.3 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-1 2.7 1 .1 2-.5 2.7-1.3Z"></path></svg></span>
+            <span class="sy-mbi" style="font-weight:700;">Finder</span><span class="sy-mbi">File</span><span class="sy-mbi">Edit</span>
+            <span style="flex-grow:1;"></span>
+            <span class="sy-mbi sy-mbi-on" aria-label="Komodo menu bar item, timer running">
+              <svg class="sy-glyph" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M10 2.8h4"></path><path d="M12 13.5V9.2A4.3 4.3 0 0 1 16.1 15Z" fill="#ffffff" stroke="none"></path></svg>
+              <span class="k-num" style="font-size:12.5px;font-weight:600;">{{remain}}</span>
+            </span>
+            <span class="sy-mbi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a4.8 4.8 0 0 1 6.4 0"></path><circle cx="12" cy="19.2" r="0.6" fill="#ffffff"></circle></svg></span>
+            <span class="sy-mbi"><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="0.75" y="0.75" width="21.5" height="11.5" rx="3.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"></rect><rect x="2.6" y="2.6" width="14" height="7.8" rx="2" fill="#ffffff"></rect><path d="M24 4.5v4" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round"></path></svg></span>
+            <span class="sy-mbi k-num" style="font-size:12.5px;">Sat 2:14 PM</span>
+          </div>
+          <div class="k-pop sg sy-menu k-pop-in" style="--sg:181 242 61;position:absolute;top:31px;right:10px;width:304px;">
+            <div style="display:flex;flex-direction:column;gap:9px;padding:7px 9px 9px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#b5f23d" style="flex-shrink:0;filter:drop-shadow(0 0 6px rgba(181,242,61,0.7));"><path d="M7 4.5v15l12-7.5Z"></path></svg>
+                <div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:600;color:#ffffff;">Design review prep with Apurva</div>
+                <div class="k-num" style="font-size:14px;font-weight:700;color:#c9f76a;text-shadow:0 0 14px rgba(181,242,61,0.55);">{{remain}}</div>
+              </div>
+              <div class="sy-prog"><div style="{{barStyle}}"></div></div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;">
+                <button class="k-btn k-btn-sm k-soft"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg>Pause</button>
+                <button class="k-btn k-btn-sm k-primary"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Done</button>
+                <button class="k-btn k-btn-sm k-soft"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5v15l11-7.5Z"></path><path d="M19 5v14"></path></svg>Skip</button>
+              </div>
+            </div>
+            <div class="sy-sep"></div>
+            <div class="sy-mh" style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg>Gmail → Calendar</div>
+            <div class="sy-stat"><span class="k-dot k-ping" style="background:#35d483;"></span>Checked 1 min ago · 3 added today</div>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"></path></svg>Scan now</button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg>Pause scanning</button>
+            <div class="sy-sep"></div>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"></rect><path d="M9 4.5v15"></path></svg>Open Komodo<span class="sy-mk">⌘⇧B</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"></path><circle cx="15" cy="6" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>Settings…<span class="sy-mk">⌘,</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg>Quit Komodo<span class="sy-mk">⌘Q</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="sy-cap">NEEDS RECONNECT · ICON SWITCHES TO ATTENTION SHAPE</div>
+        <div class="sy-desk" style="height:352px;background:radial-gradient(90% 70% at 85% 0%,rgba(255,61,90,0.2),transparent 60%),radial-gradient(80% 70% at 0% 100%,rgba(139,124,255,0.24),transparent 62%),linear-gradient(160deg,#150d11,#07080b);">
+          <div class="sy-mbar">
+            <span class="sy-mbi"><svg width="13" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8C7 7.5 5.5 8.4 4.7 9.9c-1.6 2.8-.4 6.9 1.1 9.2.8 1.1 1.7 2.3 2.8 2.3s1.6-.7 3-.7 1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.4-.9-2.1-3.9ZM14.3 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-1 2.7 1 .1 2-.5 2.7-1.3Z"></path></svg></span>
+            <span class="sy-mbi" style="font-weight:700;">Finder</span><span class="sy-mbi">File</span><span class="sy-mbi">Edit</span><span class="sy-mbi">View</span>
+            <span style="flex-grow:1;"></span>
+            <span class="sy-mbi sy-mbi-on" aria-label="Komodo menu bar item, needs attention"><svg class="sy-glyph" width="17" height="17" viewBox="0 0 24 24" fill="none"><g mask="url(#syCut)" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></g><circle cx="19.2" cy="5.2" r="3" fill="#ffffff"></circle></svg></span>
+            <span class="sy-mbi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a4.8 4.8 0 0 1 6.4 0"></path><circle cx="12" cy="19.2" r="0.6" fill="#ffffff"></circle></svg></span>
+            <span class="sy-mbi"><svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="0.75" y="0.75" width="21.5" height="11.5" rx="3.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"></rect><rect x="2.6" y="2.6" width="14" height="7.8" rx="2" fill="#ffffff"></rect><path d="M24 4.5v4" stroke="rgba(255,255,255,0.55)" stroke-width="1.6" stroke-linecap="round"></path></svg></span>
+            <span class="sy-mbi k-num" style="font-size:12.5px;">Sat 2:14 PM</span>
+          </div>
+          <div class="k-pop sg sy-menu k-pop-in" style="--sg:255 61 90;position:absolute;top:31px;right:10px;width:296px;">
+            <div class="sy-mh" style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg>Gmail → Calendar</div>
+            <div class="sy-stat" style="color:#ff8a9e;font-weight:600;"><span class="k-dot" style="background:#ff3d5a;box-shadow:0 0 8px rgba(255,61,90,0.9);"></span>Google disconnected</div>
+            <div style="padding:0 9px 6px 26px;font-size:11.5px;color:#a1a1a6;">Reconnect to keep adding events.</div>
+            <button class="sy-mi" style="color:#ff8a9e;font-weight:600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 4v5h-5M20 12a8 8 0 0 1-14 5.3M4 20v-5h5"></path></svg>Reconnect…</button>
+            <button class="sy-mi sy-mi-off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"></path></svg>Scan now</button>
+            <div class="sy-sep"></div>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"></rect><path d="M9 4.5v15"></path></svg>Open Komodo<span class="sy-mk">⌘⇧B</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"></path><circle cx="15" cy="6" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>Settings…<span class="sy-mk">⌘,</span></button>
+            <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8M6.3 6.8a8 8 0 1 0 11.4 0"></path></svg>Quit Komodo<span class="sy-mk">⌘Q</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 + 03 ICONS -->
+  <div style="display:grid;grid-template-columns:minmax(0,0.78fr) minmax(0,1fr);gap:20px;">
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">02</span><span class="k-label" style="color:#ffffff;">MENU BAR ICON</span><span class="sy-ref">§6.1 · template image · 18×18 pt @1x/@2x</span><span class="sy-rule"></span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
+        <div class="k-tile sg" style="--sg:45 217 196;padding:14px;display:flex;flex-direction:column;gap:12px;">
+          <div class="sy-grid" style="height:112px;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></svg>
+          </div>
+          <div><div style="font-size:13px;font-weight:600;">Idle</div><div style="font-size:11.5px;color:#8e8e93;margin-top:2px;">The mark: open ring, hand, crown</div></div>
+        </div>
+        <div class="k-tile sg" style="--sg:181 242 61;padding:14px;display:flex;flex-direction:column;gap:12px;">
+          <div class="sy-grid" style="height:112px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M10 2.8h4"></path><path d="M12 13.5V9.2A4.3 4.3 0 0 1 16.1 15Z" fill="#ffffff" stroke="none"></path></svg>
+            <span class="k-num" style="font-size:30px;font-weight:600;letter-spacing:-0.01em;">09:27</span>
+          </div>
+          <div><div style="font-size:13px;font-weight:600;">Running + time</div><div style="font-size:11.5px;color:#8e8e93;margin-top:2px;">Filled wedge + remaining, SF mono digits</div></div>
+        </div>
+        <div class="k-tile sg" style="--sg:255 61 90;padding:14px;display:flex;flex-direction:column;gap:12px;">
+          <div class="sy-grid" style="height:112px;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <svg width="72" height="72" viewBox="0 0 24 24" fill="none"><g mask="url(#syCut)" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></g><circle cx="19.2" cy="5.2" r="3" fill="#ffffff"></circle></svg>
+          </div>
+          <div><div style="font-size:13px;font-weight:600;">Attention</div><div style="font-size:11.5px;color:#8e8e93;margin-top:2px;">Dot cut into the top-right, 2 pt gap</div></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">DARK MENU BAR</div>
+        <div class="sy-strip" style="background:rgba(30,30,33,0.92);border:1px solid rgba(255,255,255,0.08);color:#ffffff;">
+          <div class="sy-cell"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></svg></div>
+          <div class="sy-cell" style="border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M10 2.8h4"></path><path d="M12 13.5V9.2A4.3 4.3 0 0 1 16.1 15Z" fill="currentColor" stroke="none"></path></svg><span class="k-num" style="font-size:12.5px;font-weight:600;">09:27</span></div>
+          <div class="sy-cell"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><g mask="url(#syCut)" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></g><circle cx="19.2" cy="5.2" r="3" fill="currentColor"></circle></svg></div>
+        </div>
+        <div class="sy-cap" style="margin-top:4px;">LIGHT MENU BAR</div>
+        <div class="sy-strip" style="background:#e8e8eb;border:1px solid rgba(255,255,255,0.3);color:rgba(0,0,0,0.86);">
+          <div class="sy-cell"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></svg></div>
+          <div class="sy-cell" style="border-left:1px solid rgba(0,0,0,0.08);border-right:1px solid rgba(0,0,0,0.08);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M10 2.8h4"></path><path d="M12 13.5V9.2A4.3 4.3 0 0 1 16.1 15Z" fill="currentColor" stroke="none"></path></svg><span class="k-num" style="font-size:12.5px;font-weight:600;">09:27</span></div>
+          <div class="sy-cell"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><g mask="url(#syCut)" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5 14.6 10.4M10 2.8h4M12 2.8v2.4"></path></g><circle cx="19.2" cy="5.2" r="3" fill="currentColor"></circle></svg></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:6px;font-size:11.5px;color:#8e8e93;">
+          <span style="width:12px;height:12px;border-radius:3px;background:linear-gradient(90deg,#000000 50%,#ffffff 50%);border:1px solid rgba(255,255,255,0.3);"></span>
+          BLACK + ALPHA ONLY · MACOS TINTS IT · STATES DIFFER BY SHAPE, NEVER COLOR
+        </div>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">03</span><span class="k-label" style="color:#ffffff;">APP ICON</span><span class="sy-ref">§6.1 · 1024 master · Icon Composer on macOS 26+ · AppIcon set for 14–15</span><span class="sy-rule"></span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
+        <div class="k-tile sg" style="--sg:181 242 61;height:268px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(80% 70% at 50% 40%,rgba(45,217,196,0.08),transparent 70%),rgba(255,255,255,0.03);">
+          <div style="position:relative;">
+            <div class="sy-halo"></div>
+            <div class="sy-ibeam">
+              <div class="sy-ico sy-ico-dark" style="width:172px;height:172px;border-radius:42px;">
+                <svg width="132" height="132" viewBox="0 0 100 100" fill="none" stroke-linecap="round" style="filter:drop-shadow(0 0 10px rgba(181,242,61,0.55)) drop-shadow(0 0 22px rgba(45,217,196,0.3));">
+                  <circle cx="50" cy="56" r="27" stroke="rgba(255,255,255,0.06)" stroke-width="10"></circle>
+                  <circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="10" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle>
+                  <path d="M50 56 60.9 43" stroke="url(#syRingG)" stroke-width="8"></path>
+                  <path d="M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="8"></path>
+                  <circle cx="50" cy="56" r="5" fill="#b5f23d" stroke="none"></circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="sy-cap" style="color:#c9f76a;">DARK · DEFAULT · GLOW + BEAM</div>
+        </div>
+        <div class="k-tile sg" style="--sg:45 217 196;height:268px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+          <div class="sy-ico sy-ico-light" style="width:172px;height:172px;border-radius:42px;margin:2px;">
+            <svg width="132" height="132" viewBox="0 0 100 100" fill="none" stroke-linecap="round">
+              <circle cx="50" cy="56" r="27" stroke="rgba(0,0,0,0.06)" stroke-width="10"></circle>
+              <circle cx="50" cy="56" r="27" stroke="url(#syRingL)" stroke-width="10" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle>
+              <path d="M50 56 60.9 43" stroke="#171717" stroke-width="8"></path>
+              <path d="M42 16h16M50 16v8" stroke="#171717" stroke-width="8"></path>
+              <circle cx="50" cy="56" r="5" fill="#171717" stroke="none"></circle>
+            </svg>
+          </div>
+          <div class="sy-cap">LIGHT APPEARANCE</div>
+        </div>
+        <div class="k-tile sg" style="--sg:139 124 255;height:268px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+          <div class="sy-ico sy-ico-tint" style="width:172px;height:172px;border-radius:42px;margin:2px;">
+            <svg width="132" height="132" viewBox="0 0 100 100" fill="none" stroke-linecap="round">
+              <circle cx="50" cy="56" r="27" stroke="rgba(255,255,255,0.08)" stroke-width="10"></circle>
+              <circle cx="50" cy="56" r="27" stroke="url(#syRingM)" stroke-width="10" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle>
+              <path d="M50 56 60.9 43" stroke="url(#syRingM)" stroke-width="8"></path>
+              <path d="M42 16h16M50 16v8" stroke="url(#syRingM)" stroke-width="8"></path>
+              <circle cx="50" cy="56" r="5" fill="#ffffff" stroke="none"></circle>
+            </svg>
+          </div>
+          <div class="sy-cap">TINTED · MONO</div>
+        </div>
+      </div>
+      <div class="k-tile" style="padding:14px 18px;display:flex;align-items:flex-end;gap:26px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="sy-ico sy-ico-dark" style="width:64px;height:64px;"><svg width="50" height="50" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="10" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="8"></path><circle cx="50" cy="56" r="5" fill="#b5f23d"></circle></svg></div>
+          <div class="k-mono" style="font-size:10.5px;color:#8e8e93;">64 · Dock</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div class="k-mono" style="font-size:10.5px;color:#8e8e93;">38 · alerts</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="sy-ico sy-ico-dark" style="width:32px;height:32px;"><svg width="25" height="25" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="12" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="10"></path></svg></div>
+          <div class="k-mono" style="font-size:10.5px;color:#8e8e93;">32</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="sy-ico sy-ico-dark" style="width:16px;height:16px;"><svg width="13" height="13" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="14" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16" stroke="url(#syRingG)" stroke-width="12"></path></svg></div>
+          <div class="k-mono" style="font-size:10.5px;color:#8e8e93;">16</div>
+        </div>
+        <div style="flex-grow:1;"></div>
+        <div style="display:flex;flex-direction:column;gap:4px;text-align:right;font-size:11.5px;color:#8e8e93;">
+          <div><span class="k-mono" style="color:#c7c7cc;">#171717</span> body · ring <span class="k-mono" style="color:#5ce6d4;">#2DD9C4</span> → <span class="k-mono" style="color:#c9f76a;">#B5F23D</span></div>
+          <div>Ring gap sits under the crown · stroke thickens below 32 pt</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 04 NOTIFICATIONS -->
+  <section style="display:flex;flex-direction:column;gap:14px;">
+    <div class="sy-h"><span class="sy-idx k-mono">04</span><span class="k-label" style="color:#ffffff;">NOTIFICATIONS</span><span class="sy-ref">§14.2 · UNUserNotificationCenter · buttons show with the Alerts style · Gmail → Calendar is silent</span><span class="sy-rule"></span></div>
+    <div class="sy-desk" style="padding:24px;background:radial-gradient(70% 90% at 100% 0%,rgba(77,141,255,0.22),transparent 60%),radial-gradient(60% 90% at 0% 100%,rgba(181,242,61,0.12),transparent 60%),radial-gradient(50% 60% at 50% 50%,rgba(139,124,255,0.12),transparent 70%),linear-gradient(160deg,#0d1017,#06070a);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 20px;">
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">SCHEDULED REMINDER</div>
+        <div class="sy-note sg" style="--sg:77 141 255;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Design review</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+            <div style="font-size:13px;color:#e5e5ea;">Starts now</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Start now</button><button class="sy-nb">Snooze 5 min</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">BREAK OVER</div>
+        <div class="sy-note sg" style="--sg:53 212 131;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Break's over</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+            <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">Back to Design review prep with Apurva?</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Resume</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">TIME'S UP · PANEL HIDDEN</div>
+        <div class="sy-note sg" style="--sg:255 61 90;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Time's up</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+            <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">Design review prep with Apurva · 1hr estimate</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">+5 min</button><button class="sy-nb">Done</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">GMAIL ADDED · SINGLE</div>
+        <div class="sy-note sg" style="--sg:181 242 61;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Added to calendar</div><div style="font-size:11.5px;color:#a1a1a6;">1m ago</div></div>
+            <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">Design review · Thu 3:00 PM</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Open</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">GMAIL ADDED · BATCHED (ONE SCAN, 3+)</div>
+        <div style="position:relative;padding-bottom:14px;">
+          <div style="position:absolute;left:20px;right:20px;bottom:0;height:40px;border-radius:16px;background:rgba(40,40,44,0.45);border:1px solid rgba(255,255,255,0.06);"></div>
+          <div style="position:absolute;left:10px;right:10px;bottom:7px;height:40px;border-radius:17px;background:rgba(40,40,44,0.6);border:1px solid rgba(255,255,255,0.08);"></div>
+          <div class="sy-note sg" style="--sg:181 242 61;">
+            <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+            <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+              <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Added to calendar</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+              <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">3 events added from Gmail</div>
+              <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Open</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">GMAIL NEEDS YOU</div>
+        <div class="sy-note sg" style="--sg:255 61 90;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Reconnect Google</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+            <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">Gmail → Calendar is paused</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Reconnect</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">BACKUP FAILED</div>
+        <div class="sy-note sg" style="--sg:255 181 71;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Backup failed</div><div style="font-size:11.5px;color:#a1a1a6;">2:00 PM</div></div>
+            <div class="sy-ell" style="font-size:13px;color:#e5e5ea;">Folder not found</div>
+            <div style="display:flex;gap:6px;margin-top:9px;"><button class="sy-nb sy-nb-p">Open Settings</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="sy-cap" style="color:#a1a1a6;">BANNERS STYLE · NO BUTTONS</div>
+        <div class="sy-note sg" style="--sg:77 141 255;">
+          <div class="sy-ico sy-ico-dark" style="width:38px;height:38px;"><svg width="30" height="30" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:baseline;gap:8px;"><div class="sy-ell" style="flex-grow:1;font-size:13px;font-weight:700;">Design review</div><div style="font-size:11.5px;color:#a1a1a6;">now</div></div>
+            <div style="font-size:13px;color:#e5e5ea;">Starts now</div>
+            <div style="font-size:11.5px;color:#a1a1a6;margin-top:5px;">Click opens the task · onboarding recommends Alerts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 BANNERS + 06 TOASTS -->
+  <div style="display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);gap:20px;">
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">05</span><span class="k-label" style="color:#ffffff;">BANNERS</span><span class="sy-ref">§14.4 · 36 pt · full width above the Home window content</span><span class="sy-rule"></span></div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">DANGER · STAYS UNTIL FIXED OR CLOSED</div>
+        <div class="sy-bn sy-bn-d sg" style="--sg:255 61 90;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 4 2.5 20h19Z"></path><path d="M12 10v4.5M12 17.4v.2"></path></svg>
+          <div class="sy-ell" style="flex-grow:1;">Google disconnected. Reconnect to keep adding events.</div>
+          <button class="sy-bb" style="background:#ff3d5a;color:#1a0207;box-shadow:0 6px 16px -8px rgba(255,61,90,0.9);">Reconnect</button>
+          <button class="sy-x" aria-label="Close banner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">WARNING · DISMISS IS THE CLOSE ACTION</div>
+        <div class="sy-bn sy-bn-w sg" style="--sg:255 181 71;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffb547" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a4.8 4.8 0 0 1 6.4 0M12 19.5v.1M3 3l18 18"></path></svg>
+          <div class="sy-ell" style="flex-grow:1;">You're offline. Everything still works, and Gmail will catch up when you're back.</div>
+          <button class="sy-bb" style="background:rgba(255,181,71,0.16);color:#ffc978;box-shadow:inset 0 0 0 1px rgba(255,181,71,0.36);">Dismiss</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">INFO · UPDATE READY</div>
+        <div class="sy-bn sy-bn-i sg" style="--sg:77 141 255;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4d8dff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v8M8.5 12.5 12 16l3.5-3.5"></path></svg>
+          <div class="sy-ell" style="flex-grow:1;">Komodo 1.1 is ready.</div>
+          <button class="sy-bb" style="background:rgba(77,141,255,0.2);color:#bcd4ff;box-shadow:inset 0 0 0 1px rgba(77,141,255,0.45);">Install and Relaunch</button>
+          <button class="sy-x" aria-label="Close banner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">IN CONTEXT · EDGE TO EDGE UNDER THE TOOLBAR</div>
+        <div class="k-win" style="height:176px;display:flex;flex-direction:column;">
+          <div style="height:40px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span class="k-tl" style="background:#ff5f57;"></span><span class="k-tl" style="background:#febc2e;"></span><span class="k-tl" style="background:#28c840;"></span>
+            <div style="width:170px;height:22px;margin-left:120px;border-radius:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:6px;padding:0 8px;font-size:11px;color:#8e8e93;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Search tasks…</div>
+            <div style="flex-grow:1;"></div>
+            <div style="width:62px;height:22px;border-radius:7px;background:linear-gradient(120deg,#2dd9c4,#b5f23d);opacity:0.9;"></div>
+          </div>
+          <div class="sy-bn sg" style="--sg:255 61 90;flex-shrink:0;border-radius:0;background:rgba(255,61,90,0.12);border-bottom:1px solid rgba(255,92,122,0.28);color:#ffd0d8;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 4 2.5 20h19Z"></path><path d="M12 10v4.5M12 17.4v.2"></path></svg>
+            <div class="sy-ell" style="flex-grow:1;">Google disconnected. Reconnect to keep adding events.</div>
+            <button class="sy-bb" style="background:#ff3d5a;color:#1a0207;">Reconnect</button>
+            <button class="sy-x" aria-label="Close banner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+          </div>
+          <div style="flex-grow:1;display:grid;grid-template-columns:120px repeat(3,minmax(0,1fr));gap:12px;padding:14px;">
+            <div style="display:flex;flex-direction:column;gap:8px;"><div class="sy-skel" style="width:70%;"></div><div class="sy-skel" style="width:90%;"></div><div class="sy-skel" style="width:60%;"></div></div>
+            <div style="border-radius:12px;background:rgba(139,124,255,0.05);border:1px solid rgba(139,124,255,0.12);"></div>
+            <div style="border-radius:12px;background:rgba(77,141,255,0.05);border:1px solid rgba(77,141,255,0.12);"></div>
+            <div style="border-radius:12px;background:rgba(181,242,61,0.05);border:1px solid rgba(181,242,61,0.16);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">06</span><span class="k-label" style="color:#ffffff;">TOASTS</span><span class="sy-ref">bottom center · 5 s · max 3 stacked</span><span class="sy-rule"></span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">UNDO · LINE DRAINS OVER 5 S</div>
+        <div class="sy-toast sg" style="--sg:181 242 61;">
+          <span style="width:20px;height:20px;border-radius:50%;background:#35d483;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#03160b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+          <div class="sy-ell" style="flex-grow:1;">Task completed</div>
+          <button class="sy-ta">Undo</button><span class="k-kbd">⌘Z</span>
+          <button class="sy-x" aria-label="Dismiss toast"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+          <div class="sy-drain"><div></div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">INFO</div>
+        <div class="sy-toast sg" style="--sg:56 200 255;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38c8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"></path></svg>
+          <div class="sy-ell" style="flex-grow:1;">Backup saved <span style="color:#8e8e93;">· komodo-backup-2026-09-26.zip</span></div>
+          <button class="sy-ta">Show in Finder</button>
+          <button class="sy-x" aria-label="Dismiss toast"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">ERROR</div>
+        <div class="sy-toast sg" style="--sg:255 61 90;border-color:rgba(255,92,122,0.3);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.4v.2"></path></svg>
+          <div class="sy-ell" style="flex-grow:1;">Couldn't reach Google</div>
+          <button class="sy-ta">Retry</button>
+          <button class="sy-x" aria-label="Dismiss toast"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="sy-cap">STACKED · MAX 3 · HOVER THE STACK TO FAN OUT</div>
+        <div class="k-win" style="height:236px;position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:18px;background:radial-gradient(70% 60% at 50% 100%,rgba(181,242,61,0.06),transparent 70%),#0a0a0c;">
+          <div style="position:absolute;top:16px;left:16px;right:16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;opacity:0.55;">
+            <div style="height:54px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);"></div>
+            <div style="height:54px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);"></div>
+            <div style="height:54px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);"></div>
+          </div>
+          <div class="sy-stack">
+            <div class="sy-toast sg sy-t3" style="--sg:255 61 90;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.4v.2"></path></svg>
+              <div class="sy-ell" style="flex-grow:1;">Couldn't reach Google</div><button class="sy-ta">Retry</button>
+            </div>
+            <div class="sy-toast sg sy-t2" style="--sg:56 200 255;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38c8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"></path></svg>
+              <div class="sy-ell" style="flex-grow:1;">Backup saved</div><button class="sy-ta">Show in Finder</button>
+            </div>
+            <div class="sy-toast sg sy-t1" style="--sg:181 242 61;">
+              <span style="width:20px;height:20px;border-radius:50%;background:#35d483;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#03160b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+              <div class="sy-ell" style="flex-grow:1;">Task completed</div><button class="sy-ta">Undo</button><span class="k-kbd">⌘Z</span>
+              <div class="sy-drain"><div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 07 APP MENUS + 08 DOCK MENU -->
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;">
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">07</span><span class="k-label" style="color:#ffffff;">APP MENUS</span><span class="sy-ref">§14.3 · SwiftUI .commands · File and Focus open</span><span class="sy-rule"></span></div>
+      <div class="sy-desk" style="height:352px;background:radial-gradient(70% 90% at 90% 0%,rgba(45,217,196,0.16),transparent 60%),radial-gradient(60% 80% at 10% 100%,rgba(139,124,255,0.16),transparent 60%),linear-gradient(160deg,#0e1117,#06070a);">
+        <div class="sy-mbar" style="gap:2px;">
+          <span class="sy-mbi"><svg width="13" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8C7 7.5 5.5 8.4 4.7 9.9c-1.6 2.8-.4 6.9 1.1 9.2.8 1.1 1.7 2.3 2.8 2.3s1.6-.7 3-.7 1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.4-.9-2.1-3.9ZM14.3 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-1 2.7 1 .1 2-.5 2.7-1.3Z"></path></svg></span>
+          <span class="sy-mbi" style="font-weight:700;">Komodo</span>
+          <span class="sy-mbi sy-mbi-on">File</span>
+          <span class="sy-mbi">Edit</span>
+          <span class="sy-mbi">View</span>
+          <span class="sy-mbi sy-mbi-on">Focus</span>
+          <span class="sy-mbi">Window</span>
+          <span class="sy-mbi">Help</span>
+          <span style="flex-grow:1;"></span>
+          <span class="sy-mbi" aria-label="Komodo menu bar item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M10 2.8h4"></path><path d="M12 13.5V9.2A4.3 4.3 0 0 1 16.1 15Z" fill="#ffffff" stroke="none"></path></svg><span class="k-num" style="font-size:12.5px;font-weight:600;">{{remain}}</span></span>
+          <span class="sy-mbi k-num" style="font-size:12.5px;">Sat 2:14 PM</span>
+        </div>
+        <div style="position:relative;display:flex;align-items:flex-start;gap:16px;padding:6px 14px 0;">
+          <div style="display:flex;flex-direction:column;gap:10px;width:204px;flex-shrink:0;">
+            <div class="k-pop sg sy-menu" style="--sg:45 217 196;">
+              <button class="sy-mi">About Komodo</button>
+              <button class="sy-mi">Check for Updates…</button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi">Settings…<span class="sy-mk">⌘,</span></button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi">Hide Komodo<span class="sy-mk">⌘H</span></button>
+              <button class="sy-mi">Quit Komodo<span class="sy-mk">⌘Q</span></button>
+            </div>
+            <div class="sy-cap">KOMODO</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;width:240px;flex-shrink:0;">
+            <div class="k-pop sg sy-menu k-pop-in" style="--sg:181 242 61;">
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>New Task<span class="sy-mk">⌘⌥T</span></button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="2"></rect><path d="M17 14v6M14 17h6"></path></svg>New List</button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>Export Backup…</button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>Restore from Backup…</button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>Close Window<span class="sy-mk">⌘W</span></button>
+            </div>
+            <div class="sy-cap" style="color:#c9f76a;">FILE · OPEN</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;width:226px;flex-shrink:0;">
+            <div class="k-pop sg sy-menu" style="--sg:77 141 255;">
+              <button class="sy-mi">Board<span class="sy-mk">⌘1</span></button>
+              <button class="sy-mi">Reports<span class="sy-mk">⌘2</span></button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi">Search<span class="sy-mk">⌘F</span></button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi">Show Sidebar<span class="sy-mk">⌃⌘S</span></button>
+              <button class="sy-mi">Enter Full Screen</button>
+            </div>
+            <div class="sy-cap">VIEW</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;width:278px;flex-shrink:0;">
+            <div class="k-pop sg sy-menu k-pop-in" style="--sg:181 242 61;">
+              <button class="sy-mi sy-mi-off"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg>Start</button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg>Pause<span class="sy-mk">⌘⌥P</span></button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Done<span class="sy-mk">⌘⌥F</span></button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5v15l11-7.5Z"></path><path d="M19 5v14"></path></svg>Skip<span class="sy-mk">⌘⌥S</span></button>
+              <div class="sy-sep"></div>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><rect x="11" y="12" width="7" height="4" rx="1.5"></rect></svg>Toggle Panel/Timer<span class="sy-mk">⌘⇧T</span></button>
+              <button class="sy-mi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="7.5" stroke-dasharray="3 3"></circle></svg>Find Timer<span class="sy-mk">⌘⇧P</span></button>
+            </div>
+            <div class="sy-cap" style="color:#c9f76a;">FOCUS · OPEN · PAUSE ↔ RESUME WHILE LIVE</div>
+          </div>
+          <div class="k-tile sg" style="--sg:139 124 255;flex-grow:1;min-width:0;padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div class="sy-cap" style="color:#c7c7cc;">EDIT · WINDOW</div>
+              <div style="font-size:12px;color:#a1a1a6;margin-top:4px;line-height:1.45;">Standard items from SwiftUI</div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,0.07);"></div>
+            <div>
+              <div class="sy-cap" style="color:#c7c7cc;">HELP</div>
+              <div style="font-size:12px;color:#e5e5ea;margin-top:5px;line-height:1.7;">Keyboard Shortcuts<br>Save Diagnostics…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:14px;">
+      <div class="sy-h"><span class="sy-idx k-mono">08</span><span class="k-label" style="color:#ffffff;">DOCK MENU</span><span class="sy-ref">right-click the Dock icon</span><span class="sy-rule"></span></div>
+      <div class="sy-desk" style="height:352px;background:radial-gradient(90% 70% at 50% 110%,rgba(45,217,196,0.2),transparent 60%),radial-gradient(70% 60% at 100% 0%,rgba(139,124,255,0.18),transparent 60%),linear-gradient(170deg,#0e1016,#06070a);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:18px;">
+        <div class="k-pop sg sy-menu k-pop-in" style="--sg:181 242 61;position:absolute;left:52px;bottom:84px;width:212px;">
+          <button class="sy-mi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Komodo — Work</button>
+          <div class="sy-sep"></div>
+          <button class="sy-mi sy-mi-off"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg>Start</button>
+          <button class="sy-mi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg>Pause</button>
+          <button class="sy-mi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>New task</button>
+          <div class="sy-sep"></div>
+          <button class="sy-mi" style="padding-left:29px;">Options<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><path d="m9 6 6 6-6 6"></path></svg></button>
+          <div class="sy-sep"></div>
+          <button class="sy-mi" style="padding-left:29px;">Show All Windows</button>
+          <button class="sy-mi" style="padding-left:29px;">Hide</button>
+          <button class="sy-mi" style="padding-left:29px;">Quit</button>
+        </div>
+        <div class="sy-dock">
+          <div class="sy-di" style="background:linear-gradient(180deg,#5b6070,#3a3e4a);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"></path></svg></div>
+          <div class="sy-di" style="background:linear-gradient(180deg,#4a4f5c,#2d3038);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></div>
+          <div style="position:relative;">
+            <div class="sy-ico sy-ico-dark" style="width:46px;height:46px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 0 0 2px rgba(255,255,255,0.22),0 0 22px -4px rgba(181,242,61,0.6);"><svg width="36" height="36" viewBox="0 0 100 100" fill="none" stroke-linecap="round"><circle cx="50" cy="56" r="27" stroke="url(#syRingG)" stroke-width="11" stroke-dasharray="129.6 40" transform="rotate(-58 50 56)"></circle><path d="M50 56 60.9 43M42 16h16M50 16v8" stroke="url(#syRingG)" stroke-width="9"></path></svg></div>
+            <span style="position:absolute;left:21px;bottom:-7px;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.85);"></span>
+          </div>
+          <div class="sy-di" style="background:linear-gradient(180deg,#4a4f5c,#2d3038);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></div>
+          <div style="width:1px;height:40px;background:rgba(255,255,255,0.14);margin:0 2px 3px;"></div>
+          <div class="sy-di" style="background:rgba(255,255,255,0.08);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"></path></svg></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":2431}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { remain: 3623 };
+  }
+  componentDidMount() {
+    var self = this;
+    this.iv = setInterval(function () {
+      var r = self.state.remain - 1;
+      self.setState({ remain: r < 0 ? 3623 : r });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  pad(n) { return (n < 10 ? '0' : '') + n; }
+  renderVals() {
+    var r = this.state.remain;
+    var h = Math.floor(r / 3600), m = Math.floor((r % 3600) / 60), s = r % 60;
+    var pct = Math.max(0, Math.min(1, 1 - r / 7200));
+    return {
+      remain: (h > 0 ? this.pad(h) + ':' : '') + this.pad(m) + ':' + this.pad(s),
+      barStyle: 'width:' + (pct * 100).toFixed(1) + '%;',
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var rc = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - rc.left) / rc.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - rc.top) / rc.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

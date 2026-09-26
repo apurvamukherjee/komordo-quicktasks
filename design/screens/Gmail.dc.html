@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Gmail → Calendar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.k .k-btn{padding:0 14px;font-size:13px;font-weight:600;}
+.k .k-btn-sm{padding:0 10px;font-size:12px;}
+.k .k-btn-lg{padding:0 20px;font-size:14px;}
+.k .k-primary{background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;}
+.k .k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;}
+.k .k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k .k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k .k-ghost{color:#c7c7cc;}
+.k .k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k .k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k .k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k .k-act{color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.k .k-act:hover{background:rgba(255,255,255,0.14);color:#ffffff;}
+.k .k-seg-b{padding:0 12px;color:#a1a1a6;font-size:12.5px;font-weight:600;}
+.k .k-seg-b:hover{color:#ffffff;}
+.k .k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;}
+.k .k-tog{background:rgba(255,255,255,0.14);}
+.k .k-tog-on{background:#35d483;}
+
+.gm-sh{display:flex;align-items:center;gap:14px;}
+.gm-sl{width:34px;height:34px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#06110a;background:linear-gradient(135deg,#2dd9c4,#b5f23d);box-shadow:0 8px 22px -8px rgba(181,242,61,0.7);flex-shrink:0;}
+.gm-rule{flex-grow:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.12),rgba(255,255,255,0.02));}
+.gm-cols{display:grid;grid-template-columns:720px 720px;column-gap:64px;align-items:start;}
+.gm-col{display:flex;flex-direction:column;gap:28px;}
+.gm-v{display:flex;flex-direction:column;gap:10px;}
+.gm-cap{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.gm-ix{color:#c9f76a;}
+.gm-pn{border-radius:20px;background:linear-gradient(180deg,#101013,#0a0a0c);border:1px solid rgba(255,255,255,0.075);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 30px 60px -34px rgba(0,0,0,0.95);padding:22px 24px;transition:box-shadow 300ms ease,border-color 200ms ease;}
+.gm-pn:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 30px 70px -40px rgb(var(--sg) / 0.55);}
+.gm-logo{position:relative;width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,rgba(255,138,106,0.2),rgba(255,138,106,0.06));border:1px solid rgba(255,138,106,0.3);color:#ff8a6a;}
+.gm-logo-cal{position:absolute;right:-5px;bottom:-5px;width:17px;height:17px;border-radius:6px;background:#4d8dff;color:#030a1a;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0c0c0e;}
+.gm-mac{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:7px;background:rgba(53,212,131,0.12);color:#5fe3a1;font-size:11px;font-weight:600;white-space:nowrap;}
+.gm-ck{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(53,212,131,0.16);color:#5fe3a1;box-shadow:inset 0 0 0 1px rgba(53,212,131,0.35);}
+.gm-pl{display:flex;align-items:flex-start;gap:11px;font-size:13.5px;line-height:20px;color:#e5e5ea;}
+.gm-cal{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);font-size:12px;font-weight:600;color:#e5e5ea;white-space:nowrap;vertical-align:1px;}
+.gm-sw{width:9px;height:9px;border-radius:3px;display:inline-block;flex-shrink:0;}
+.gm-link{display:inline-flex;align-items:center;gap:3px;color:#5ce6d4;font-weight:600;text-decoration:none;transition:color 140ms ease;}
+.gm-link:hover{color:#8ff2e4;text-decoration:underline;text-underline-offset:3px;}
+.gm-div{height:1px;background:rgba(255,255,255,0.07);}
+.gm-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,0.07);}
+.gm-fill{position:relative;height:100%;border-radius:99px;overflow:hidden;background:linear-gradient(90deg,#2dd9c4,#b5f23d);box-shadow:0 0 16px -2px rgba(181,242,61,0.7);transition:width 260ms var(--ease);}
+.gm-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,0.65) 50%,transparent 80%);background-size:60px 100%;background-repeat:no-repeat;animation:gm-sheen 1.3s linear infinite;}
+@keyframes gm-sheen{from{background-position:-60px 0;}to{background-position:calc(100% + 60px) 0;}}
+.gm-indet{position:relative;width:90px;height:4px;border-radius:99px;background:rgba(45,217,196,0.14);overflow:hidden;}
+.gm-indet::after{content:"";position:absolute;top:0;bottom:0;width:36px;border-radius:99px;background:linear-gradient(90deg,transparent,#2dd9c4,transparent);animation:gm-slide 1.2s var(--ease) infinite;}
+@keyframes gm-slide{from{left:-36px;}to{left:90px;}}
+.gm-spin{animation:k-rot 0.9s linear infinite;}
+.gm-hollow{width:8px;height:8px;border-radius:50%;border:1.5px solid #8e8e93;flex-shrink:0;display:inline-block;}
+.gm-err{background:linear-gradient(180deg,rgba(255,61,90,0.08),rgba(255,61,90,0.02)),#0b0a0b;border-color:rgba(255,92,122,0.26);}
+.gm-erri{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,61,90,0.14);color:#ff8a9e;box-shadow:inset 0 0 0 1px rgba(255,92,122,0.3);}
+.gm-note{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border-radius:12px;font-size:12.5px;line-height:18px;}
+.gm-note-green{background:rgba(53,212,131,0.06);border:1px solid rgba(53,212,131,0.16);color:#c7c7cc;}
+.gm-note-amber{background:rgba(255,181,71,0.07);border:1px solid rgba(255,181,71,0.24);color:#ffc978;}
+.gm-note-info{background:rgba(56,200,255,0.06);border:1px solid rgba(56,200,255,0.18);color:#c7c7cc;}
+.gm-seg-claude{background:rgba(255,181,71,0.16) !important;color:#ffc978 !important;box-shadow:inset 0 0 0 1px rgba(255,181,71,0.3) !important;}
+.gm-fr{display:flex;align-items:center;gap:16px;padding:14px 22px;}
+.gm-fl{flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.gm-ft{font-size:13.5px;font-weight:600;color:#ffffff;}
+.gm-fd{font-size:12px;color:#8e8e93;line-height:17px;}
+.gm-grp{margin:0 22px;font-size:10.5px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;padding:16px 0 4px;}
+.k .gm-pick{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 8px 0 11px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:12.5px;font-weight:600;color:#ffffff;transition:background 140ms ease;}
+.k .gm-pick:hover{background:rgba(255,255,255,0.11);}
+.gm-tokf{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:38px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease;}
+.gm-tokf:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);}
+.gm-tokf input{flex-grow:1;min-width:120px;background:transparent;border:0;outline:0;color:#ffffff;font-size:12.5px;}
+.gm-tok{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 5px 0 9px;border-radius:7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);font-size:12px;font-weight:600;color:#e5e5ea;white-space:nowrap;}
+.gm-tok-bad{background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.45);color:#ff8a9e;text-decoration:underline wavy rgba(255,92,122,0.7);text-underline-offset:3px;}
+.gm-tokx{width:16px;height:16px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:#8e8e93;}
+.gm-tokx:hover{background:rgba(255,255,255,0.12);color:#ffffff;}
+.gm-q{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;background:#060607;border:1px solid rgba(255,255,255,0.09);font-size:12px;line-height:19px;color:#c9f76a;}
+.k .gm-fc{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:8px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);color:#a1a1a6;font-size:12px;font-weight:600;white-space:nowrap;transition:background 140ms ease,color 140ms ease,border-color 140ms ease,transform 160ms var(--spring);}
+.k .gm-fc:hover{color:#ffffff;background:rgba(255,255,255,0.08);}
+.k .gm-fc:active{transform:scale(0.94);}
+.gm-fcn{font-size:10.5px;font-weight:700;color:#8e8e93;font-variant-numeric:tabular-nums;}
+.gm-th{display:grid;grid-template-columns:86px 84px minmax(0,1fr) 92px 150px 62px;align-items:center;gap:0 8px;height:30px;padding:0 10px;font-size:10.5px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;border-bottom:1px solid rgba(255,255,255,0.07);}
+.gm-row{display:grid;grid-template-columns:86px 84px minmax(0,1fr) 92px 150px 62px;align-items:center;gap:0 8px;height:40px;padding:0 10px;border-radius:10px;font-size:12.5px;color:#c7c7cc;transition:background 140ms ease;}
+.gm-row:hover{background:rgba(255,255,255,0.05);}
+.gm-rv{display:flex;justify-content:flex-end;gap:4px;opacity:0;transform:translateX(6px);transition:opacity 160ms ease,transform 220ms var(--ease);}
+.gm-row:hover .gm-rv{opacity:1;transform:none;}
+.gm-ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.gm-av{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#04141a;background:linear-gradient(135deg,#2dd9c4,#8b7cff);flex-shrink:0;}
+.k .gm-mini{width:26px;height:26px;border-radius:8px;}
+.gm-orow{display:grid;grid-template-columns:minmax(0,1fr) 92px 150px;align-items:center;gap:0 8px;height:40px;padding:0 10px;border-radius:10px;font-size:12.5px;color:#c7c7cc;}
+.gm-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
+.gm-et{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,rgba(45,217,196,0.14),rgba(255,255,255,0.03));border:1px solid rgba(45,217,196,0.25);color:#5ce6d4;margin-bottom:6px;}
+.gm-tile{padding:14px 14px 13px;border-radius:16px;display:flex;flex-direction:column;gap:4px;}
+.gm-rk{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:start;gap:14px;}
+.gm-toast{position:relative;display:flex;align-items:center;gap:10px;height:42px;padding:0 8px 0 14px;border-radius:12px;background:#1c1c1f;border:1px solid rgba(255,255,255,0.1);box-shadow:0 18px 40px -12px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);font-size:12.5px;color:#e5e5ea;white-space:nowrap;overflow:hidden;}
+.gm-tbar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:linear-gradient(90deg,#2dd9c4,#b5f23d);transform-origin:left;animation:gm-count 5s linear forwards;}
+@keyframes gm-count{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+.k .gm-undo{height:28px;padding:0 10px;border-radius:8px;color:#c9f76a;font-weight:700;font-size:12.5px;transition:background 140ms ease;}
+.k .gm-undo:hover{background:rgba(181,242,61,0.14);}
+.gm-collapse{animation:gm-coll 340ms var(--ease) forwards;pointer-events:none;}
+@keyframes gm-coll{0%{opacity:1;max-height:220px;transform:none;}40%{opacity:0;transform:scale(0.97) translateX(18px);}100%{opacity:0;max-height:0;padding-top:0;padding-bottom:0;margin-top:-12px;border-width:0;transform:scale(0.97) translateX(18px);}}
+.gm-back{animation:gm-back 420ms var(--spring) backwards;}
+@keyframes gm-back{from{opacity:0;transform:translateY(-8px) scale(0.97);}to{opacity:1;transform:none;}}
+.gm-ev{font-style:italic;color:#a1a1a6;font-size:13px;line-height:19px;padding-left:11px;border-left:2px solid rgba(255,181,71,0.45);}
+.gm-spark{position:absolute;border-radius:50%;animation:gm-tw 2.6s ease-in-out infinite;pointer-events:none;}
+@keyframes gm-tw{0%,100%{opacity:0.25;transform:scale(0.7);}50%{opacity:1;transform:scale(1.15);}}
+.gm-popck{animation:gm-pop 700ms var(--spring) both;}
+@keyframes gm-pop{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);}}
+.gm-step{padding:14px 16px;border-radius:16px;display:flex;align-items:flex-start;gap:12px;}
+.gm-stn{width:24px;height:24px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;flex-shrink:0;background:rgba(255,255,255,0.07);color:#e5e5ea;border:1px solid rgba(255,255,255,0.1);}
+.gm-mi{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border-radius:8px;font-size:12.5px;color:#e5e5ea;transition:background 120ms ease;}
+.gm-mi:hover{background:rgba(255,255,255,0.08);}
+.gm-pf{display:flex;align-items:center;gap:10px;height:34px;padding:0 11px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-size:12.5px;color:#e5e5ea;}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="box-sizing:border-box;width:1600px;height:4340px;position:relative;overflow:hidden;background:radial-gradient(900px 520px at 12% -4%,rgba(45,217,196,0.09),transparent 62%),radial-gradient(800px 600px at 96% 18%,rgba(77,141,255,0.06),transparent 60%),radial-gradient(900px 700px at 20% 70%,rgba(181,242,61,0.035),transparent 60%),#000000;padding:48px;display:flex;flex-direction:column;gap:44px;">
+
+  <!-- HEADER -->
+  <div data-m="header" style="display:flex;flex-direction:column;gap:26px;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="k-label" style="color:#c9f76a;">GMAIL → CALENDAR · P0</div>
+        <h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-0.03em;">The first feature: email plans itself</h1>
+        <div style="font-size:13px;color:#a1a1a6;">Settings → Gmail → Calendar · connect, status, settings, activity, review · Komodo only reads Gmail, never changes it.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <div class="k-label" style="font-size:10px;color:#8e8e93;">OUTCOME + STATUS CHIPS</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="k-chip k-chip-green">Added</span>
+          <span class="k-chip k-chip-amber">Review</span>
+          <span class="k-chip k-chip-outline">No event</span>
+          <span class="k-chip k-chip-outline">Skipped</span>
+          <span class="k-chip k-chip-red">Error</span>
+          <span class="k-chip" style="color:#5ce6d4;"><span class="k-dot k-ping" style="width:6px;height:6px;background:#2dd9c4;"></span>Scanning</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;">
+      <div class="sg k-card gm-step k-enter" style="--i:0;--sg:45 217 196;">
+        <span class="gm-stn">1</span>
+        <div style="display:flex;flex-direction:column;gap:3px;"><div style="font-size:13px;font-weight:700;">Connect Google</div><div style="font-size:12px;color:#8e8e93;line-height:17px;">Exactly two permissions: read email, manage Komodo's own calendars.</div></div>
+      </div>
+      <div class="sg k-card gm-step k-enter" style="--i:1;--sg:181 242 61;">
+        <span class="gm-stn">2</span>
+        <div style="display:flex;flex-direction:column;gap:5px;"><div style="font-size:13px;font-weight:700;">Two calendars appear</div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="gm-cal"><i class="gm-sw" style="background:#b5f23d;"></i>Komodo · From Gmail</span><span class="gm-cal"><i class="gm-sw" style="background:#ffb547;"></i>Komodo · Review</span></div></div>
+      </div>
+      <div class="sg k-card gm-step k-enter" style="--i:2;--sg:77 141 255;">
+        <span class="gm-stn">3</span>
+        <div style="display:flex;flex-direction:column;gap:3px;"><div style="font-size:13px;font-weight:700;">First scan: last 3 days</div><div style="font-size:12px;color:#8e8e93;line-height:17px;">Ends with a summary: added, to review, skipped.</div></div>
+      </div>
+      <div class="sg k-card gm-step k-enter" style="--i:3;--sg:53 212 131;">
+        <span class="gm-stn">4</span>
+        <div style="display:flex;flex-direction:column;gap:3px;"><div style="font-size:13px;font-weight:700;">Every 2 min, from the menu bar</div><div style="font-size:12px;color:#8e8e93;line-height:17px;">On launch or wake, catches up to 7 days back.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A · CONNECT -->
+  <section data-m="A" style="display:flex;flex-direction:column;gap:22px;">
+    <div class="gm-sh">
+      <span class="gm-sl">A</span>
+      <div style="display:flex;flex-direction:column;gap:2px;"><div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;">Connect</div><div style="font-size:12.5px;color:#8e8e93;">Before Google is linked, through the first scan.</div></div>
+      <div class="gm-rule"></div>
+      <span class="k-chip k-chip-lime">§13.18</span>
+    </div>
+
+    <div class="gm-cols">
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">A1</span>NOT CONNECTED</div>
+          <div class="sg gm-pn" style="--sg:181 242 61;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span class="gm-logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="gm-logo-cal"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 10h16M8 3v4M16 3v4"></path></svg></span></span>
+              <div style="font-size:15px;font-weight:700;flex-grow:1;">Gmail → Calendar</div>
+              <span class="gm-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+            </div>
+            <div style="margin-top:24px;font-size:24px;font-weight:800;letter-spacing:-0.025em;">Turn emails into calendar events</div>
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px;">
+              <div class="gm-pl"><span class="gm-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span><div>Reads Gmail. Never sends, deletes, or changes email.</div></div>
+              <div class="gm-pl"><span class="gm-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span><div>Adds events to two new calendars: <span class="gm-cal"><i class="gm-sw" style="background:#b5f23d;"></i>Komodo · From Gmail</span> and <span class="gm-cal"><i class="gm-sw" style="background:#ffb547;"></i>Komodo · Review</span>.</div></div>
+              <div class="gm-pl"><span class="gm-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span><div>Email is read on this Mac and never stored.</div></div>
+            </div>
+            <div class="gm-div" style="margin:22px 0 18px;"></div>
+            <label style="display:flex;flex-direction:column;gap:8px;">
+              <span style="font-size:12.5px;font-weight:600;color:#e5e5ea;">Google OAuth client ID</span>
+              <span class="k-field" style="height:38px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9M17 6l3 3M14 9l2 2"></path></svg>
+                <input class="k-mono" aria-label="Google OAuth client ID" placeholder="1234-abc.apps.googleusercontent.com" style="font-size:12.5px;">
+              </span>
+              <span style="font-size:12px;color:#8e8e93;">Personal use: create your own client in Google Cloud. <a class="gm-link" href="#">How?<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a></span>
+            </label>
+            <div style="margin-top:22px;display:flex;align-items:center;gap:12px;">
+              <div style="flex-grow:1;display:flex;align-items:center;gap:7px;font-size:12px;color:#8e8e93;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                Tokens stay in the macOS Keychain.
+              </div>
+              <button class="k-btn k-primary k-btn-lg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                Connect Google
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">A4</span>FIRST SCAN DONE · SUMMARY</div>
+          <div style="border-radius:22px;padding:1.5px;background:linear-gradient(135deg,rgba(45,217,196,0.85),rgba(181,242,61,0.6) 38%,rgba(255,255,255,0.07) 72%);box-shadow:0 0 80px -26px rgba(181,242,61,0.65);">
+            <div class="sg gm-pn" style="--sg:181 242 61;border:0;border-radius:20.5px;background:radial-gradient(70% 110% at 0% 0%,rgba(181,242,61,0.13),transparent 62%),radial-gradient(50% 80% at 100% 100%,rgba(45,217,196,0.08),transparent 60%),linear-gradient(180deg,#0f110e,#0a0a0c);">
+              <span class="gm-spark" style="top:18px;right:120px;width:4px;height:4px;background:#b5f23d;box-shadow:0 0 8px #b5f23d;"></span>
+              <span class="gm-spark" style="top:44px;right:64px;width:3px;height:3px;background:#2dd9c4;box-shadow:0 0 8px #2dd9c4;animation-delay:0.6s;"></span>
+              <span class="gm-spark" style="top:26px;right:30px;width:5px;height:5px;background:#ffb547;box-shadow:0 0 8px #ffb547;animation-delay:1.2s;"></span>
+              <span class="gm-spark" style="top:70px;right:150px;width:3px;height:3px;background:#ff6ad5;box-shadow:0 0 8px #ff6ad5;animation-delay:1.8s;"></span>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div class="gm-popck" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2dd9c4,#b5f23d);display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px -4px rgba(181,242,61,0.85);flex-shrink:0;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                  <div class="k-label" style="font-size:10.5px;color:#c9f76a;">FIRST SCAN DONE · 120 EMAILS · LAST 3 DAYS</div>
+                  <div class="k-num" style="font-size:21px;font-weight:800;letter-spacing:-0.02em;">Added <span style="color:#5fe3a1;text-shadow:0 0 18px rgba(53,212,131,0.6);">4</span> events · <span style="color:#ffc978;">2</span> to review · <span style="color:#a1a1a6;">114</span> skipped</div>
+                </div>
+              </div>
+              <div style="margin-top:18px;display:flex;gap:8px;">
+                <span class="gm-cal" style="height:26px;"><i class="gm-sw" style="background:#b5f23d;box-shadow:0 0 8px rgba(181,242,61,0.8);"></i>Komodo · From Gmail<b class="k-num" style="color:#c9f76a;margin-left:2px;">4</b></span>
+                <span class="gm-cal" style="height:26px;"><i class="gm-sw" style="background:#ffb547;"></i>Komodo · Review<b class="k-num" style="color:#ffc978;margin-left:2px;">2</b></span>
+              </div>
+              <div style="margin-top:20px;display:flex;align-items:center;gap:8px;">
+                <button class="k-btn k-primary">Open Google Calendar<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></button>
+                <button class="k-btn k-soft">View activity</button>
+                <div style="flex-grow:1;"></div>
+                <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#8e8e93;"><span class="k-dot k-ping" style="background:#35d483;"></span>Next check in 2 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">A2</span>SIGNING IN · GOOGLE SHEET IS OPEN</div>
+          <div class="sg gm-pn" style="--sg:45 217 196;display:flex;align-items:center;gap:16px;padding:20px 22px;">
+            <div style="position:relative;width:46px;height:46px;flex-shrink:0;">
+              <svg class="gm-spin" width="46" height="46" viewBox="0 0 46 46">
+                <defs><linearGradient id="gmSpinG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd9c4"></stop><stop offset="1" stop-color="#b5f23d"></stop></linearGradient></defs>
+                <circle cx="23" cy="23" r="19" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"></circle>
+                <circle cx="23" cy="23" r="19" fill="none" stroke="url(#gmSpinG)" stroke-width="4" stroke-linecap="round" stroke-dasharray="44 76"></circle>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ce6d4;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+              </div>
+            </div>
+            <div style="flex-grow:1;display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:15px;font-weight:700;">Finish signing in with Google…</div>
+              <div style="font-size:12.5px;color:#8e8e93;">Google's sign-in sheet is open. Closing it cancels.</div>
+            </div>
+            <button class="k-btn k-soft">Cancel</button>
+          </div>
+        </div>
+
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">A3</span>CONNECTED · FIRST SCAN · LIVE</div>
+          <div class="k-beam" style="border-radius:22px;--b0:#0d2622;--bglow:rgba(45,217,196,0.4);">
+            <div class="sg gm-pn" style="--sg:45 217 196;border:0;border-radius:20.5px;background:radial-gradient(90% 90% at 0% 0%,rgba(45,217,196,0.1),transparent 60%),linear-gradient(180deg,#0e1112,#0a0a0c);">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="gm-ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+                <div style="font-size:14px;font-weight:600;flex-grow:1;">Connected as <b style="color:#ffffff;">apurva@gmail.com</b></div>
+                <span class="k-chip k-chip-green">2 calendars created</span>
+              </div>
+              <div style="margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#e5e5ea;"><span class="k-dot k-ping" style="background:#2dd9c4;"></span>Scanning the last 3 days…</div>
+                <div class="k-num" style="font-size:13px;color:#a1a1a6;"><b style="font-size:16px;color:#ffffff;">{{scanN}}</b> / 120 emails</div>
+              </div>
+              <div class="gm-bar" style="margin-top:12px;"><div class="gm-fill" style="width:{{scanPct}};"></div></div>
+              <div class="k-num" style="margin-top:14px;display:flex;align-items:center;gap:16px;font-size:12px;color:#a1a1a6;">
+                <span style="display:flex;align-items:center;gap:6px;"><i class="gm-sw" style="background:#35d483;"></i>Added <b style="color:#5fe3a1;">{{scanA}}</b></span>
+                <span style="display:flex;align-items:center;gap:6px;"><i class="gm-sw" style="background:#ffb547;"></i>Review <b style="color:#ffc978;">{{scanR}}</b></span>
+                <span style="display:flex;align-items:center;gap:6px;"><i class="gm-sw" style="border:1px solid rgba(255,255,255,0.35);"></i>Skipped <b style="color:#e5e5ea;">{{scanS}}</b></span>
+                <div style="flex-grow:1;"></div>
+                <span style="color:#8e8e93;">Keeps going if you close Settings</span>
+              </div>
+              <div style="margin-top:16px;padding-top:14px;border-top:1px dashed rgba(255,255,255,0.08);display:flex;align-items:center;gap:8px;font-size:12px;color:#8e8e93;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                then: summary with <b style="color:#c7c7cc;">Open Google Calendar ↗</b> and <b style="color:#c7c7cc;">View activity</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">A5</span>ERRORS · INLINE, RED TINT</div>
+          <div class="sg gm-pn gm-err" style="--sg:255 61 90;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+            <span class="gm-erri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></span>
+            <div style="flex-grow:1;display:flex;flex-direction:column;gap:3px;">
+              <div class="k-label" style="font-size:10px;color:#ff8a9e;">CONSENT DENIED</div>
+              <div style="font-size:13px;color:#e5e5ea;line-height:18px;">Google access wasn't granted. Komodo needs both permissions to work.</div>
+            </div>
+            <button class="k-btn k-soft k-btn-sm">Try again</button>
+          </div>
+          <div class="sg gm-pn gm-err" style="--sg:255 61 90;padding:16px 18px;display:flex;flex-direction:column;gap:9px;">
+            <div class="k-label" style="font-size:10px;color:#ff8a9e;">INVALID CLIENT ID · INLINE FIELD ERROR</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="k-field k-field-err" style="flex-grow:1;height:36px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9M17 6l3 3M14 9l2 2"></path></svg>
+                <span class="k-mono" style="flex-grow:1;font-size:12.5px;color:#ffffff;">1234-abc.apps.google</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg>
+              </div>
+              <button class="k-btn k-soft k-btn-sm">Try again</button>
+            </div>
+            <div style="font-size:12px;color:#ff6b85;">That isn't a valid client ID. It should end in .apps.googleusercontent.com. <a class="gm-link" href="#">How?<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a></div>
+          </div>
+          <div class="sg gm-pn gm-err" style="--sg:255 61 90;padding:16px 18px;display:flex;gap:14px;">
+            <span class="gm-erri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></span>
+            <div style="flex-grow:1;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div class="k-label" style="font-size:10px;color:#ff8a9e;">A PERMISSION UNTICKED</div>
+                <div style="font-size:13px;color:#e5e5ea;line-height:18px;">Calendar access is missing. Reconnect and keep both boxes ticked.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);font-size:12px;">
+                <div style="display:flex;align-items:center;gap:9px;color:#c7c7cc;"><span class="k-check k-check-on" style="width:15px;height:15px;border-radius:4px;background:#35d483;border-color:#35d483;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#04140b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>View your email messages and settings</div>
+                <div style="display:flex;align-items:center;gap:9px;color:#ff8a9e;"><span class="k-check" style="width:15px;height:15px;border-radius:4px;border-color:#ff6b85;"></span>Make secondary calendars, and manage events on them<span style="margin-left:auto;font-weight:700;font-size:10.5px;letter-spacing:0.06em;">UNTICKED</span></div>
+              </div>
+            </div>
+            <button class="k-btn k-soft k-btn-sm" style="align-self:flex-start;">Try again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B · OVERVIEW -->
+  <section data-m="B" style="display:flex;flex-direction:column;gap:22px;">
+    <div class="gm-sh">
+      <span class="gm-sl">B</span>
+      <div style="display:flex;flex-direction:column;gap:2px;"><div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;">Overview</div><div style="font-size:12.5px;color:#8e8e93;">Status line under the page title, then the Overview tab.</div></div>
+      <div class="gm-rule"></div>
+      <span class="k-chip k-chip-lime">§13.19</span>
+    </div>
+    <div class="gm-cols">
+      <div class="gm-col" style="gap:18px;">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B1</span>STATUS · ACTIVE · GREEN PING</div>
+          <div class="sg gm-pn" style="--sg:53 212 131;padding:14px 16px 14px 18px;display:flex;align-items:center;gap:10px;">
+            <span class="k-dot k-ping" style="width:8px;height:8px;background:#35d483;"></span>
+            <span style="font-size:13.5px;font-weight:700;">Active</span>
+            <span style="font-size:13px;color:#a1a1a6;">· checked 1 min ago · next in 1 min</span>
+            <div style="flex-grow:1;"></div>
+            <button class="k-btn k-soft k-btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>Scan now</button>
+            <button class="k-btn k-ghost k-btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg>Pause</button>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B2</span>STATUS · SCANNING · TEAL PULSE · NO ACTIONS</div>
+          <div class="sg gm-pn" style="--sg:45 217 196;padding:14px 16px 14px 18px;height:58px;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(45,217,196,0.08),transparent 55%),linear-gradient(180deg,#101013,#0a0a0c);">
+            <span class="k-dot k-ping" style="width:8px;height:8px;background:#2dd9c4;box-shadow:0 0 10px #2dd9c4;"></span>
+            <span style="font-size:13.5px;font-weight:700;color:#5ce6d4;">Scanning…</span>
+            <span class="k-num" style="font-size:13px;color:#a1a1a6;">12 new emails</span>
+            <div style="flex-grow:1;"></div>
+            <div class="gm-indet"></div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B3</span>STATUS · PAUSED · MUTED</div>
+          <div class="sg gm-pn" style="--sg:142 142 147;padding:14px 16px 14px 18px;display:flex;align-items:center;gap:10px;">
+            <span class="k-dot" style="width:8px;height:8px;background:#8e8e93;"></span>
+            <span style="font-size:13.5px;font-weight:700;color:#c7c7cc;">Paused</span>
+            <span class="k-chip k-chip-outline" style="height:22px;">No new events until you resume</span>
+            <div style="flex-grow:1;"></div>
+            <button class="k-btn k-soft k-btn-sm"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg>Resume</button>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B4</span>STATUS · OFFLINE · HOLLOW DOT</div>
+          <div class="sg gm-pn" style="--sg:142 142 147;padding:14px 16px 14px 18px;height:58px;display:flex;align-items:center;gap:10px;">
+            <span class="gm-hollow"></span>
+            <span style="font-size:13.5px;font-weight:600;color:#c7c7cc;">Offline. Will catch up when you're back</span>
+            <div style="flex-grow:1;"></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 5-3M11 5a15 15 0 0 1 11 3.5M5 12a10 10 0 0 1 4-2.2M15 10a10 10 0 0 1 4 2M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18"></path></svg>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B5</span>STATUS · NEEDS ATTENTION · RECONNECT IS PRIMARY</div>
+          <div class="sg gm-pn gm-err" style="--sg:255 61 90;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:10px;">
+            <span class="k-dot k-ping" style="width:8px;height:8px;background:#ff3d5a;"></span>
+            <span style="font-size:13.5px;font-weight:700;color:#ff8a9e;">Google disconnected</span>
+            <span style="font-size:13px;color:#a1a1a6;">· Reconnect to keep adding events.</span>
+            <div style="flex-grow:1;"></div>
+            <button class="k-btn k-primary">Reconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">B6</span>OVERVIEW TAB · CONNECTED &amp; ACTIVE</div>
+          <div class="sg gm-pn" style="--sg:53 212 131;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span class="gm-logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="gm-logo-cal"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 10h16M8 3v4M16 3v4"></path></svg></span></span>
+              <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;flex-grow:1;">Gmail → Calendar</div>
+              <button class="k-btn k-soft k-btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>Scan now</button>
+              <button class="k-btn k-ghost k-btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg>Pause</button>
+            </div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#a1a1a6;">
+              <span class="k-dot k-ping" style="background:#35d483;"></span><b style="color:#5fe3a1;font-weight:600;">Active</b>· checked 1 min ago · next in 1 min
+              <div style="flex-grow:1;"></div>
+              <span class="gm-mac"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+            </div>
+            <div class="k-seg" style="margin-top:16px;">
+              <button class="k-seg-b k-seg-on">Overview</button>
+              <button class="k-seg-b">Settings</button>
+              <button class="k-seg-b">Activity</button>
+              <button class="k-seg-b" style="display:inline-flex;align-items:center;gap:6px;">Review<span class="k-num" style="height:17px;min-width:17px;padding:0 5px;border-radius:99px;background:rgba(255,181,71,0.18);color:#ffc978;font-size:10.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;">2</span></button>
+            </div>
+            <div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">
+              <div class="sg k-card gm-tile" style="--sg:53 212 131;background:linear-gradient(160deg,rgba(53,212,131,0.1),rgba(255,255,255,0.02) 60%);border-color:rgba(53,212,131,0.2);">
+                <div class="k-label" style="font-size:10px;color:#8e8e93;">ADDED TODAY</div>
+                <div class="k-num" style="font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#5fe3a1;text-shadow:0 0 22px rgba(53,212,131,0.55);line-height:1.1;">3</div>
+                <div style="font-size:11.5px;color:#8e8e93;">to From Gmail</div>
+              </div>
+              <div class="sg k-card gm-tile" style="--sg:255 181 71;">
+                <div class="k-label" style="font-size:10px;color:#8e8e93;">TO REVIEW</div>
+                <div class="k-num" style="font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#ffc978;line-height:1.1;">2</div>
+                <div style="font-size:11.5px;color:#8e8e93;">in Komodo · Review</div>
+              </div>
+              <div class="sg k-card gm-tile" style="--sg:142 142 147;">
+                <div class="k-label" style="font-size:10px;color:#8e8e93;">SKIPPED</div>
+                <div class="k-num" style="font-size:30px;font-weight:800;letter-spacing:-0.03em;line-height:1.1;">41</div>
+                <div style="font-size:11.5px;color:#8e8e93;">invites, newsletters</div>
+              </div>
+              <div class="sg k-card gm-tile" style="--sg:255 61 90;">
+                <div class="k-label" style="font-size:10px;color:#8e8e93;">ERRORS</div>
+                <div class="k-num" style="font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#8e8e93;line-height:1.1;">0</div>
+                <div style="font-size:11.5px;color:#8e8e93;">all clear</div>
+              </div>
+            </div>
+            <div style="margin-top:20px;display:flex;flex-direction:column;gap:16px;">
+              <div class="gm-rk" style="align-items:center;">
+                <div class="k-label" style="font-size:10.5px;color:#8e8e93;">ACCOUNT</div>
+                <div style="display:flex;align-items:center;gap:9px;">
+                  <span class="gm-av" style="width:24px;height:24px;font-size:11px;">A</span>
+                  <span style="font-size:13px;font-weight:600;">apurva@gmail.com</span>
+                  <span style="font-size:12px;color:#8e8e93;">· connected Sep 26</span>
+                  <div style="flex-grow:1;"></div>
+                  <button class="k-btn k-danger-ghost k-btn-sm">Disconnect</button>
+                </div>
+              </div>
+              <div class="gm-div"></div>
+              <div class="gm-rk" style="align-items:center;">
+                <div class="k-label" style="font-size:10.5px;color:#8e8e93;">CALENDARS</div>
+                <div style="display:flex;align-items:center;gap:18px;font-size:13px;">
+                  <span style="display:flex;align-items:center;gap:8px;"><i class="gm-sw" style="width:11px;height:11px;background:#b5f23d;box-shadow:0 0 8px rgba(181,242,61,0.6);"></i>Komodo · From Gmail<a class="gm-link" href="#" style="font-size:12px;margin-left:2px;">Open<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a></span>
+                  <span style="display:flex;align-items:center;gap:8px;"><i class="gm-sw" style="width:11px;height:11px;background:#ffb547;box-shadow:0 0 8px rgba(255,181,71,0.5);"></i>Komodo · Review<a class="gm-link" href="#" style="font-size:12px;margin-left:2px;">Open<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a></span>
+                </div>
+              </div>
+              <div class="gm-div"></div>
+              <div class="gm-rk">
+                <div class="k-label" style="font-size:10.5px;color:#8e8e93;padding-top:10px;">RECENT</div>
+                <div style="display:flex;flex-direction:column;gap:2px;margin:0 -10px;">
+                  <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;font-size:13px;">
+                    <i class="gm-sw" style="background:#b5f23d;"></i>
+                    <span style="font-weight:600;">Design review</span><span style="color:#8e8e93;">· Thu 3:00 PM</span>
+                    <span class="k-chip k-chip-green" style="height:22px;">Added</span>
+                    <div style="flex-grow:1;"></div>
+                    <a class="gm-link" href="#" style="font-size:12px;">Open event<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a>
+                  </div>
+                  <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;font-size:13px;">
+                    <i class="gm-sw" style="background:#b5f23d;"></i>
+                    <span style="font-weight:600;">Due: Submit visa form</span><span style="color:#8e8e93;">· Oct 10</span>
+                    <span class="k-chip k-chip-green" style="height:22px;">Added (all day)</span>
+                    <div style="flex-grow:1;"></div>
+                    <a class="gm-link" href="#" style="font-size:12px;">Open event<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a>
+                  </div>
+                  <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;font-size:13px;">
+                    <i class="gm-sw" style="background:#ffb547;"></i>
+                    <span style="font-weight:600;">Coffee next week?</span>
+                    <span class="k-chip k-chip-amber" style="height:22px;">Review</span>
+                    <div style="flex-grow:1;"></div>
+                    <a class="gm-link" href="#" style="font-size:12px;">Open event<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C · SETTINGS -->
+  <section data-m="C" style="display:flex;flex-direction:column;gap:22px;">
+    <div class="gm-sh">
+      <span class="gm-sl">C</span>
+      <div style="display:flex;flex-direction:column;gap:2px;"><div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;">Settings</div><div style="font-size:12.5px;color:#8e8e93;">Changes apply instantly. No Save button.</div></div>
+      <div class="gm-rule"></div>
+      <span class="k-chip k-chip-lime">§13.19 · §4.0</span>
+    </div>
+    <div class="gm-cols">
+      <div class="gm-col" style="gap:20px;">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C1</span>EXTRACTION · ON THIS MAC · APPLE INTELLIGENCE ON</div>
+          <div class="sg gm-pn" style="--sg:53 212 131;padding:16px 18px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div class="gm-fl"><div class="gm-ft">Extraction mode</div><div class="gm-fd">How Komodo finds events in each email.</div></div>
+              <div class="k-seg"><button class="k-seg-b k-seg-on" style="display:inline-flex;align-items:center;gap:6px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</button><button class="k-seg-b">Claude</button></div>
+            </div>
+            <div class="gm-note gm-note-green" style="margin-top:12px;align-items:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+              <div style="flex-grow:1;">Email never leaves this Mac. Uses Apple Intelligence when it's on.</div>
+              <span class="k-chip k-chip-green" style="height:22px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c.6 4.8 2.2 6.4 7 7-4.8.6-6.4 2.2-7 7-.6-4.8-2.2-6.4-7-7 4.8-.6 6.4-2.2 7-7Z"></path></svg>Apple Intelligence on</span>
+            </div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C2</span>EXTRACTION · ON THIS MAC · NO APPLE INTELLIGENCE</div>
+          <div class="sg gm-pn" style="--sg:56 200 255;padding:16px 18px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div class="gm-fl"><div class="gm-ft">Extraction mode</div><div class="gm-fd">How Komodo finds events in each email.</div></div>
+              <div class="k-seg"><button class="k-seg-b k-seg-on" style="display:inline-flex;align-items:center;gap:6px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</button><button class="k-seg-b">Claude</button></div>
+            </div>
+            <div class="gm-note gm-note-green" style="margin-top:12px;align-items:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+              <div style="flex-grow:1;">Email never leaves this Mac. Uses Apple Intelligence when it's on.</div>
+            </div>
+            <div class="gm-note gm-note-info" style="margin-top:8px;align-items:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38c8ff" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5v.5"></path></svg>
+              <div style="flex-grow:1;">Using built-in date rules — Apple Intelligence needs macOS 26</div>
+              <span class="k-chip k-chip-outline" style="height:22px;">Date rules</span>
+            </div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C3</span>EXTRACTION · CLAUDE · NO API KEY</div>
+          <div class="sg gm-pn" style="--sg:255 181 71;padding:16px 18px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div class="gm-fl"><div class="gm-ft">Extraction mode</div><div class="gm-fd">How Komodo finds events in each email.</div></div>
+              <div class="k-seg"><button class="k-seg-b">On this Mac</button><button class="k-seg-b k-seg-on gm-seg-claude">Claude</button></div>
+            </div>
+            <div class="gm-note gm-note-amber" style="margin-top:12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb547" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M12 3 2 20h20Z"></path><path d="M12 10v4M12 17v.5"></path></svg>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:6px;">
+                <div>Claude mode sends each email's text to Anthropic, using your API key.</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#c7c7cc;">No API key yet.<a href="#" style="display:inline-flex;align-items:center;gap:4px;color:#ffc978;font-weight:700;text-decoration:underline;text-underline-offset:3px;">Add a key in Settings → AI<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C4</span>EXTRACTION · CLAUDE · KEY SET</div>
+          <div class="sg gm-pn" style="--sg:255 181 71;padding:16px 18px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div class="gm-fl"><div class="gm-ft">Extraction mode</div><div class="gm-fd">How Komodo finds events in each email.</div></div>
+              <div class="k-seg"><button class="k-seg-b">On this Mac</button><button class="k-seg-b k-seg-on gm-seg-claude">Claude</button></div>
+            </div>
+            <div class="gm-note gm-note-amber" style="margin-top:12px;align-items:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb547" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 3 2 20h20Z"></path><path d="M12 10v4M12 17v.5"></path></svg>
+              <div style="flex-grow:1;">Claude mode sends each email's text to Anthropic, using your API key.</div>
+            </div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:6px;">
+              <span class="k-chip k-chip-green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Key in Keychain</span>
+              <span class="k-chip k-mono" style="font-size:11px;">claude-opus-5</span>
+              <span style="font-size:12px;color:#8e8e93;margin-left:4px;">About 1–2¢ per email that has a date or meeting word</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C6</span>PICKERS · OPEN · EVENT DEFAULTS</div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div class="sg k-pop" style="--sg:181 242 61;width:190px;padding:6px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;">
+              <div class="k-label" style="font-size:9.5px;color:#8e8e93;padding:6px 10px 4px;">CHECK EVERY</div>
+              <div class="gm-mi"><span style="width:12px;"></span>1 min</div><div class="gm-mi" style="background:rgba(181,242,61,0.1);color:#ffffff;font-weight:600;"><span style="width:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b5f23d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>2 min</div><div class="gm-mi"><span style="width:12px;"></span>5 min</div><div class="gm-mi"><span style="width:12px;"></span>15 min</div>
+            </div>
+            <div class="sg k-pop" style="--sg:181 242 61;width:190px;padding:6px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;">
+              <div class="k-label" style="font-size:9.5px;color:#8e8e93;padding:6px 10px 4px;">DEFAULT MEETING LENGTH</div>
+              <div class="gm-mi"><span style="width:12px;"></span>15 min</div><div class="gm-mi" style="background:rgba(181,242,61,0.1);color:#ffffff;font-weight:600;"><span style="width:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b5f23d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>30 min</div><div class="gm-mi"><span style="width:12px;"></span>45 min</div><div class="gm-mi"><span style="width:12px;"></span>60 min</div>
+            </div>
+            <div class="sg k-card" style="--sg:77 141 255;flex-grow:1;padding:14px 16px;display:flex;flex-direction:column;gap:8px;font-size:12px;">
+              <div class="k-label" style="font-size:9.5px;color:#8e8e93;">EVENT KOMODO CREATES</div>
+              <div style="display:flex;justify-content:space-between;gap:8px;"><span style="color:#a1a1a6;">Meeting or call</span><b class="k-num">30 min</b></div>
+              <div style="display:flex;justify-content:space-between;gap:8px;"><span style="color:#a1a1a6;">Appointment</span><b class="k-num">60 min</b></div>
+              <div style="display:flex;justify-content:space-between;gap:8px;"><span style="color:#a1a1a6;">Deadline, no time</span><b>All day</b></div>
+              <div style="display:flex;justify-content:space-between;gap:8px;"><span style="color:#a1a1a6;">Deadline at a time</span><b class="k-num">15 min, ends then</b></div>
+              <div style="display:flex;justify-content:space-between;gap:8px;"><span style="color:#a1a1a6;">Title</span><b>“Due: …” for deadlines</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">C5</span>SETTINGS TAB · FULL FORM · TOGGLES ARE LIVE</div>
+          <div class="sg gm-pn" style="--sg:181 242 61;padding:18px 0 20px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:0 22px 6px;">
+              <div style="font-size:15px;font-weight:700;flex-grow:1;">Gmail → Calendar</div>
+              <div class="k-seg">
+                <button class="k-seg-b">Overview</button>
+                <button class="k-seg-b k-seg-on">Settings</button>
+                <button class="k-seg-b">Activity</button>
+                <button class="k-seg-b">Review</button>
+              </div>
+            </div>
+            <div class="gm-fr" style="align-items:flex-start;">
+              <div class="gm-fl"><div class="gm-ft">Extraction mode</div><div class="gm-fd" style="display:flex;align-items:center;gap:6px;color:#5fe3a1;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>Email never leaves this Mac. Uses Apple Intelligence when it's on.</div></div>
+              <div class="k-seg"><button class="k-seg-b k-seg-on">On this Mac</button><button class="k-seg-b">Claude</button></div>
+            </div>
+            <div class="gm-grp">SKIP</div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Skip calendar invitations</div><div class="gm-fd">Google Calendar already handles invites (.ics).</div></div>
+              <button class="k-tog {{tog.inv}}" role="switch" aria-label="Skip calendar invitations" onClick="{{flipInv}}"></button>
+            </div>
+            <div class="gm-div" style="margin:0 22px;"></div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Skip newsletters</div><div class="gm-fd">Mail with an unsubscribe header, unless the sender is on Always scan.</div></div>
+              <button class="k-tog {{tog.news}}" role="switch" aria-label="Skip newsletters" onClick="{{flipNews}}"></button>
+            </div>
+            <div class="gm-div" style="margin:0 22px;"></div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Skip reservations</div><div class="gm-fd">Google already adds flights, hotels, restaurants, and tickets.</div></div>
+              <button class="k-tog {{tog.res}}" role="switch" aria-label="Skip reservations" onClick="{{flipRes}}"></button>
+            </div>
+            <div class="gm-grp">SENDERS</div>
+            <div class="gm-fr" style="flex-direction:column;align-items:stretch;gap:8px;padding-bottom:10px;">
+              <div class="gm-ft">Always scan</div>
+              <label class="gm-tokf">
+                <span class="gm-tok">@school.edu<button class="gm-tokx" aria-label="Remove @school.edu"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+                <span class="gm-tok">apurva@studio.co<button class="gm-tokx" aria-label="Remove apurva@studio.co"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+                <input aria-label="Add a sender to always scan" placeholder="Add email or @domain">
+              </label>
+            </div>
+            <div class="gm-fr" style="flex-direction:column;align-items:stretch;gap:8px;padding-top:6px;">
+              <div class="gm-ft">Never scan these senders</div>
+              <label class="gm-tokf" style="border-color:rgba(255,92,122,0.45);">
+                <span class="gm-tok">@deals.shop<button class="gm-tokx" aria-label="Remove @deals.shop"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+                <span class="gm-tok gm-tok-bad" title="Not an email address or domain">noreply@promo<button class="gm-tokx" aria-label="Remove noreply@promo" style="color:#ff8a9e;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+                <input aria-label="Add a sender to never scan" placeholder="Add email or @domain">
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#ff6b85;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg>“noreply@promo” isn't an email address or @domain.</div>
+            </div>
+            <div class="gm-grp">TIMING</div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Check every</div><div class="gm-fd">While Komodo runs, including from the menu bar.</div></div>
+              <button class="gm-pick">2 min<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+            </div>
+            <div class="gm-div" style="margin:0 22px;"></div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Default meeting length</div><div class="gm-fd">When the email doesn't say. Appointments use 60 min.</div></div>
+              <button class="gm-pick">30 min<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+            </div>
+            <div class="gm-div" style="margin:0 22px;"></div>
+            <div class="gm-fr">
+              <div class="gm-fl"><div class="gm-ft">Pause scanning</div><div class="gm-fd">Nothing new is added until you turn this off.</div></div>
+              <button class="k-tog {{tog.pause}}" role="switch" aria-label="Pause scanning" onClick="{{flipPause}}"></button>
+            </div>
+            <div class="gm-grp" style="display:flex;align-items:center;gap:6px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>ADVANCED</div>
+            <div class="gm-fr" style="flex-direction:column;align-items:stretch;gap:8px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="gm-ft" style="flex-grow:1;">Scan query</div>
+                <a class="gm-link" href="#" style="font-size:12px;">Gmail search syntax<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a>
+                <button class="k-btn k-soft k-btn-sm">Reset</button>
+              </div>
+              <div class="gm-q k-mono"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:3px;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><span>in:inbox newer_than:3d <span style="color:#ffc978;">-category:promotions</span> <span style="color:#ffc978;">-category:social</span> <span style="color:#ffc978;">-category:forums</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- D · ACTIVITY -->
+  <section data-m="D" style="display:flex;flex-direction:column;gap:22px;">
+    <div class="gm-sh">
+      <span class="gm-sl">D</span>
+      <div style="display:flex;flex-direction:column;gap:2px;"><div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;">Activity</div><div style="font-size:12.5px;color:#8e8e93;">Every scanned email and what happened. From and Subject load live from Gmail and are never stored.</div></div>
+      <div class="gm-rule"></div>
+      <span class="k-chip k-chip-lime">§13.19</span>
+    </div>
+    <div class="gm-cols">
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">D1</span>ACTIVITY · CLICK A CHIP TO FILTER · HOVER A ROW FOR ACTIONS</div>
+          <div class="sg gm-pn" style="--sg:77 141 255;padding:16px 16px 12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <sc-for list="{{chips}}" as="c" hint-placeholder-count="6">
+                <button class="gm-fc" style="{{c.style}}" onClick="{{c.pick}}" aria-pressed="{{c.on}}">{{c.label}}<span class="gm-fcn" style="{{c.nStyle}}">{{c.n}}</span></button>
+              </sc-for>
+              <div style="flex-grow:1;"></div>
+              <label class="k-field" style="height:30px;width:132px;padding:0 10px;gap:7px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                <input aria-label="Filter activity" placeholder="Filter" onInput="{{setQ}}" onKeyUp="{{setQ}}" style="font-size:12.5px;">
+              </label>
+            </div>
+            <div class="gm-th" style="margin-top:12px;"><span>RECEIVED</span><span>FROM</span><span>SUBJECT</span><span>OUTCOME</span><span>EVENT</span><span></span></div>
+            <div style="display:flex;flex-direction:column;gap:1px;padding-top:4px;min-height:442px;">
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+                <div class="gm-row k-enter" style="--i:{{r.i}};">
+                  <span class="k-num" style="color:#a1a1a6;white-space:nowrap;">{{r.when}}</span>
+                  <span style="display:flex;align-items:center;gap:7px;color:#e5e5ea;"><span class="gm-av">A</span>Apurva</span>
+                  <span class="gm-ell" style="color:#ffffff;font-weight:500;">{{r.subject}}</span>
+                  <span><span class="k-chip {{r.chip}}" style="height:22px;">{{r.label}}</span></span>
+                  <span style="display:flex;align-items:center;gap:7px;min-width:0;">
+                    <sc-if value="{{r.hasEvent}}" hint-placeholder-val="{{true}}"><i class="gm-sw" style="background:{{r.sw}};"></i><span class="k-num gm-ell" style="color:#e5e5ea;">{{r.event}}</span></sc-if>
+                    <sc-if value="{{r.isReason}}" hint-placeholder-val="{{false}}"><span class="gm-ell" style="color:#8e8e93;">{{r.event}}</span></sc-if>
+                    <sc-if value="{{r.isError}}" hint-placeholder-val="{{false}}"><span style="color:#ff6b85;font-weight:600;white-space:nowrap;">{{r.event}}</span><button class="k-act gm-mini" aria-label="Rescan" title="Rescan" onClick="{{r.rescan}}" style="width:24px;height:24px;border-radius:7px;color:#ff8a9e;border-color:rgba(255,92,122,0.35);"><svg class="{{r.spinCls}}" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg></button></sc-if>
+                  </span>
+                  <span class="gm-rv">
+                    <button class="k-act gm-mini" aria-label="Open email" title="Open email ↗"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></button>
+                    <sc-if value="{{r.hasEvent}}" hint-placeholder-val="{{true}}"><button class="k-act gm-mini" aria-label="Open event" title="Open event ↗"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></button></sc-if>
+                  </span>
+                </div>
+              </sc-for>
+              <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}">
+                <div style="padding:40px 0;text-align:center;font-size:13px;color:#8e8e93;">No emails match “{{q}}”.</div>
+              </sc-if>
+            </div>
+            <div style="margin-top:6px;padding:10px 10px 2px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;font-size:11.5px;color:#8e8e93;">
+              <span class="k-num">Showing {{rowCount}} of 10</span>
+              <span>·</span>
+              <span style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg>Open email ↗</span>
+              <span style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17"></path></svg>Open event ↗</span>
+              <span style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>Rescan (errors only)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">D2</span>OFFLINE · FROM + SUBJECT CAN'T LOAD</div>
+          <div class="sg gm-pn" style="--sg:142 142 147;padding:16px 16px 12px;">
+            <div style="display:flex;align-items:center;gap:9px;height:34px;padding:0 12px;border-radius:10px;background:rgba(255,181,71,0.07);border:1px solid rgba(255,181,71,0.22);font-size:12.5px;color:#ffc978;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 5-3M11 5a15 15 0 0 1 11 3.5M5 12a10 10 0 0 1 4-2.2M15 10a10 10 0 0 1 4 2M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18"></path></svg>
+              Offline. Will catch up when you're back
+            </div>
+            <div class="gm-th" style="grid-template-columns:minmax(0,1fr) 92px 150px;margin-top:10px;"><span>EMAIL</span><span>OUTCOME</span><span>EVENT</span></div>
+            <div style="display:flex;flex-direction:column;gap:1px;padding-top:4px;">
+              <div class="gm-orow"><span style="display:flex;align-items:center;gap:8px;color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="k-num">Email · Today 9:14</span></span><span><span class="k-chip k-chip-green" style="height:22px;">Added</span></span><span style="display:flex;align-items:center;gap:7px;"><i class="gm-sw" style="background:#b5f23d;"></i><span class="k-num" style="color:#e5e5ea;">Thu 3:00 PM</span></span></div>
+              <div class="gm-orow"><span style="display:flex;align-items:center;gap:8px;color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="k-num">Email · Today 8:02</span></span><span><span class="k-chip k-chip-amber" style="height:22px;">Review</span></span><span style="display:flex;align-items:center;gap:7px;"><i class="gm-sw" style="background:#ffb547;"></i><span class="k-num" style="color:#e5e5ea;">Oct 10</span></span></div>
+              <div class="gm-orow"><span style="display:flex;align-items:center;gap:8px;color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="k-num">Email · Yest. 18:40</span></span><span><span class="k-chip k-chip-outline" style="height:22px;">Skipped</span></span><span style="color:#8e8e93;">Newsletter</span></div>
+              <div class="gm-orow"><span style="display:flex;align-items:center;gap:8px;color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="k-num">Email · Yest. 17:05</span></span><span><span class="k-chip k-chip-outline" style="height:22px;">No event</span></span><span style="color:#8e8e93;">—</span></div>
+              <div class="gm-orow"><span style="display:flex;align-items:center;gap:8px;color:#8e8e93;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg><span class="k-num">Email · Yest. 11:30</span></span><span><span class="k-chip k-chip-red" style="height:22px;">Error</span></span><span style="display:flex;align-items:center;gap:7px;"><span style="color:#ff6b85;font-weight:600;">Parse failed</span><span class="k-act k-off" style="width:24px;height:24px;border-radius:7px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg></span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">D3</span>EMPTY · NOTHING SCANNED YET</div>
+          <div class="sg gm-pn" style="--sg:45 217 196;padding:16px 16px 30px;">
+            <div style="display:flex;align-items:center;gap:6px;opacity:0.55;">
+              <span class="gm-fc" style="background:rgba(255,255,255,0.12);color:#ffffff;border-color:rgba(255,255,255,0.18);">All<span class="gm-fcn">0</span></span>
+              <span class="gm-fc">Added<span class="gm-fcn">0</span></span>
+              <span class="gm-fc">Review<span class="gm-fcn">0</span></span>
+              <span class="gm-fc">No event<span class="gm-fcn">0</span></span>
+              <span class="gm-fc">Skipped<span class="gm-fcn">0</span></span>
+              <span class="gm-fc">Errors<span class="gm-fcn">0</span></span>
+            </div>
+            <div class="gm-th" style="margin-top:12px;opacity:0.6;"><span>RECEIVED</span><span>FROM</span><span>SUBJECT</span><span>OUTCOME</span><span>EVENT</span><span></span></div>
+            <div class="gm-empty" style="padding-top:34px;">
+              <div class="gm-et k-float"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"></path><path d="M5.5 5h13l2.5 8v6H3v-6Z"></path></svg></div>
+              <div style="font-size:15px;font-weight:700;">No emails scanned yet</div>
+              <div style="font-size:12.5px;color:#8e8e93;">New mail is checked every 2 minutes.</div>
+              <button class="k-btn k-primary k-btn-sm" style="margin-top:8px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>Scan now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- E · REVIEW -->
+  <section data-m="E" style="display:flex;flex-direction:column;gap:22px;">
+    <div class="gm-sh">
+      <span class="gm-sl">E</span>
+      <div style="display:flex;flex-direction:column;gap:2px;"><div style="font-size:19px;font-weight:800;letter-spacing:-0.02em;">Review</div><div style="font-size:12.5px;color:#8e8e93;">Unsure events wait in Komodo · Review. Sorted by event date.</div></div>
+      <div class="gm-rule"></div>
+      <span class="k-chip k-chip-amber">P1 · §10.11 · §13.20</span>
+    </div>
+    <div class="gm-cols">
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">E1</span>REVIEW TAB · ADD / DISMISS COLLAPSES THE CARD · 5 S UNDO<span style="flex-grow:1;"></span><button onClick="{{resetReview}}" style="font-size:10.5px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;text-decoration:underline;text-underline-offset:3px;">RESET DEMO</button></div>
+          <div class="sg gm-pn" style="--sg:255 181 71;position:relative;height:520px;padding:20px 20px 0;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Review <span class="k-num" style="color:#ffc978;">({{openN}})</span></div>
+              <div style="flex-grow:1;"></div>
+              <button class="k-btn k-primary k-btn-sm {{addAllCls}}" onClick="{{addAll}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Add all</button>
+            </div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{cards}}" as="c" hint-placeholder-count="2">
+                <div class="sg k-card {{c.anim}}" style="--sg:255 181 71;padding:16px 16px 14px;display:flex;flex-direction:column;gap:9px;overflow:visible;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <i class="gm-sw" style="background:#ffb547;"></i>
+                    <div style="flex-grow:1;font-size:15px;font-weight:700;letter-spacing:-0.01em;">{{c.title}}</div>
+                    <span class="k-chip k-chip-blue k-num"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>{{c.when}}</span>
+                    <sc-if value="{{c.unsure}}" hint-placeholder-val="{{false}}"><span class="k-chip k-chip-amber">time unclear</span></sc-if>
+                  </div>
+                  <div style="font-size:12.5px;color:#8e8e93;">From <b style="color:#c7c7cc;font-weight:600;">Apurva</b> · “{{c.subject}}” · {{c.date}}</div>
+                  <div class="gm-ev">“{{c.evidence}}”</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                    <button class="k-btn k-primary k-btn-sm" onClick="{{c.add}}">Add to calendar</button>
+                    <button class="k-btn k-soft k-btn-sm"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16Z"></path></svg>Edit</button>
+                    <button class="k-btn k-ghost k-btn-sm" onClick="{{c.dismiss}}">Dismiss</button>
+                    <div style="flex-grow:1;"></div>
+                    <a class="gm-link" href="#" style="font-size:12px;">Open email<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg></a>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{reviewEmpty}}" hint-placeholder-val="{{false}}">
+                <div class="gm-empty gm-back" style="padding-top:60px;">
+                  <div class="gm-et" style="background:linear-gradient(160deg,rgba(255,181,71,0.14),rgba(255,255,255,0.03));border-color:rgba(255,181,71,0.28);color:#ffc978;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"></path><path d="M5.5 5h13l2.5 8v6H3v-6Z"></path></svg></div>
+                  <div style="font-size:15px;font-weight:700;">Nothing to review.</div>
+                  <div style="font-size:12.5px;color:#8e8e93;">Unsure events land here.</div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="position:absolute;left:0;right:0;bottom:18px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;">
+              <sc-for list="{{toasts}}" as="t" hint-placeholder-count="0">
+                <div class="gm-toast k-pop-in" style="pointer-events:auto;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.color}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{t.icon}}"></path></svg>
+                  <span>{{t.text}}</span>
+                  <button class="gm-undo" onClick="{{t.undo}}">Undo</button>
+                  <span class="gm-tbar"></span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gm-col">
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">E2</span>REVIEW · EMPTY</div>
+          <div class="sg gm-pn" style="--sg:255 181 71;padding:20px 20px 30px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Review <span class="k-num" style="color:#8e8e93;">(0)</span></div>
+              <div style="flex-grow:1;"></div>
+              <button class="k-btn k-primary k-btn-sm k-off">Add all</button>
+            </div>
+            <div class="gm-empty" style="padding-top:26px;">
+              <div class="gm-et" style="background:linear-gradient(160deg,rgba(255,181,71,0.14),rgba(255,255,255,0.03));border-color:rgba(255,181,71,0.28);color:#ffc978;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"></path><path d="M5.5 5h13l2.5 8v6H3v-6Z"></path></svg></div>
+              <div style="font-size:15px;font-weight:700;">Nothing to review.</div>
+              <div style="font-size:12.5px;color:#8e8e93;">Unsure events land here.</div>
+            </div>
+          </div>
+        </div>
+        <div class="gm-v">
+          <div class="gm-cap"><span class="gm-ix">E3</span>EDIT · POPOVER FROM THE CARD</div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div class="sg k-pop k-pop-in" style="--sg:77 141 255;width:360px;padding:16px;display:flex;flex-direction:column;gap:10px;">
+              <div class="k-label" style="font-size:10px;color:#8e8e93;">EDIT EVENT</div>
+              <div class="gm-pf k-field-focus" style="font-weight:600;">Design review with Apurva<span class="k-blink" style="width:1.5px;height:15px;background:#2dd9c4;margin-left:-8px;"></span></div>
+              <div style="display:grid;grid-template-columns:1.5fr 1fr 0.9fr;gap:8px;white-space:nowrap;">
+                <div class="gm-pf k-num"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8fbaff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17"></path></svg>Thu, Oct 1</div>
+                <div class="gm-pf k-num">3:00 PM</div>
+                <div class="gm-pf k-num">30 min</div>
+              </div>
+              <div class="gm-pf"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><span style="color:#c7c7cc;">Room 4B or Meet</span></div>
+              <div class="gm-pf"><i class="gm-sw" style="background:#b5f23d;"></i>Komodo · From Gmail<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></div>
+              <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:2px;">
+                <button class="k-btn k-ghost k-btn-sm">Cancel</button>
+                <button class="k-btn k-primary k-btn-sm">Save &amp; add</button>
+              </div>
+            </div>
+            <div style="flex-grow:1;display:flex;flex-direction:column;gap:14px;padding-top:4px;">
+              <div class="k-label" style="font-size:10px;color:#8e8e93;">TOAST · 5 S · MAX 3 STACKED</div>
+              <div class="gm-toast" style="align-self:flex-start;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                <span>Added to your calendar: Design review, Thu 3:00 PM</span>
+              </div>
+              <div class="gm-toast" style="align-self:flex-start;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                <span>Dismissed: Coffee with Apurva</span>
+                <span class="gm-undo" style="display:inline-flex;align-items:center;">Undo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":4340}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.rowsAll = [
+      { id: 'r1', when: 'Today 9:14', subject: 'Re: Design review', o: 'added', event: 'Thu 3:00 PM' },
+      { id: 'r2', when: 'Today 8:47', subject: 'Visa form: submit by Oct 10', o: 'added', event: 'Oct 10 · all day' },
+      { id: 'r3', when: 'Today 8:02', subject: 'Your appointment…', o: 'review', event: 'Oct 10' },
+      { id: 'r4', when: 'Today 7:30', subject: 'Coffee next week?', o: 'review', event: 'Fri Oct 2' },
+      { id: 'r5', when: 'Today 6:15', subject: 'Call Sunday 11am?', o: 'added', event: 'Sun 11:00 AM' },
+      { id: 'r6', when: 'Yest. 18:40', subject: 'Weekly digest', o: 'skipped', event: 'Newsletter' },
+      { id: 'r7', when: 'Yest. 18:02', subject: 'Invitation: Sprint demo', o: 'skipped', event: 'Invitation' },
+      { id: 'r8', when: 'Yest. 17:55', subject: 'Your flight to Pune', o: 'skipped', event: 'Reservation' },
+      { id: 'r9', when: 'Yest. 17:05', subject: 'lunch?', o: 'noevent', event: '—' },
+      { id: 'r10', when: 'Yest. 11:30', subject: 'Policy update', o: 'error', event: 'Parse failed' }
+    ];
+    this.cardsAll = [
+      { id: 'c1', title: 'Design review with Apurva', short: 'Design review', when: 'Thu 3:00 PM', subject: 'Re: Design review', date: 'Sep 24', evidence: 'Can we do Thursday at 3pm? Room 4B or Meet.', unsure: false },
+      { id: 'c2', title: 'Coffee with Apurva', short: 'Coffee with Apurva', when: 'Fri Oct 2', subject: 'Coffee next week?', date: 'Sep 25', evidence: 'Coffee Friday next week? Mornings work best for me.', unsure: true }
+    ];
+    this.state = {
+      scan: 34, hold: 0, filter: 'all', q: '', rescanning: false,
+      tog: { inv: true, news: true, res: true, pause: false },
+      card: { c1: 'open', c2: 'open' },
+      toasts: [], seq: 0
+    };
+    this.timers = [];
+  }
+  componentDidMount() {
+    var self = this;
+    this.iv = setInterval(function () { self.tickScan(); }, 170);
+  }
+  componentWillUnmount() {
+    clearInterval(this.iv);
+    this.timers.forEach(function (t) { clearTimeout(t); });
+  }
+  later(fn, ms) { var t = setTimeout(fn, ms); this.timers.push(t); return t; }
+  tickScan() {
+    var s = this.state;
+    if (s.scan >= 120) {
+      if (s.hold > 14) this.setState({ scan: 34, hold: 0 });
+      else this.setState({ hold: s.hold + 1 });
+      return;
+    }
+    this.setState({ scan: s.scan + 1 });
+  }
+  flip(key) {
+    var t = Object.assign({}, this.state.tog);
+    t[key] = !t[key];
+    this.setState({ tog: t });
+  }
+  setCards(ids, status) {
+    var c = Object.assign({}, this.state.card);
+    ids.forEach(function (id) { c[id] = status; });
+    this.setState({ card: c });
+  }
+  act(ids, kind) {
+    var self = this;
+    var seq = this.state.seq + 1;
+    this.setCards(ids, 'closing');
+    this.later(function () {
+      var c = Object.assign({}, self.state.card);
+      ids.forEach(function (id) { if (c[id] === 'closing') c[id] = 'gone'; });
+      self.setState({ card: c });
+    }, 340);
+    var card = this.cardsAll.filter(function (x) { return x.id === ids[0]; })[0];
+    var text;
+    if (kind === 'addall') text = 'Added ' + ids.length + (ids.length === 1 ? ' event' : ' events') + ' to Komodo · From Gmail';
+    else if (kind === 'add') text = 'Added to your calendar: ' + card.short + ', ' + card.when;
+    else text = 'Dismissed: ' + card.short;
+    var toast = { id: seq, ids: ids, kind: kind, text: text };
+    var list = this.state.toasts.concat([toast]);
+    if (list.length > 3) list = list.slice(list.length - 3);
+    this.setState({ toasts: list, seq: seq });
+    this.later(function () {
+      self.setState({ toasts: self.state.toasts.filter(function (t) { return t.id !== seq; }) });
+    }, 5000);
+  }
+  undo(id) {
+    var toast = this.state.toasts.filter(function (t) { return t.id === id; })[0];
+    if (!toast) return;
+    this.setCards(toast.ids, 'back');
+    this.setState({ toasts: this.state.toasts.filter(function (t) { return t.id !== id; }) });
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var meta = {
+      all: { label: 'All' },
+      added: { label: 'Added', chip: 'k-chip-green', on: 'background:rgba(53,212,131,0.14);border-color:rgba(53,212,131,0.4);color:#5fe3a1;box-shadow:0 0 16px -6px rgba(53,212,131,0.7);' },
+      review: { label: 'Review', chip: 'k-chip-amber', on: 'background:rgba(255,181,71,0.14);border-color:rgba(255,181,71,0.4);color:#ffc978;box-shadow:0 0 16px -6px rgba(255,181,71,0.7);' },
+      noevent: { label: 'No event', chip: 'k-chip-outline', on: 'background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:#ffffff;' },
+      skipped: { label: 'Skipped', chip: 'k-chip-outline', on: 'background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:#ffffff;' },
+      error: { label: 'Errors', chip: 'k-chip-red', on: 'background:rgba(255,61,90,0.14);border-color:rgba(255,92,122,0.45);color:#ff8a9e;box-shadow:0 0 16px -6px rgba(255,61,90,0.7);' }
+    };
+    meta.all.on = 'background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);';
+    var q = s.q.trim().toLowerCase();
+    var textRows = this.rowsAll.filter(function (r) { return !q || r.subject.toLowerCase().indexOf(q) >= 0 || 'apurva'.indexOf(q) >= 0 || r.when.toLowerCase().indexOf(q) >= 0; });
+    var chips = ['all', 'added', 'review', 'noevent', 'skipped', 'error'].map(function (k) {
+      var n = k === 'all' ? textRows.length : textRows.filter(function (r) { return r.o === k; }).length;
+      var on = s.filter === k;
+      return {
+        label: meta[k].label, n: n, on: on ? 'true' : 'false',
+        style: on ? meta[k].on : '',
+        nStyle: on ? 'color:inherit;opacity:0.8;' : '',
+        pick: function () { self.setState({ filter: k }); }
+      };
+    });
+    var labels = { added: 'Added', review: 'Review', noevent: 'No event', skipped: 'Skipped', error: 'Error' };
+    var rows = textRows.filter(function (r) { return s.filter === 'all' || r.o === s.filter; }).map(function (r, i) {
+      return {
+        i: i, when: r.when, subject: r.subject, event: r.event,
+        chip: meta[r.o].chip, label: labels[r.o],
+        hasEvent: r.o === 'added' || r.o === 'review',
+        isReason: r.o === 'skipped' || r.o === 'noevent',
+        isError: r.o === 'error',
+        sw: r.o === 'added' ? '#b5f23d' : '#ffb547',
+        spinCls: s.rescanning ? 'gm-spin' : '',
+        rescan: function () { self.setState({ rescanning: true }); self.later(function () { self.setState({ rescanning: false }); }, 1400); }
+      };
+    });
+    var cards = this.cardsAll.filter(function (c) { return s.card[c.id] !== 'gone'; }).map(function (c) {
+      var st = s.card[c.id];
+      return {
+        title: c.title, when: c.when, subject: c.subject, date: c.date, evidence: c.evidence, unsure: c.unsure,
+        anim: st === 'closing' ? 'gm-collapse' : (st === 'back' ? 'gm-back' : ''),
+        add: function () { self.act([c.id], 'add'); },
+        dismiss: function () { self.act([c.id], 'dismiss'); }
+      };
+    });
+    var openIds = this.cardsAll.filter(function (c) { return s.card[c.id] === 'open' || s.card[c.id] === 'back'; }).map(function (c) { return c.id; });
+    var toasts = s.toasts.map(function (t) {
+      var dismiss = t.kind === 'dismiss';
+      return {
+        text: t.text,
+        color: dismiss ? '#a1a1a6' : '#5fe3a1',
+        icon: dismiss ? 'M6 6l12 12M18 6 6 18' : 'M5 12.5 10 17l9-10',
+        undo: function () { self.undo(t.id); }
+      };
+    });
+    var scanN = Math.min(120, s.scan);
+    var a = Math.round(4 * scanN / 120), rv = Math.round(2 * scanN / 120);
+    return {
+      scanN: scanN,
+      scanPct: (scanN / 120 * 100).toFixed(1) + '%',
+      scanA: a, scanR: rv, scanS: scanN - a - rv,
+      tog: {
+        inv: s.tog.inv ? 'k-tog-on' : '', news: s.tog.news ? 'k-tog-on' : '',
+        res: s.tog.res ? 'k-tog-on' : '', pause: s.tog.pause ? 'k-tog-on' : ''
+      },
+      flipInv: function () { self.flip('inv'); },
+      flipNews: function () { self.flip('news'); },
+      flipRes: function () { self.flip('res'); },
+      flipPause: function () { self.flip('pause'); },
+      chips: chips,
+      rows: rows,
+      rowCount: rows.length,
+      noRows: rows.length === 0,
+      q: s.q,
+      setQ: function (e) { var v = e && e.target ? e.target.value : ''; if (v !== self.state.q) self.setState({ q: v }); },
+      cards: cards,
+      openN: openIds.length,
+      reviewEmpty: cards.length === 0,
+      addAllCls: openIds.length ? '' : 'k-off',
+      addAll: function () { if (openIds.length) self.act(openIds, 'addall'); },
+      resetReview: function () { self.setState({ card: { c1: 'back', c2: 'back' }, toasts: [] }); },
+      toasts: toasts,
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

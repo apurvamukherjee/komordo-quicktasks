@@ -1,0 +1,1493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+
+/* button reset fix: `.k button` (0,1,1) outranks single-class kit variants, so re-assert them */
+.k .k-btn{padding:0 14px;font-size:13px;font-weight:600;}
+.k .k-btn-sm{padding:0 10px;font-size:12px;}
+.k .k-primary{font-weight:700;}
+.k .k-danger{font-weight:700;}
+.k .k-primary{background:linear-gradient(120deg,#2dd9c4,#b5f23d);}
+.k .k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);}
+.k .k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k .k-danger{background:#ff3d5a;color:#1a0207;}
+.k .k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k .k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k .k-act{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.k .k-act:hover{background:rgba(255,255,255,0.14);}
+.k .k-icon:hover{background:rgba(255,255,255,0.08);}
+.k .k-tog{background:rgba(255,255,255,0.14);}
+.k .k-tog-on{background:#35d483;}
+.k .k-seg-b{padding:0 12px;font-size:12.5px;font-weight:600;}
+.k .k-seg-on{background:rgba(255,255,255,0.12);}
+.k .k-check{border:1.5px solid rgba(255,255,255,0.3);}
+.k .k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-check svg{opacity:0;transition:opacity 140ms ease;}
+.k-check-on svg{opacity:1;}
+
+/* window */
+.st-side{width:236px;flex-shrink:0;position:relative;background:linear-gradient(180deg,rgba(26,26,30,0.97),rgba(14,14,16,0.99));border-right:1px solid rgba(255,255,255,0.06);padding:46px 10px 12px;display:flex;flex-direction:column;gap:1px;}
+.k .st-nav{display:flex;align-items:center;gap:10px;width:100%;height:32px;padding:0 8px;border-radius:8px;font-size:13px;font-weight:500;color:#c7c7cc;text-align:left;transition:background 140ms ease,color 140ms ease;}
+.k .st-nav:hover{background:rgba(255,255,255,0.05);color:#ffffff;}
+.k .st-nav-on,.k .st-nav-on:hover{background:rgba(255,255,255,0.09);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);}
+.st-ic{width:22px;height:22px;border-radius:6.5px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:rgb(var(--c) / 0.14);border:1px solid rgb(var(--c) / 0.3);color:rgb(var(--c));transition:background 200ms ease,color 200ms ease,box-shadow 260ms ease,transform 260ms var(--spring);}
+.st-nav:hover .st-ic{transform:scale(1.06);}
+.st-nav-on .st-ic{background:rgb(var(--c));border-color:rgb(var(--c));color:#07080a;box-shadow:0 0 16px -3px rgb(var(--c) / 0.85);}
+.st-ic-brand{background:#171717;border-color:rgba(255,255,255,0.14);}
+.st-nav-on .st-ic-brand{background:#171717;border-color:rgba(181,242,61,0.6);box-shadow:0 0 16px -3px rgba(181,242,61,0.8);}
+.st-sep{height:1px;margin:7px 8px;background:rgba(255,255,255,0.07);}
+.st-main{flex-grow:1;min-width:0;position:relative;display:flex;flex-direction:column;}
+.st-bar{height:52px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 28px;border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(10,10,12,0.6);}
+.st-scroll{flex-grow:1;min-height:0;overflow-y:auto;padding:18px 28px 36px;}
+.st-page{display:flex;flex-direction:column;animation:st-in 340ms var(--ease) both;}
+@keyframes st-in{from{opacity:0;transform:translateX(12px);filter:blur(3px);}to{opacity:1;transform:none;filter:none;}}
+.st-gh{padding:18px 4px 8px;color:#8e8e93;display:flex;align-items:center;gap:8px;}
+.st-gh:first-child{padding-top:2px;}
+
+/* grouped form */
+.st-g{border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);}
+.st-g:has(.st-menu){z-index:8;}
+.st-r{display:flex;align-items:center;gap:16px;min-height:56px;padding:11px 16px;transition:opacity 200ms ease;}
+.st-r + .st-r{border-top:1px solid rgba(255,255,255,0.06);}
+.st-rt{flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.st-rl{font-size:13.5px;font-weight:600;color:#e5e5ea;display:flex;align-items:center;gap:8px;}
+.st-rd{font-size:12px;line-height:16px;color:#8e8e93;}
+.st-sub{padding-left:34px;}
+.st-dim{opacity:0.42;pointer-events:none;}
+.st-hide{visibility:hidden;}
+.st-ctl{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+/* pop-up button + menu */
+.st-pk{position:relative;}
+.k .st-pick{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 8px 0 11px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);font-size:12.5px;font-weight:600;color:#ffffff;white-space:nowrap;transition:background 140ms ease,border-color 140ms ease,transform 180ms var(--spring);}
+.k .st-pick:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.18);}
+.k .st-pick:active{transform:scale(0.96);}
+.st-pick svg{color:#a1a1a6;}
+.st-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:180px;padding:5px;z-index:40;display:flex;flex-direction:column;gap:1px;}
+.k .st-mi{display:flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 8px;border-radius:8px;font-size:12.5px;font-weight:500;color:#e5e5ea;text-align:left;white-space:nowrap;}
+.k .st-mi:hover{background:rgba(45,217,196,0.18);color:#ffffff;}
+
+/* chips, presets, fields */
+.st-preset{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 6px 0 10px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);font-size:12px;font-weight:600;color:#e5e5ea;animation:k-popin 320ms var(--spring) backwards;}
+.k .st-x{width:16px;height:16px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:#8e8e93;opacity:0.5;transition:opacity 140ms ease,background 140ms ease,color 140ms ease;}
+.st-preset:hover .st-x{opacity:1;}
+.k .st-x:hover{background:rgba(255,61,90,0.18);color:#ff8a9e;}
+.st-dur{display:inline-flex;align-items:center;height:28px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);}
+.st-dur-v{width:56px;text-align:center;font-size:13px;font-weight:600;color:#ffffff;}
+.k .st-step{width:24px;height:26px;display:inline-flex;align-items:center;justify-content:center;color:#a1a1a6;border-radius:7px;transition:background 140ms ease,color 140ms ease;}
+.k .st-step:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.st-unit{font-size:11.5px;color:#8e8e93;margin-left:2px;}
+.st-shield{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:999px;background:rgba(53,212,131,0.12);border:1px solid rgba(53,212,131,0.28);color:#5fe3a1;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.st-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#8fbaff;text-decoration:none;border-radius:6px;transition:color 140ms ease;}
+.st-link:hover{color:#ffffff;}
+.st-p{font-size:9.5px;font-weight:800;letter-spacing:0.06em;height:18px;padding:0 6px;border-radius:6px;display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#a1a1a6;}
+.st-spin{width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:k-rot 700ms linear infinite;flex-shrink:0;}
+
+/* play / eq */
+.st-eq{display:inline-flex;align-items:flex-end;gap:2px;height:12px;}
+.st-eq span{width:2px;height:100%;border-radius:1px;background:currentColor;animation:st-eq 520ms ease-in-out infinite alternate;}
+.st-eq span:nth-child(2){animation-delay:-180ms;}
+.st-eq span:nth-child(3){animation-delay:-360ms;}
+@keyframes st-eq{from{transform:scaleY(0.25);}to{transform:scaleY(1);}}
+.k .st-play-on{background:rgba(181,242,61,0.16);border-color:rgba(181,242,61,0.5);color:#c9f76a;box-shadow:0 0 16px -4px rgba(181,242,61,0.7);}
+
+/* volume */
+.st-range{-webkit-appearance:none;appearance:none;width:210px;height:6px;border-radius:99px;margin:0;outline:none;cursor:pointer;background:linear-gradient(90deg,#2dd9c4,#b5f23d) 0 0 / var(--v,70%) 100% no-repeat,rgba(255,255,255,0.1);box-shadow:0 0 14px -4px rgba(181,242,61,0.5);}
+.st-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 0 0 4px rgba(181,242,61,0.2),0 2px 8px rgba(0,0,0,0.5);transition:transform 180ms var(--spring);}
+.st-range::-webkit-slider-thumb:hover{transform:scale(1.12);}
+.st-range::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#ffffff;box-shadow:0 0 0 4px rgba(181,242,61,0.2),0 2px 8px rgba(0,0,0,0.5);}
+.st-range:focus-visible{box-shadow:0 0 0 4px rgba(45,217,196,0.25);}
+
+/* focus preview */
+.st-screen{position:relative;width:212px;height:132px;border-radius:10px;background:radial-gradient(120% 90% at 20% 0%,rgba(77,141,255,0.22),transparent 60%),radial-gradient(90% 80% at 100% 100%,rgba(139,124,255,0.18),transparent 60%),#101116;border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 0 0 3px #050506;}
+.st-mbar{position:absolute;left:3px;right:3px;top:3px;height:9px;border-radius:7px 7px 0 0;background:rgba(0,0,0,0.5);display:flex;align-items:center;gap:4px;padding:0 6px;}
+.st-mbar i{display:block;height:3px;border-radius:2px;background:rgba(255,255,255,0.35);}
+.st-fwin{position:absolute;left:52px;right:52px;top:30px;height:62px;border-radius:5px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.st-dock{position:absolute;left:7px;top:16px;bottom:7px;width:44px;border-radius:6px;background:linear-gradient(180deg,rgba(181,242,61,0.3),rgba(45,217,196,0.14));border:1px solid rgba(181,242,61,0.75);box-shadow:0 0 18px -2px rgba(181,242,61,0.6);transition:transform 620ms var(--spring);display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:9px;}
+.st-dock b{display:block;width:18px;height:18px;border-radius:50%;border:2.5px solid #b5f23d;border-right-color:rgba(181,242,61,0.25);}
+.st-dock i{display:block;width:28px;height:3px;border-radius:2px;background:rgba(255,255,255,0.35);}
+.st-stand{width:44px;height:10px;margin:0 auto;background:linear-gradient(180deg,#1a1a1e,#0e0e10);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);}
+.st-foot{width:76px;height:3px;margin:0 auto;border-radius:2px;background:#1f1f23;}
+
+/* shortcuts */
+.st-tgrid{display:grid;grid-template-columns:minmax(0,1fr) 230px 84px 40px;align-items:center;column-gap:12px;}
+.st-th{padding:10px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.st-tr{padding:6px 16px;min-height:44px;}
+.st-tr + .st-tr{border-top:1px solid rgba(255,255,255,0.045);}
+.k .st-rec{display:inline-flex;align-items:center;gap:4px;height:30px;min-width:150px;padding:0 10px 0 8px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);transition:border-color 160ms ease,background 160ms ease,box-shadow 220ms ease;outline:none;}
+.k .st-rec:hover{border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.07);}
+.k .st-rec-err,.k .st-rec-err:hover{border-color:rgba(255,61,90,0.8);background:rgba(255,61,90,0.07);box-shadow:0 0 0 3px rgba(255,61,90,0.12);}
+.k .st-rec-on,.k .st-rec-on:hover{border-color:#2dd9c4;background:rgba(45,217,196,0.08);animation:st-recp 1.2s ease-in-out infinite;}
+@keyframes st-recp{0%,100%{box-shadow:0 0 0 0 rgba(45,217,196,0.5);}50%{box-shadow:0 0 0 5px rgba(45,217,196,0.1);}}
+.st-rec-fixed{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 8px;}
+.st-rec .k-kbd,.st-rec-fixed .k-kbd{font-size:11.5px;padding:4px 6px;min-width:22px;text-align:center;}
+
+/* gmail + integrations */
+.st-stat{padding:14px 16px;display:flex;flex-direction:column;gap:6px;}
+.st-stat-n{font-size:28px;font-weight:800;letter-spacing:-0.03em;line-height:1;}
+.st-dl{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:start;gap:14px;padding:13px 16px;}
+.st-dl + .st-dl{border-top:1px solid rgba(255,255,255,0.06);}
+.st-dl > .k-label{padding-top:4px;color:#8e8e93;}
+.st-sq{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.st-logo{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#2a2a2f,#1d1d21);border:1px solid rgba(255,255,255,0.12);font-size:14px;font-weight:800;color:#e5e5ea;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.st-card{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:138px;}
+.st-soon{opacity:0.6;}
+.st-soon:hover{opacity:0.75;}
+.st-empty{padding:26px 20px;border-radius:14px;border:1px dashed rgba(255,255,255,0.14);display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+
+/* code */
+.st-code{position:relative;border-radius:12px;background:#07070a;border:1px solid rgba(255,255,255,0.08);padding:14px 16px;font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:20px;}
+.st-ln{white-space:pre;}
+.k .st-copy{position:absolute;top:10px;right:10px;}
+.k .st-copied{color:#5fe3a1;border-color:rgba(53,212,131,0.4);background:rgba(53,212,131,0.12);}
+
+/* celebration */
+.st-cel{position:relative;height:190px;border-radius:16px;padding:1.5px;background:linear-gradient(135deg,#2dd9c4,#b5f23d,#ffb547,#ff6ad5,#8b7cff);box-shadow:0 0 40px -14px rgba(181,242,61,0.6);transition:filter 240ms ease,opacity 240ms ease;}
+.st-cel-in{position:relative;height:100%;border-radius:14.5px;background:radial-gradient(90% 70% at 50% 30%,rgba(181,242,61,0.16),transparent 70%),#0c0d0e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;}
+.st-cel-off{filter:grayscale(1);opacity:0.45;}
+.st-conf{position:absolute;left:50%;top:38%;width:6px;height:10px;border-radius:2px;animation:st-burst 1250ms cubic-bezier(0.12,0.7,0.3,1) forwards;}
+@keyframes st-burst{0%{transform:translate(-50%,-50%) rotate(0deg) scale(1);opacity:1;}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r)) scale(0.5);opacity:0;}}
+.st-popc{animation:st-popc 560ms var(--spring) both;}
+@keyframes st-popc{0%{transform:scale(0.4);}60%{transform:scale(1.18);}100%{transform:scale(1);}}
+.st-gif{width:84px;height:52px;border-radius:9px;background:repeating-linear-gradient(135deg,rgba(255,255,255,0.05) 0 6px,rgba(255,255,255,0.02) 6px 12px);border:1px dashed rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:0.1em;color:#8e8e93;}
+
+/* about */
+.st-appicon{width:116px;height:116px;border-radius:27px;display:flex;align-items:center;justify-content:center;background:radial-gradient(90% 70% at 30% 10%,rgba(255,255,255,0.08),transparent 60%),#171717;border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 0 60px -12px rgba(181,242,61,0.55),0 24px 40px -18px rgba(0,0,0,0.9);}
+.st-toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;height:42px;padding:0 8px 0 14px;z-index:50;white-space:nowrap;}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" onClick="{{closeAll}}" style="width:1100px;height:760px;background:#0a0a0c;border-radius:14px;overflow:hidden;position:relative;display:flex;box-shadow:0 50px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.09);">
+
+  <aside class="st-side">
+    <div style="position:absolute;top:18px;left:18px;display:flex;gap:8px;">
+      <div class="k-tl" style="background:#ff5f57;"></div>
+      <div class="k-tl" style="background:#febc2e;"></div>
+      <div class="k-tl" style="background:#28c840;"></div>
+    </div>
+    <label class="k-field" style="height:30px;margin:0 2px 10px;border-radius:9px;padding:0 10px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input aria-label="Search settings" placeholder="Search" style="font-size:12.5px;">
+    </label>
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="13">
+      <sc-if value="{{n.sep}}" hint-placeholder-val="{{false}}"><div class="st-sep"></div></sc-if>
+      <sc-if value="{{n.item}}" hint-placeholder-val="{{true}}">
+        <button class="st-nav {{n.cls}}" onClick="{{n.go}}" aria-current="{{n.current}}">
+          <sc-if value="{{n.brand}}" hint-placeholder-val="{{false}}">
+            <span class="st-ic st-ic-brand">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="url(#stNavG)" stroke-width="2.6" stroke-linecap="round"><defs><linearGradient id="stNavG" gradientUnits="userSpaceOnUse" x1="4" y1="3" x2="20" y2="21"><stop offset="0" stop-color="#2dd9c4"></stop><stop offset="1" stop-color="#b5f23d"></stop></linearGradient></defs><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5V9.5M10 2.8h4"></path></svg>
+            </span>
+          </sc-if>
+          <sc-if value="{{n.plain}}" hint-placeholder-val="{{true}}">
+            <span class="st-ic" style="--c:{{n.c}};">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.d}}"></path></svg>
+            </span>
+          </sc-if>
+          <span style="flex-grow:1;">{{n.label}}</span>
+          <sc-if value="{{n.live}}" hint-placeholder-val="{{false}}"><span class="k-dot k-ping" style="width:6px;height:6px;background:#35d483;"></span></sc-if>
+        </button>
+      </sc-if>
+    </sc-for>
+    <div style="flex-grow:1;"></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:8px 10px 2px;font-size:11px;color:#8e8e93;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+      Changes apply instantly
+    </div>
+  </aside>
+
+  <main class="st-main" style="background:radial-gradient(640px 360px at 92% -12%,rgb({{pageTint}} / 0.08),transparent 62%),#0b0b0d;">
+    <div class="st-bar">
+      <div style="font-size:15px;font-weight:700;letter-spacing:-0.01em;">{{pageTitle}}</div>
+      <div style="flex-grow:1;"></div>
+      <sc-if value="{{pg.data}}" hint-placeholder-val="{{false}}">
+        <span class="st-shield"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>Stored on this Mac</span>
+      </sc-if>
+      <sc-if value="{{pg.integrations}}" hint-placeholder-val="{{false}}">
+        <span class="st-shield"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+      </sc-if>
+    </div>
+
+    <div class="st-scroll k-scroll">
+
+      <sc-if value="{{pg.general}}" hint-placeholder-val="{{true}}">
+        <div class="st-page">
+          <div class="k-label st-gh">APP</div>
+          <div class="sg st-g" style="--sg:45 217 196;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Open Komodo at login</div><div class="st-rd">Keeps Gmail → Calendar and reminders running.</div></div>
+              <button class="{{tg.login.cls}}" role="switch" aria-checked="{{tg.login.aria}}" aria-label="Open Komodo at login" onClick="{{tg.login.flip}}"></button>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Show Komodo in the Dock</div><div class="st-rd">Turn off to keep Komodo in the menu bar only.</div></div>
+              <button class="{{tg.dock.cls}}" role="switch" aria-checked="{{tg.dock.aria}}" aria-label="Show Komodo in the Dock" onClick="{{tg.dock.flip}}"></button>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Show timer in the menu bar</div><div class="st-rd">The live task's time sits next to the Komodo mark.</div></div>
+              <button class="{{tg.menubar.cls}}" role="switch" aria-checked="{{tg.menubar.aria}}" aria-label="Show timer in the menu bar" onClick="{{tg.menubar.flip}}"></button>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">BOARD</div>
+          <div class="sg st-g" style="--sg:45 217 196;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Week starts on</div><div class="st-rd">Sets the This week column and the week strip.</div></div>
+              <div class="st-pk">
+                <button class="st-pick" onClick="{{pk.week.toggle}}" aria-haspopup="listbox">{{pk.week.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                <sc-if value="{{pk.week.open}}" hint-placeholder-val="{{false}}">
+                  <div class="k-pop k-pop-in st-menu" role="listbox">
+                    <sc-for list="{{pk.week.options}}" as="o" hint-placeholder-count="3">
+                      <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Quick task presets</div><div class="st-rd">One-click estimates under every add field.</div></div>
+              <div class="st-ctl">
+                <sc-for list="{{presets}}" as="p" hint-placeholder-count="3">
+                  <span class="st-preset k-num">{{p.label}}<button class="st-x" aria-label="{{p.aria}}" onClick="{{p.remove}}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></span>
+                </sc-for>
+                <button class="k-act {{presetAddCls}}" aria-label="Add preset" onClick="{{addPreset}}" style="width:26px;height:26px;border-radius:8px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+              </div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Hide EST and time taken on cards</div><div class="st-rd">A calmer board. Timers keep counting.</div></div>
+              <button class="{{tg.hideEst.cls}}" role="switch" aria-checked="{{tg.hideEst.aria}}" aria-label="Hide EST and time taken on cards" onClick="{{tg.hideEst.flip}}"></button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.focus}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">FOCUS PANEL</div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 244px;gap:14px;align-items:stretch;">
+            <div class="sg st-g" style="--sg:181 242 61;">
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Panel screen</div><div class="st-rd">Where the Focus Panel docks.</div></div>
+                <div class="st-pk">
+                  <button class="st-pick" onClick="{{pk.screen.toggle}}" aria-haspopup="listbox">{{pk.screen.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                  <sc-if value="{{pk.screen.open}}" hint-placeholder-val="{{false}}">
+                    <div class="k-pop k-pop-in st-menu" role="listbox">
+                      <sc-for list="{{pk.screen.options}}" as="o" hint-placeholder-count="3">
+                        <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Panel side</div><div class="st-rd">The panel hugs this edge of the screen.</div></div>
+                <div class="k-seg" role="radiogroup" aria-label="Panel side">
+                  <button class="k-seg-b {{sideL}}" role="radio" aria-checked="{{sideLAria}}" onClick="{{setLeft}}">Left</button>
+                  <button class="k-seg-b {{sideR}}" role="radio" aria-checked="{{sideRAria}}" onClick="{{setRight}}">Right</button>
+                </div>
+              </div>
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Float above full-screen apps</div><div class="st-rd">Keeps the panel and floating timer in view.</div></div>
+                <button class="{{tg.float.cls}}" role="switch" aria-checked="{{tg.float.aria}}" aria-label="Float above full-screen apps" onClick="{{tg.float.flip}}"></button>
+              </div>
+            </div>
+
+            <div class="sg k-card" style="--sg:181 242 61;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span class="k-label" style="color:#8e8e93;">PREVIEW</span>
+                <span class="k-chip k-chip-lime" style="height:20px;font-size:10.5px;">{{sideWord}}</span>
+              </div>
+              <div>
+                <div class="st-screen">
+                  <div class="st-mbar"><i style="width:8px;"></i><i style="width:14px;"></i><i style="width:10px;"></i><span style="flex-grow:1;"></span><i style="width:18px;background:#b5f23d;"></i></div>
+                  <div class="st-fwin"></div>
+                  <div class="st-dock" style="{{dockStyle}}"><b></b><i></i><i style="width:20px;"></i><i style="width:24px;"></i></div>
+                </div>
+                <div class="st-stand"></div>
+                <div class="st-foot"></div>
+              </div>
+              <div style="font-size:11.5px;color:#a1a1a6;text-align:center;">{{previewCaption}}</div>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">POMODORO &amp; BREAKS</div>
+          <div class="sg st-g" style="--sg:255 106 213;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Pomodoros</div><div class="st-rd">Work in sprints with a short break between each.</div></div>
+              <button class="{{tg.pomo.cls}}" role="switch" aria-checked="{{tg.pomo.aria}}" aria-label="Pomodoros" onClick="{{tg.pomo.flip}}"></button>
+            </div>
+            <div class="st-r st-sub {{pomoDim}}">
+              <div class="st-rt"><div class="st-rl">Work sprint</div></div>
+              <div class="st-dur"><button class="st-step" aria-label="Shorter work sprint" onClick="{{du.sprint.dec}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"></path></svg></button><span class="st-dur-v k-mono">{{du.sprint.txt}}</span><button class="st-step" aria-label="Longer work sprint" onClick="{{du.sprint.inc}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button></div>
+            </div>
+            <div class="st-r st-sub {{pomoDim}}">
+              <div class="st-rt"><div class="st-rl">Break</div></div>
+              <div class="st-dur"><button class="st-step" aria-label="Shorter break" onClick="{{du.brk.dec}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"></path></svg></button><span class="st-dur-v k-mono">{{du.brk.txt}}</span><button class="st-step" aria-label="Longer break" onClick="{{du.brk.inc}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button></div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Default break</div><div class="st-rd">Used by Start break <span class="k-kbd">⌘⌥B</span> when Pomodoros are off.</div></div>
+              <div class="st-dur"><button class="st-step" aria-label="Shorter default break" onClick="{{du.dbrk.dec}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"></path></svg></button><span class="st-dur-v k-mono">{{du.dbrk.txt}}</span><button class="st-step" aria-label="Longer default break" onClick="{{du.dbrk.inc}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button></div>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">WHILE A TASK IS LIVE</div>
+          <div class="sg st-g" style="--sg:181 242 61;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Scrolling title</div><div class="st-rd">Long task titles scroll instead of cutting off.</div></div>
+              <button class="{{tg.scroll.cls}}" role="switch" aria-checked="{{tg.scroll.aria}}" aria-label="Scrolling title" onClick="{{tg.scroll.flip}}"></button>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Open links in notes when a task starts</div><div class="st-rd">Docs and tickets from the task's notes open as it goes live.</div></div>
+              <button class="{{tg.openLinks.cls}}" role="switch" aria-checked="{{tg.openLinks.aria}}" aria-label="Open links in notes when a task starts" onClick="{{tg.openLinks.flip}}"></button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.alerts}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">TIMED ALERTS</div>
+          <div class="sg st-g" style="--sg:255 106 213;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Timed alerts during a task</div><div class="st-rd">A soft nudge on a fixed interval while a task is live.</div></div>
+              <button class="{{tg.timed.cls}}" role="switch" aria-checked="{{tg.timed.aria}}" aria-label="Timed alerts during a task" onClick="{{tg.timed.flip}}"></button>
+            </div>
+            <div class="st-r st-sub {{timedDim}}">
+              <div class="st-rt"><div class="st-rl">Every</div></div>
+              <div class="st-pk">
+                <button class="st-pick" onClick="{{pk.interval.toggle}}" aria-haspopup="listbox">{{pk.interval.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                <sc-if value="{{pk.interval.open}}" hint-placeholder-val="{{false}}">
+                  <div class="k-pop k-pop-in st-menu" role="listbox">
+                    <sc-for list="{{pk.interval.options}}" as="o" hint-placeholder-count="4">
+                      <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div class="st-r st-sub {{timedDim}}">
+              <div class="st-rt"><div class="st-rl">Sound</div></div>
+              <div class="st-ctl">
+                <div class="st-pk">
+                  <button class="st-pick" onClick="{{pk.sound.toggle}}" aria-haspopup="listbox">{{pk.sound.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                  <sc-if value="{{pk.sound.open}}" hint-placeholder-val="{{false}}">
+                    <div class="k-pop k-pop-in st-menu" role="listbox">
+                      <sc-for list="{{pk.sound.options}}" as="o" hint-placeholder-count="4">
+                        <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <button class="k-act {{play.alert.cls}}" aria-label="Preview alert sound" onClick="{{play.alert.go}}" style="width:28px;height:28px;border-radius:8px;">
+                  <sc-if value="{{play.alert.on}}" hint-placeholder-val="{{false}}"><span class="st-eq"><span></span><span></span><span></span></span></sc-if>
+                  <sc-if value="{{play.alert.off}}" hint-placeholder-val="{{true}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg></sc-if>
+                </button>
+              </div>
+            </div>
+            <div class="st-r st-sub {{timedDim}}">
+              <div class="st-rt"><div class="st-rl">Pulse timer</div><div class="st-rd">The timer glows once with each alert.</div></div>
+              <button class="{{tg.pulse.cls}}" role="switch" aria-checked="{{tg.pulse.aria}}" aria-label="Pulse timer" onClick="{{tg.pulse.flip}}"></button>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">REMINDERS</div>
+          <div class="sg st-g" style="--sg:255 106 213;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Reminder sound</div><div class="st-rd">For scheduled tasks and meetings.</div></div>
+              <div class="st-ctl">
+                <div class="st-pk">
+                  <button class="st-pick" onClick="{{pk.rsound.toggle}}" aria-haspopup="listbox">{{pk.rsound.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                  <sc-if value="{{pk.rsound.open}}" hint-placeholder-val="{{false}}">
+                    <div class="k-pop k-pop-in st-menu" role="listbox">
+                      <sc-for list="{{pk.rsound.options}}" as="o" hint-placeholder-count="4">
+                        <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <button class="k-act {{play.rem.cls}}" aria-label="Preview reminder sound" onClick="{{play.rem.go}}" style="width:28px;height:28px;border-radius:8px;">
+                  <sc-if value="{{play.rem.on}}" hint-placeholder-val="{{false}}"><span class="st-eq"><span></span><span></span><span></span></span></sc-if>
+                  <sc-if value="{{play.rem.off}}" hint-placeholder-val="{{true}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg></sc-if>
+                </button>
+              </div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Volume</div><div class="st-rd">For every Komodo sound.</div></div>
+              <div class="st-ctl" style="gap:10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4Z"></path></svg>
+                <input class="st-range" type="range" min="0" max="100" step="1" aria-label="Volume" value="{{volume}}" onInput="{{setVol}}" onChange="{{setVol}}" style="{{volStyle}}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                <span class="k-num" style="width:38px;text-align:right;font-size:12.5px;font-weight:700;color:#c9f76a;">{{volLabel}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.celebration}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">WHEN YOU FINISH A TASK</div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start;">
+            <div class="sg st-g" style="--sg:255 181 71;">
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Success screen</div><div class="st-rd">A big check and a line about how you did.</div></div>
+                <button class="{{tg.success.cls}}" role="switch" aria-checked="{{tg.success.aria}}" aria-label="Success screen" onClick="{{tg.success.flip}}"></button>
+              </div>
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Fun GIF</div><div class="st-rd">A random GIF on the success screen.</div></div>
+                <button class="{{tg.gif.cls}}" role="switch" aria-checked="{{tg.gif.aria}}" aria-label="Fun GIF" onClick="{{tg.gif.flip}}"></button>
+              </div>
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Success sound</div><div class="st-rd">A short chime on Done.</div></div>
+                <button class="{{tg.sound.cls}}" role="switch" aria-checked="{{tg.sound.aria}}" aria-label="Success sound" onClick="{{tg.sound.flip}}"></button>
+              </div>
+              <div class="st-r">
+                <div class="st-rt"><div class="st-rl">Try it</div><div class="st-rd">Plays the moment with your current choices.</div></div>
+                <button class="k-btn k-btn-sm k-soft" onClick="{{previewCel}}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffb547" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5 8 8l8 8Z"></path><path d="M13 3.5c.8 1.2.8 2.6 0 3.8M20.5 11c-1.2-.8-2.6-.8-3.8 0M16.5 4.5h.01M19.5 7.5h.01"></path></svg>
+                  Preview
+                </button>
+              </div>
+            </div>
+
+            <div class="st-cel {{celOff}}">
+              <div class="st-cel-in">
+                <sc-if value="{{conf}}" hint-placeholder-val="{{false}}">
+                  <sc-for list="{{confetti}}" as="p" hint-placeholder-count="0">
+                    <span class="st-conf" style="background:{{p.c}};--dx:{{p.dx}};--dy:{{p.dy}};--r:{{p.r}};animation-delay:{{p.d}};"></span>
+                  </sc-for>
+                </sc-if>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="{{popCls}}" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2dd9c4,#b5f23d);display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px -4px rgba(181,242,61,0.85);">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                  </div>
+                  <sc-if value="{{tg.gif.on}}" hint-placeholder-val="{{true}}"><div class="st-gif">GIF</div></sc-if>
+                </div>
+                <div style="font-size:15px;font-weight:800;letter-spacing:-0.02em;">Nailed it. 12min early.</div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#a1a1a6;">
+                  <sc-if value="{{tg.sound.on}}" hint-placeholder-val="{{true}}">
+                    <span style="display:inline-flex;align-items:center;gap:5px;color:#c9f76a;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>Success sound</span>
+                  </sc-if>
+                  <sc-if value="{{tg.sound.off}}" hint-placeholder-val="{{false}}"><span>Silent</span></sc-if>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px 4px 0;font-size:12px;color:#8e8e93;">{{celNote}}</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.shortcuts}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">KEYBOARD SHORTCUTS</div>
+          <div class="sg st-g" style="--sg:45 217 196;">
+            <div class="st-tgrid st-th">
+              <span class="k-label" style="color:#8e8e93;">ACTION</span>
+              <span class="k-label" style="color:#8e8e93;">SHORTCUT</span>
+              <span class="k-label" style="color:#8e8e93;">SCOPE</span>
+              <span class="k-label" style="color:#8e8e93;text-align:right;">RESET</span>
+            </div>
+            <sc-for list="{{scRows}}" as="r" hint-placeholder-count="11">
+              <div class="st-tgrid st-tr k-row">
+                <div style="font-size:13.5px;font-weight:600;color:#e5e5ea;">{{r.action}}</div>
+                <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:3px 0;">
+                  <sc-if value="{{r.global}}" hint-placeholder-val="{{true}}">
+                    <button class="st-rec {{r.recCls}}" onClick="{{r.click}}" onKeyDown="{{r.key}}" aria-label="{{r.aria}}">
+                      <sc-if value="{{r.isRec}}" hint-placeholder-val="{{false}}">
+                        <span class="k-dot k-ping" style="width:6px;height:6px;background:#2dd9c4;margin:0 4px 0 2px;"></span>
+                        <span style="font-size:12px;font-weight:600;color:#5ce6d4;white-space:nowrap;">Recording… press keys</span>
+                      </sc-if>
+                      <sc-if value="{{r.notRec}}" hint-placeholder-val="{{true}}">
+                        <sc-for list="{{r.keys}}" as="kk" hint-placeholder-count="3"><span class="k-kbd">{{kk.k}}</span></sc-for>
+                        <span style="flex-grow:1;"></span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Z"></path><path d="M12 8.5v7M8.5 12h7"></path></svg>
+                      </sc-if>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{r.local}}" hint-placeholder-val="{{false}}">
+                    <span class="st-rec-fixed"><sc-for list="{{r.keys}}" as="kk" hint-placeholder-count="3"><span class="k-kbd">{{kk.k}}</span></sc-for></span>
+                  </sc-if>
+                  <sc-if value="{{r.conflict}}" hint-placeholder-val="{{false}}">
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding-left:6px;font-size:11.5px;font-weight:600;color:#ff6b85;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2.5 20h19Z"></path><path d="M12 10v4.5M12 17.2v.3"></path></svg>
+                      Used by another app
+                    </span>
+                  </sc-if>
+                </div>
+                <div><span class="k-chip {{r.scopeCls}}" style="height:22px;font-size:11px;">{{r.scope}}</span></div>
+                <div style="display:flex;justify-content:flex-end;">
+                  <button class="k-icon {{r.resetCls}}" aria-label="{{r.resetAria}}" onClick="{{r.reset}}" style="width:28px;height:28px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"></path><path d="M3.5 4v5h5"></path></svg>
+                  </button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:12px 4px 0;font-size:12px;color:#8e8e93;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Z"></path><path d="M12 11v5.5M12 7.8v.2"></path></svg>
+            Global shortcuts work from any app and can be changed here. Click a shortcut, then press the new keys.
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.gmail}}" hint-placeholder-val="{{false}}">
+        <div class="st-page" style="gap:14px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="display:flex;flex-direction:column;gap:8px;flex-grow:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#c7c7cc;">
+                <span class="k-dot {{gmDotCls}}" style="{{gmDotStyle}}"></span>
+                <b style="color:#ffffff;font-weight:700;">{{gmStrong}}</b>
+                <span class="k-num">{{gmRest}}</span>
+                <span class="st-shield" style="margin-left:6px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>On this Mac</span>
+              </div>
+            </div>
+            <sc-if value="{{gmActive}}" hint-placeholder-val="{{true}}">
+              <div style="display:flex;gap:8px;">
+                <button class="k-btn k-btn-sm k-soft" onClick="{{scanNow}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path><path d="M20.5 4v5h-5"></path></svg>Scan now</button>
+                <button class="k-btn k-btn-sm k-soft" onClick="{{pauseGm}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6v12M15 6v12"></path></svg>Pause</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{gmScanning}}" hint-placeholder-val="{{false}}">
+              <span style="display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#5ce6d4;"><span class="st-spin"></span>Scanning</span>
+            </sc-if>
+            <sc-if value="{{gmPaused}}" hint-placeholder-val="{{false}}">
+              <button class="k-btn k-btn-sm k-primary" onClick="{{resumeGm}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="#06110a"><path d="M7 4.5v15l12-7.5Z"></path></svg>Resume</button>
+            </sc-if>
+          </div>
+
+          <div class="k-seg" style="align-self:flex-start;">
+            <sc-for list="{{gmTabs}}" as="t" hint-placeholder-count="4">
+              <button class="k-seg-b {{t.cls}}" onClick="{{t.go}}" style="display:inline-flex;align-items:center;gap:6px;">{{t.label}}<sc-if value="{{t.count}}" hint-placeholder-val="{{false}}"><span class="k-num" style="height:17px;min-width:17px;padding:0 5px;border-radius:999px;background:rgba(255,181,71,0.2);color:#ffc978;font-size:10.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;">2</span></sc-if></button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{gmOverview}}" hint-placeholder-val="{{true}}">
+            <div class="st-page" style="gap:14px;">
+              <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">
+                <div class="sg k-card st-stat k-enter" style="--i:0;--sg:181 242 61;">
+                  <div class="k-label" style="color:#8e8e93;">ADDED TODAY</div>
+                  <div class="k-num st-stat-n" style="color:#c9f76a;text-shadow:0 0 22px rgba(181,242,61,0.45);">3</div>
+                </div>
+                <div class="sg k-card st-stat k-enter" style="--i:1;--sg:255 181 71;">
+                  <div class="k-label" style="color:#8e8e93;">TO REVIEW</div>
+                  <div class="k-num st-stat-n" style="color:#ffc978;">2</div>
+                </div>
+                <div class="sg k-card st-stat k-enter" style="--i:2;--sg:161 161 166;">
+                  <div class="k-label" style="color:#8e8e93;">SKIPPED</div>
+                  <div class="k-num st-stat-n" style="color:#e5e5ea;">41</div>
+                </div>
+                <div class="sg k-card st-stat k-enter" style="--i:3;--sg:255 61 90;">
+                  <div class="k-label" style="color:#8e8e93;">ERRORS</div>
+                  <div class="k-num st-stat-n" style="color:#e5e5ea;">0</div>
+                </div>
+              </div>
+
+              <div class="sg st-g" style="--sg:77 141 255;">
+                <div class="st-dl">
+                  <span class="k-label">ACCOUNT</span>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#4d8dff,#8b7cff);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#030a1a;">A</span>
+                    <span style="font-size:13.5px;font-weight:600;color:#e5e5ea;flex-grow:1;">apurva@gmail.com</span>
+                    <button class="k-btn k-btn-sm k-soft">Disconnect</button>
+                  </div>
+                </div>
+                <div class="st-dl">
+                  <span class="k-label">CALENDARS</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:10px 28px;padding-top:2px;">
+                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#e5e5ea;"><span class="st-sq" style="background:#b5f23d;box-shadow:0 0 10px rgba(181,242,61,0.6);"></span>Komodo · From Gmail<a class="st-link" href="#" style="margin-left:4px;">Open ↗</a></span>
+                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#e5e5ea;"><span class="st-sq" style="background:#ffb547;box-shadow:0 0 10px rgba(255,181,71,0.5);"></span>Komodo · Review<a class="st-link" href="#" style="margin-left:4px;">Open ↗</a></span>
+                  </div>
+                </div>
+                <div class="st-dl">
+                  <span class="k-label">RECENT</span>
+                  <div style="display:flex;flex-direction:column;">
+                    <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 8px;margin:0 -8px;border-radius:8px;">
+                      <span style="font-size:13px;font-weight:600;color:#e5e5ea;">Design review</span>
+                      <span class="k-num" style="font-size:12px;color:#8e8e93;">Thu 3:00 PM</span>
+                      <span class="k-chip k-chip-green" style="height:22px;font-size:11px;">Added</span>
+                      <span style="flex-grow:1;"></span><a class="st-link" href="#">Open event ↗</a>
+                    </div>
+                    <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 8px;margin:0 -8px;border-radius:8px;">
+                      <span style="font-size:13px;font-weight:600;color:#e5e5ea;">Submit visa form</span>
+                      <span class="k-num" style="font-size:12px;color:#8e8e93;">Oct 10</span>
+                      <span class="k-chip k-chip-green" style="height:22px;font-size:11px;">Added (all day)</span>
+                      <span style="flex-grow:1;"></span><a class="st-link" href="#">Open event ↗</a>
+                    </div>
+                    <div class="k-row" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 8px;margin:0 -8px;border-radius:8px;">
+                      <span style="font-size:13px;font-weight:600;color:#e5e5ea;">Coffee next week?</span>
+                      <span class="k-chip k-chip-amber" style="height:22px;font-size:11px;">Review</span>
+                      <span style="flex-grow:1;"></span><a class="st-link" href="#">Open event ↗</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{gmOther}}" hint-placeholder-val="{{false}}">
+            <div class="st-empty st-page">
+              <div style="font-size:14px;font-weight:700;color:#e5e5ea;">{{gmOtherTitle}}</div>
+              <div style="font-size:12.5px;color:#a1a1a6;">{{gmOtherBody}}</div>
+              <span class="k-chip k-chip-blue" style="margin-top:6px;">Drawn in full on the Gmail → Calendar board</span>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.integrations}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div style="display:flex;align-items:center;gap:8px;padding:0 4px 14px;font-size:13px;color:#c7c7cc;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+            Everything runs on this Mac. Tokens are stored in the macOS Keychain.
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+            <div class="sg k-card st-card k-enter" style="--i:0;--sg:53 212 131;">
+              <div style="display:flex;align-items:center;gap:11px;">
+                <span class="st-logo">G</span>
+                <span style="font-size:13.5px;font-weight:600;flex-grow:1;">Gmail → Calendar</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5fe3a1;"><span class="k-dot k-ping" style="background:#35d483;"></span>Active</span>
+              </div>
+              <div style="font-size:12px;line-height:17px;color:#8e8e93;padding-left:41px;">Meetings and deadlines from email, added to Komodo's own calendars.</div>
+              <div style="flex-grow:1;"></div>
+              <div style="display:flex;align-items:center;gap:8px;padding-left:41px;">
+                <span style="font-size:12px;color:#c7c7cc;flex-grow:1;">apurva@gmail.com</span>
+                <button class="k-btn k-btn-sm k-soft" onClick="{{goGmail}}">Manage</button>
+              </div>
+            </div>
+
+            <div class="sg k-card st-card k-enter" style="--i:1;--sg:255 61 90;">
+              <div style="display:flex;align-items:center;gap:11px;">
+                <span class="st-logo">G</span>
+                <span style="font-size:13.5px;font-weight:600;flex-grow:1;">Google Calendar import</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#ff6b85;"><span class="k-dot" style="background:#ff3d5a;box-shadow:0 0 8px rgba(255,61,90,0.8);"></span>Needs attention</span>
+              </div>
+              <div style="font-size:12px;line-height:17px;color:#8e8e93;padding-left:41px;">Show calendar events as tasks. <span style="color:#ff6b85;">Google disconnected. Reconnect to keep importing.</span></div>
+              <div style="flex-grow:1;"></div>
+              <div style="display:flex;align-items:center;gap:8px;padding-left:41px;">
+                <span style="font-size:12px;color:#c7c7cc;flex-grow:1;">apurva@gmail.com</span>
+                <button class="k-btn k-btn-sm k-danger-ghost">Reconnect</button>
+              </div>
+            </div>
+
+            <div class="sg k-card st-card k-enter" style="--i:2;--sg:77 141 255;">
+              <div style="display:flex;align-items:center;gap:11px;">
+                <span class="st-logo">M</span>
+                <span style="font-size:13.5px;font-weight:600;flex-grow:1;">Microsoft Calendar</span>
+                <span class="st-p">P1</span>
+              </div>
+              <div style="font-size:12px;line-height:17px;color:#8e8e93;padding-left:41px;">Show Outlook events as tasks.</div>
+              <div style="flex-grow:1;"></div>
+              <div style="display:flex;align-items:center;justify-content:flex-end;padding-left:41px;">
+                <button class="k-btn k-btn-sm k-soft">Connect</button>
+              </div>
+            </div>
+
+            <div class="sg k-card st-card k-enter" style="--i:3;--sg:56 200 255;">
+              <div style="display:flex;align-items:center;gap:11px;">
+                <span class="st-logo" style="color:#7fdcff;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 4 3-4 3M12.5 16h5.5"></path></svg></span>
+                <span style="font-size:13.5px;font-weight:600;flex-grow:1;">Local MCP server</span>
+                <sc-if value="{{tg.mcp.on}}" hint-placeholder-val="{{true}}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5fe3a1;"><span class="k-dot" style="background:#35d483;"></span>On</span></sc-if>
+                <sc-if value="{{tg.mcp.off}}" hint-placeholder-val="{{false}}"><span class="k-chip k-chip-outline" style="height:22px;font-size:11px;">Off</span></sc-if>
+              </div>
+              <div style="font-size:12px;line-height:17px;color:#8e8e93;padding-left:41px;">Let Claude Desktop, Claude Code, and Raycast use Komodo on this Mac.</div>
+              <div style="flex-grow:1;"></div>
+              <div style="display:flex;align-items:center;gap:8px;padding-left:41px;">
+                <span class="st-p">P1</span><span style="flex-grow:1;"></span>
+                <button class="k-btn k-btn-sm k-soft" onClick="{{goMcp}}">Set up</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">COMING SOON</div>
+          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;">
+            <sc-for list="{{soon}}" as="s" hint-placeholder-count="5">
+              <div class="sg k-card st-soon" style="--sg:161 161 166;padding:14px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span class="st-logo">{{s.l}}</span><span class="k-chip" style="height:20px;font-size:10px;padding:0 7px;">Coming soon</span></div>
+                <div style="font-size:13px;font-weight:600;">{{s.name}}</div>
+                <div style="font-size:11.5px;line-height:15px;color:#a1a1a6;">{{s.desc}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.data}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">BACKUP</div>
+          <div class="sg st-g" style="--sg:53 212 131;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Export backup</div><div class="st-rd">Everything except passwords and tokens. Last export: <span class="k-num" style="color:#c7c7cc;">{{lastExport}}</span>.</div></div>
+              <sc-if value="{{expIdle}}" hint-placeholder-val="{{true}}">
+                <button class="k-btn k-btn-sm k-primary" onClick="{{exportZip}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8M5 13v6.5h14V13"></path></svg>Export zip</button>
+              </sc-if>
+              <sc-if value="{{expBusy}}" hint-placeholder-val="{{false}}">
+                <button class="k-btn k-btn-sm k-soft" style="color:#c7c7cc;"><span class="st-spin"></span>Exporting…</button>
+              </sc-if>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Automatic daily backup</div><div class="st-rd">A zip a day, within 5 minutes of the first launch.</div></div>
+              <button class="{{tg.autoBackup.cls}}" role="switch" aria-checked="{{tg.autoBackup.aria}}" aria-label="Automatic daily backup" onClick="{{tg.autoBackup.flip}}"></button>
+            </div>
+            <div class="st-r st-sub {{backupDim}}">
+              <div class="st-rt"><div class="st-rl" style="font-weight:500;color:#c7c7cc;">Folder</div></div>
+              <div class="st-ctl">
+                <span class="k-mono" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#e5e5ea;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"></path></svg>
+                  ~/Documents/Komodo Backups
+                </span>
+                <button class="k-btn k-btn-sm k-soft">Change</button>
+                <button class="k-btn k-btn-sm k-soft">Show</button>
+              </div>
+            </div>
+            <div class="st-r st-sub {{backupDim}}">
+              <div class="st-rt" style="flex-direction:row;align-items:center;gap:12px;">
+                <div class="st-rl" style="font-weight:500;color:#c7c7cc;">Keep last</div>
+                <div class="st-pk">
+                  <button class="st-pick k-num" onClick="{{pk.keep.toggle}}" aria-haspopup="listbox">{{pk.keep.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                  <sc-if value="{{pk.keep.open}}" hint-placeholder-val="{{false}}">
+                    <div class="k-pop k-pop-in st-menu" role="listbox" style="right:auto;left:0;min-width:120px;">
+                      <sc-for list="{{pk.keep.options}}" as="o" hint-placeholder-count="3">
+                        <button class="st-mi" role="option" onClick="{{o.pick}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <span style="font-size:12px;color:#8e8e93;">backups</span>
+              </div>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#c7c7cc;">Last backup: <span class="k-num" style="color:#ffffff;font-weight:600;">Today 9:05 AM</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+            </div>
+            <div class="st-r st-sub {{backupDim}}" style="min-height:40px;padding-top:4px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a1a1a6;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38c8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9a4.75 4.75 0 0 1-.5 9.5Z"></path></svg>
+                Tip: choose an iCloud Drive or Dropbox folder for a copy off this Mac.
+              </div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Password-protect backups <span class="st-p">P1</span></div><div class="st-rd">Saved as an encrypted .kbak file.</div></div>
+              <button class="{{tg.pwd.cls}}" role="switch" aria-checked="{{tg.pwd.aria}}" aria-label="Password-protect backups" onClick="{{tg.pwd.flip}}"></button>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">RESTORE</div>
+          <div class="sg st-g" style="--sg:53 212 131;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Restore from backup</div><div class="st-rd">Replaces all current data. Your current data is backed up first.</div></div>
+              <button class="k-btn k-btn-sm k-soft"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V15M7.5 10.5 12 15l4.5-4.5M5 13v6.5h14V13"></path></svg>Choose file…</button>
+            </div>
+          </div>
+
+          <div class="k-label st-gh" style="color:#ff6b85;">DANGER ZONE</div>
+          <div class="sg st-g" style="--sg:255 61 90;border-color:rgba(255,92,122,0.22);background:linear-gradient(180deg,rgba(255,61,90,0.06),rgba(255,61,90,0.02));">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Delete all data</div><div class="st-rd">Deletes every list, task, and session on this Mac and disconnects Google.</div></div>
+              <button class="k-btn k-btn-sm k-danger">Delete all data</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.ai}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">APPLE INTELLIGENCE</div>
+          <div class="sg st-g" style="--sg:53 212 131;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Apple Intelligence</div><div class="st-rd">The on-device model. Email never leaves this Mac.</div></div>
+              <span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#5fe3a1;"><span class="k-dot k-ping" style="background:#35d483;"></span>Available: used by On this Mac mode</span>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">CLAUDE</div>
+          <div class="sg st-g" style="--sg:139 124 255;">
+            <div class="st-r" style="align-items:flex-start;">
+              <div class="st-rt" style="padding-top:6px;"><div class="st-rl">API key</div><div class="st-rd">Your own Anthropic key.</div></div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;">
+                <div class="st-ctl">
+                  <div class="k-field" style="width:250px;height:30px;border-radius:8px;padding:0 10px;gap:8px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9M17 6l2.5 2.5M14.5 8.5 17 11"></path></svg>
+                    <span class="k-mono" style="font-size:12px;color:#e5e5ea;letter-spacing:0.02em;">{{keyText}}</span>
+                  </div>
+                  <button class="k-btn k-btn-sm k-soft" onClick="{{toggleKey}}" style="min-width:56px;">{{keyBtn}}</button>
+                  <button class="k-btn k-btn-sm k-soft" onClick="{{testKey}}" style="min-width:56px;">Test</button>
+                </div>
+                <sc-if value="{{testOk}}" hint-placeholder-val="{{true}}">
+                  <span class="k-pop-in" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5fe3a1;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Key works</span>
+                </sc-if>
+                <sc-if value="{{testBusy}}" hint-placeholder-val="{{false}}">
+                  <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#a1a1a6;"><span class="st-spin" style="width:10px;height:10px;"></span>Testing…</span>
+                </sc-if>
+              </div>
+            </div>
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Model</div></div>
+              <div class="st-pk">
+                <button class="st-pick k-mono" onClick="{{pk.model.toggle}}" aria-haspopup="listbox" style="font-size:12px;">{{pk.model.value}}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"></path></svg></button>
+                <sc-if value="{{pk.model.open}}" hint-placeholder-val="{{false}}">
+                  <div class="k-pop k-pop-in st-menu" role="listbox">
+                    <sc-for list="{{pk.model.options}}" as="o" hint-placeholder-count="2">
+                      <button class="st-mi k-mono" role="option" onClick="{{o.pick}}" style="font-size:12px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="{{o.ck}}"><path d="M5 12.5 10 17l9-10"></path></svg>{{o.label}}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div class="st-r" style="align-items:flex-start;">
+              <div class="st-rt" style="padding-top:2px;"><div class="st-rl">Use Claude for</div></div>
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:250px;">
+                <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:#e5e5ea;cursor:pointer;">
+                  <button class="k-check {{ckGmail}}" role="checkbox" aria-checked="{{ckGmailAria}}" aria-label="Use Claude for Gmail → Calendar" onClick="{{flipCkGmail}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></button>
+                  Gmail → Calendar
+                </label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:#a1a1a6;">
+                  <span class="k-check" style="opacity:0.5;"></span>
+                  Komodo Assistant <span class="st-p">P2</span>
+                </label>
+              </div>
+            </div>
+            <div class="st-r" style="min-height:0;flex-direction:column;align-items:stretch;gap:8px;padding:12px 16px 14px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:9px;background:rgba(255,181,71,0.08);border:1px solid rgba(255,181,71,0.22);font-size:12.5px;font-weight:600;color:#ffc978;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2.5 20h19Z"></path><path d="M12 10v4.5M12 17.2v.3"></path></svg>
+                Claude mode sends each email's text to Anthropic, using your API key.
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a1a1a6;padding-left:2px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg>
+                Billed to your Anthropic account. The key is stored in the macOS Keychain.
+              </div>
+            </div>
+          </div>
+
+          <div class="k-label st-gh">WHAT'S SENT TO CLAUDE</div>
+          <div class="st-code">
+            <sc-for list="{{sentLines}}" as="ln" hint-placeholder-count="8"><div class="st-ln"><sc-for list="{{ln.parts}}" as="p" hint-placeholder-count="3"><span style="color:{{p.c}};">{{p.t}}</span></sc-for></div></sc-for>
+          </div>
+          <div style="padding:8px 4px 0;font-size:12px;color:#8e8e93;">One email per request, and only these five fields.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.mcp}}" hint-placeholder-val="{{false}}">
+        <div class="st-page">
+          <div class="k-label st-gh">SERVER</div>
+          <div class="sg st-g" style="--sg:56 200 255;">
+            <div class="st-r">
+              <div class="st-rt"><div class="st-rl">Let AI apps on this Mac use Komodo</div><div class="st-rd">Works while Komodo is running. No login, and nothing goes through a Komodo server.</div></div>
+              <button class="{{tg.mcp.cls}}" role="switch" aria-checked="{{tg.mcp.aria}}" aria-label="Let AI apps on this Mac use Komodo" onClick="{{tg.mcp.flip}}"></button>
+            </div>
+          </div>
+
+          <div class="{{mcpDim}}" style="display:flex;flex-direction:column;transition:opacity 200ms ease;">
+            <div class="k-label st-gh" style="padding-top:18px;">SETUP</div>
+            <div class="sg st-g" style="--sg:56 200 255;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="k-seg">
+                  <sc-for list="{{clients}}" as="c" hint-placeholder-count="3">
+                    <button class="k-seg-b {{c.cls}}" onClick="{{c.go}}">{{c.label}}</button>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px;color:#a1a1a6;min-width:0;">{{clientHint}}</div>
+              </div>
+              <div class="st-code" style="padding-right:110px;">
+                <sc-for list="{{cfgLines}}" as="ln" hint-placeholder-count="7"><div class="st-ln"><sc-for list="{{ln.parts}}" as="p" hint-placeholder-count="3"><span style="color:{{p.c}};">{{p.t}}</span></sc-for></div></sc-for>
+                <button class="k-btn k-btn-sm k-soft st-copy {{copyCls}}" onClick="{{copyCfg}}">
+                  <sc-if value="{{copied}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>Copied</sc-if>
+                  <sc-if value="{{notCopied}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"></rect><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"></path></svg>Copy</sc-if>
+                </button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a1a1a6;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+                The MCP app asks you before each tool call.
+              </div>
+            </div>
+
+            <div class="k-label st-gh">TOOLS</div>
+            <div class="sg st-g" style="--sg:56 200 255;padding:14px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+              <sc-for list="{{tools}}" as="t" hint-placeholder-count="8">
+                <span class="k-chip k-mono" style="height:26px;font-size:11.5px;color:#e5e5ea;" title="{{t.tip}}"><span class="k-dot" style="width:5px;height:5px;background:#38c8ff;"></span>{{t.name}}</span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{pg.about}}" hint-placeholder-val="{{false}}">
+        <div class="st-page" style="align-items:center;padding-top:40px;gap:0;">
+          <div class="st-appicon k-float">
+            <svg width="74" height="74" viewBox="0 0 24 24" fill="none" stroke="url(#stIconG)" stroke-width="2.4" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(181,242,61,0.6));"><defs><linearGradient id="stIconG" gradientUnits="userSpaceOnUse" x1="4" y1="3" x2="20" y2="21"><stop offset="0" stop-color="#2dd9c4"></stop><stop offset="1" stop-color="#b5f23d"></stop></linearGradient></defs><circle cx="12" cy="13.5" r="7.5" stroke-dasharray="36 11.1" transform="rotate(-58 12 13.5)"></circle><path d="M12 13.5V9.5M10 2.8h4"></path></svg>
+          </div>
+          <div style="margin-top:22px;font-size:24px;font-weight:800;letter-spacing:-0.025em;">Komodo <span class="k-num" style="color:#a1a1a6;font-weight:600;">1.0.0</span></div>
+          <div style="margin-top:6px;font-size:13px;color:#a1a1a6;">To-do list and focus timer for macOS</div>
+
+          <div style="margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:74px;">
+            <sc-if value="{{updIdle}}" hint-placeholder-val="{{true}}">
+              <button class="k-btn k-soft" onClick="{{checkUpd}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"></path><path d="M20.5 4v5h-5"></path></svg>Check for Updates…</button>
+            </sc-if>
+            <sc-if value="{{updChecking}}" hint-placeholder-val="{{false}}">
+              <button class="k-btn k-soft" style="color:#c7c7cc;"><span class="st-spin"></span>Checking…</button>
+            </sc-if>
+            <sc-if value="{{updAvail}}" hint-placeholder-val="{{false}}">
+              <div class="k-pop-in" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                <span class="k-chip" style="height:28px;padding:0 12px;font-size:12.5px;color:#7fdcff;background:rgba(56,200,255,0.12);border-color:rgba(56,200,255,0.32);"><span class="k-dot k-ping" style="background:#38c8ff;"></span>Komodo 1.1 is available</span>
+                <button class="k-btn k-primary"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V15M7.5 10.5 12 15l4.5-4.5M5 19.5h14"></path></svg>Install and Relaunch</button>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="margin-top:14px;display:flex;align-items:center;gap:18px;">
+            <a class="st-link" href="#">Release notes ↗</a>
+            <button class="k-btn k-btn-sm k-soft"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8l4 4V20.5H6Z"></path><path d="M9 12h6M9 16h4"></path></svg>Save Diagnostics…</button>
+          </div>
+
+          <div class="sg k-tile" style="--sg:53 212 131;margin-top:34px;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-size:12.5px;color:#c7c7cc;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            Komodo is a local app: no account, no tracking.
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+      <div class="k-pop k-pop-in st-toast">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+        <span style="font-size:12.5px;color:#e5e5ea;">Backup saved: <span class="k-mono" style="font-size:11.5px;">komodo-backup-2026-09-26.zip</span></span>
+        <button class="k-btn k-btn-sm" style="color:#c9f76a;">Show in Finder</button>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"page":{"editor":"enum","options":["general","focus","alerts","celebration","shortcuts","gmail","integrations","data","ai","mcp","about"],"default":"general","section":"Demo"},"$preview":{"width":1100,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var colors = ['#b5f23d', '#2dd9c4', '#4d8dff', '#8b7cff', '#ff6ad5', '#ffb547', '#35d483', '#ff5c7a'];
+    this.conf = [];
+    for (var i = 0; i < 28; i++) {
+      var ang = (i / 28) * Math.PI * 2 + (i % 3) * 0.25;
+      var dist = 70 + (i * 29) % 60;
+      this.conf.push({
+        c: colors[i % colors.length],
+        dx: Math.round(Math.cos(ang) * dist) + 'px',
+        dy: Math.round(Math.sin(ang) * dist - 20) + 'px',
+        r: ((i * 83) % 720 - 360) + 'deg',
+        d: ((i % 5) * 20) + 'ms'
+      });
+    }
+    this.timers = {};
+    this.state = {
+      page: this.validPage(props.page),
+      menu: null,
+      t: { login: true, dock: true, menubar: true, hideEst: false, float: true, pomo: false, scroll: true, openLinks: true, timed: false, pulse: true, success: true, gif: true, sound: true, autoBackup: true, pwd: false, mcp: true },
+      pick: { week: 'Monday', screen: 'Main display', interval: '15 min', sound: 'Tick', rsound: 'Chime', keep: '14', model: 'claude-opus-5' },
+      dur: { sprint: 25, brk: 5, dbrk: 5 },
+      presets: ['15m', '30m', '1h'],
+      side: 'right',
+      volume: 70,
+      playing: null,
+      conf: false,
+      sc: {},
+      rec: null,
+      gm: 'active',
+      gmChecked: 'checked 1 min ago · next in 1 min',
+      gmTab: 'overview',
+      exp: 'idle',
+      lastExport: 'Sep 24, 6:12 PM',
+      toast: false,
+      keyShown: false,
+      test: 'ok',
+      ckGmail: false,
+      client: 'desktop',
+      copied: false,
+      upd: 'idle'
+    };
+  }
+  validPage(p) {
+    var ok = ['general', 'focus', 'alerts', 'celebration', 'shortcuts', 'gmail', 'integrations', 'data', 'ai', 'mcp', 'about'];
+    return ok.indexOf(p) >= 0 ? p : 'general';
+  }
+  componentDidUpdate(prev) {
+    if (prev.page !== this.props.page) this.setState({ page: this.validPage(this.props.page), menu: null, rec: null });
+  }
+  componentWillUnmount() {
+    for (var k in this.timers) clearTimeout(this.timers[k]);
+  }
+  later(name, ms, fn) {
+    clearTimeout(this.timers[name]);
+    this.timers[name] = setTimeout(fn, ms);
+  }
+  stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+  setT(key, val) {
+    var t = Object.assign({}, this.state.t);
+    t[key] = val;
+    this.setState({ t: t });
+  }
+  go(page) { this.setState({ page: page, menu: null, rec: null }); }
+  lines(spec) {
+    var col = { k: '#5ce6d4', s: '#c9f76a', p: '#a1a1a6', c: '#8e8e93', n: '#ffc978' };
+    return spec.map(function (ln) {
+      return { parts: ln.map(function (pt) { return { t: pt[0], c: col[pt[1]] }; }) };
+    });
+  }
+  plain(spec) { return spec.map(function (ln) { return ln.map(function (pt) { return pt[0]; }).join(''); }).join('\n'); }
+  cfgSpec(client) {
+    var path = '"/Applications/Komodo.app/Contents/Helpers/komodo-mcp"';
+    if (client === 'code') {
+      return [
+        [['{', 'p']],
+        [['  ', 'p'], ['"mcpServers"', 'k'], [': {', 'p']],
+        [['    ', 'p'], ['"komodo"', 'k'], [': {', 'p']],
+        [['      ', 'p'], ['"type"', 'k'], [': ', 'p'], ['"stdio"', 's'], [',', 'p']],
+        [['      ', 'p'], ['"command"', 'k'], [': ', 'p'], [path, 's']],
+        [['    }', 'p']],
+        [['  }', 'p']],
+        [['}', 'p']]
+      ];
+    }
+    return [
+      [['{', 'p']],
+      [['  ', 'p'], ['"mcpServers"', 'k'], [': {', 'p']],
+      [['    ', 'p'], ['"komodo"', 'k'], [': {', 'p']],
+      [['      ', 'p'], ['"command"', 'k'], [': ', 'p'], [path, 's'], [',', 'p']],
+      [['      ', 'p'], ['"args"', 'k'], [': []', 'p']],
+      [['    }', 'p']],
+      [['  }', 'p']],
+      [['}', 'p']]
+    ];
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+
+    var pages = [
+      { id: 'general', label: 'General', c: '161 161 166', tint: '45 217 196', d: 'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z' },
+      { id: 'focus', label: 'Focus', c: '181 242 61', tint: '181 242 61', d: 'M13 2 4 14h7l-1 8 9-12h-7Z' },
+      { id: 'alerts', label: 'Alerts & sounds', c: '255 106 213', tint: '255 106 213', d: 'M11 5 6 9H3v6h3l5 4ZM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13' },
+      { id: 'celebration', label: 'Celebration', c: '255 181 71', tint: '255 181 71', d: 'M3.5 20.5 8 8l8 8ZM13 3.5c.8 1.2.8 2.6 0 3.8M20.5 11c-1.2-.8-2.6-.8-3.8 0M16.5 4.5h.01M19.5 7.5h.01' },
+      { id: 'shortcuts', label: 'Shortcuts', c: '199 199 204', tint: '45 217 196', d: 'M5 6h14a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 19 18H5a2.5 2.5 0 0 1-2.5-2.5v-7A2.5 2.5 0 0 1 5 6ZM6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7.5 14h9' },
+      { sep: true },
+      { id: 'gmail', label: 'Gmail → Calendar', c: '77 141 255', tint: '77 141 255', live: true, d: 'M6.5 5h11a3 3 0 0 1 3 3v9.5a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3ZM3.5 10h17M8 3v4M16 3v4M12 12.5v5M9.5 15h5' },
+      { id: 'integrations', label: 'Integrations', c: '45 217 196', tint: '45 217 196', d: 'M10 3.5a2 2 0 0 1 4 0V5h4a1 1 0 0 1 1 1v4h-1.5a2 2 0 0 0 0 4H19v4a1 1 0 0 1-1 1h-4v-1.5a2 2 0 0 0-4 0V19H6a1 1 0 0 1-1-1v-4h1.5a2 2 0 0 0 0-4H5V6a1 1 0 0 1 1-1h4Z' },
+      { id: 'data', label: 'Data & backup', c: '53 212 131', tint: '53 212 131', d: 'M4.5 4h15A1.5 1.5 0 0 1 21 5.5v2A1.5 1.5 0 0 1 19.5 9h-15A1.5 1.5 0 0 1 3 7.5v-2A1.5 1.5 0 0 1 4.5 4ZM5 9v10a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9M10 13h4' },
+      { id: 'ai', label: 'AI', c: '139 124 255', tint: '139 124 255', d: 'M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8ZM18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z' },
+      { id: 'mcp', label: 'Local MCP server', c: '56 200 255', tint: '56 200 255', d: 'M6 4.5h12a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3ZM7.5 10l3 2.5-3 2.5M12.5 15.5h4' },
+      { sep: true },
+      { id: 'about', label: 'About', c: '181 242 61', tint: '181 242 61', brand: true, d: '' }
+    ];
+    var cur = pages.filter(function (p) { return p.id === s.page; })[0] || pages[0];
+    var nav = pages.map(function (p) {
+      if (p.sep) return { sep: true, item: false };
+      var on = p.id === s.page;
+      return {
+        sep: false, item: true, label: p.label, c: p.c, d: p.d, brand: !!p.brand, plain: !p.brand,
+        live: !!p.live && s.gm !== 'paused',
+        cls: on ? 'st-nav-on' : '', current: on ? 'page' : 'false',
+        go: function () { self.go(p.id); }
+      };
+    });
+    var pg = {};
+    pages.forEach(function (p) { if (p.id) pg[p.id] = p.id === s.page; });
+
+    var tg = {};
+    Object.keys(s.t).forEach(function (k) {
+      var on = !!s.t[k];
+      tg[k] = { on: on, off: !on, cls: on ? 'k-tog k-tog-on' : 'k-tog', aria: on ? 'true' : 'false', flip: function () { self.setT(k, !self.state.t[k]); } };
+    });
+
+    var opts = {
+      week: ['Monday', 'Sunday', 'Saturday'],
+      screen: ['Main display', 'Built-in display', 'Display 2'],
+      interval: ['5 min', '10 min', '15 min', '30 min'],
+      sound: ['Tick', 'Chime', 'Pop', 'Glass'],
+      rsound: ['Chime', 'Tick', 'Pop', 'Glass'],
+      keep: ['7', '14', '30'],
+      model: ['claude-opus-5', 'claude-sonnet-5']
+    };
+    var pk = {};
+    Object.keys(opts).forEach(function (k) {
+      pk[k] = {
+        value: s.pick[k],
+        open: s.menu === k,
+        toggle: function (e) { self.stop(e); self.setState({ menu: self.state.menu === k ? null : k, rec: null }); },
+        options: opts[k].map(function (o) {
+          return {
+            label: o, ck: o === s.pick[k] ? 'opacity:1;' : 'opacity:0;',
+            pick: function (e) {
+              self.stop(e);
+              var p = Object.assign({}, self.state.pick); p[k] = o;
+              self.setState({ pick: p, menu: null });
+            }
+          };
+        })
+      };
+    });
+
+    var du = {};
+    var lim = { sprint: [5, 90, 5], brk: [1, 30, 1], dbrk: [1, 30, 1] };
+    Object.keys(s.dur).forEach(function (k) {
+      var v = s.dur[k];
+      du[k] = {
+        txt: (v < 10 ? '0' : '') + v + ':00',
+        dec: function () { var d = Object.assign({}, self.state.dur); d[k] = Math.max(lim[k][0], d[k] - lim[k][2]); self.setState({ dur: d }); },
+        inc: function () { var d = Object.assign({}, self.state.dur); d[k] = Math.min(lim[k][1], d[k] + lim[k][2]); self.setState({ dur: d }); }
+      };
+    });
+
+    var presets = s.presets.map(function (p, i) {
+      return { label: p, aria: 'Remove ' + p + ' preset', remove: function () { self.setState({ presets: self.state.presets.filter(function (_, j) { return j !== i; }) }); } };
+    });
+
+    var play = {};
+    ['alert', 'rem'].forEach(function (k) {
+      var on = s.playing === k;
+      play[k] = { on: on, off: !on, cls: on ? 'st-play-on' : '', go: function () { self.setState({ playing: k }); self.later('play', 1500, function () { self.setState({ playing: null }); }); } };
+    });
+
+    var scDefs = [
+      { id: 'show', action: 'Show Komodo', keys: ['⌘', '⇧', 'B'], scope: 'Global' },
+      { id: 'panel', action: 'Toggle Focus Panel / floating timer', keys: ['⌘', '⇧', 'T'], scope: 'Global' },
+      { id: 'find', action: 'Find the floating timer', keys: ['⌘', '⇧', 'P'], scope: 'Global', conflict: true },
+      { id: 'new', action: 'New task', keys: ['⌘', '⌥', 'T'], scope: 'App' },
+      { id: 'brk', action: 'Start break', keys: ['⌘', '⌥', 'B'], scope: 'App' },
+      { id: 'pause', action: 'Pause / resume', keys: ['⌘', '⌥', 'P'], scope: 'App' },
+      { id: 'skip', action: 'Skip', keys: ['⌘', '⌥', 'S'], scope: 'App' },
+      { id: 'done', action: 'Done', keys: ['⌘', '⌥', 'F'], scope: 'App' },
+      { id: 'notes', action: 'Notes on the live task', keys: ['⌘', '⌥', 'N'], scope: 'App' },
+      { id: 'search', action: 'Search', keys: ['⌘', 'F'], scope: 'App' },
+      { id: 'settings', action: 'Settings', keys: ['⌘', ','], scope: 'App' }
+    ];
+    var scRows = scDefs.map(function (d) {
+      var custom = s.sc[d.id];
+      var keys = custom || d.keys;
+      var global = d.scope === 'Global';
+      var isRec = s.rec === d.id;
+      var conflict = !!d.conflict && !custom && !isRec;
+      return {
+        action: d.action, scope: d.scope, global: global, local: !global,
+        keys: keys.map(function (k) { return { k: k }; }),
+        isRec: isRec, notRec: !isRec, conflict: conflict,
+        recCls: isRec ? 'st-rec-on' : (conflict ? 'st-rec-err' : ''),
+        aria: 'Shortcut for ' + d.action + ': ' + keys.join(' ') + '. Click to record a new one.',
+        scopeCls: global ? 'k-chip-teal' : '',
+        resetCls: !global ? 'st-hide' : (custom ? '' : 'k-off'),
+        resetAria: 'Reset ' + d.action + ' shortcut',
+        reset: function () { var m = Object.assign({}, self.state.sc); delete m[d.id]; self.setState({ sc: m }); },
+        click: function (e) {
+          self.stop(e);
+          if (e && e.currentTarget && e.currentTarget.focus) e.currentTarget.focus();
+          self.setState({ rec: self.state.rec === d.id ? null : d.id, menu: null });
+        },
+        key: function (e) {
+          if (self.state.rec !== d.id) return;
+          if (e.key === 'Tab') return;
+          if (e.preventDefault) e.preventDefault();
+          if (e.key === 'Escape') { self.setState({ rec: null }); return; }
+          if (['Meta', 'Shift', 'Alt', 'Control', 'CapsLock'].indexOf(e.key) >= 0) return;
+          var mods = [];
+          if (e.ctrlKey) mods.push('⌃');
+          if (e.altKey) mods.push('⌥');
+          if (e.shiftKey) mods.push('⇧');
+          if (e.metaKey) mods.push('⌘');
+          if (!mods.length) return;
+          var code = e.code || '';
+          var k = code.indexOf('Key') === 0 ? code.slice(3) : (code.indexOf('Digit') === 0 ? code.slice(5) : (e.key && e.key.length === 1 ? e.key.toUpperCase() : e.key));
+          var m = Object.assign({}, self.state.sc); m[d.id] = mods.concat([k]);
+          self.setState({ sc: m, rec: null });
+        }
+      };
+    });
+
+    var gmMap = {
+      active: { dotCls: 'k-ping', dot: 'background:#35d483;', strong: 'Active', rest: '· ' + s.gmChecked },
+      scanning: { dotCls: 'k-ping', dot: 'background:#2dd9c4;', strong: 'Scanning…', rest: '12 new emails' },
+      paused: { dotCls: '', dot: 'background:#8e8e93;', strong: 'Paused', rest: '' }
+    };
+    var gmS = gmMap[s.gm];
+    var gmTabs = [
+      { id: 'overview', label: 'Overview' }, { id: 'settings', label: 'Settings' }, { id: 'activity', label: 'Activity' }, { id: 'review', label: 'Review', count: true }
+    ].map(function (t) {
+      return { label: t.label, count: !!t.count, cls: s.gmTab === t.id ? 'k-seg-on' : '', go: function () { self.setState({ gmTab: t.id }); } };
+    });
+    var gmOther = {
+      settings: ['Settings', 'Extraction mode (On this Mac or Claude), skip rules, always and never scan senders, check interval, and default meeting length.'],
+      activity: ['Activity', 'Every scanned email with its outcome: Added, Review, No event, Skipped, or Error.'],
+      review: ['Review (2)', 'Two unsure events are waiting for a yes or no. Suggestion cards sorted by event date, with Add all.']
+    }[s.gmTab] || ['', ''];
+
+    var soon = [
+      { l: 'N', name: 'Notion', desc: 'Sync a database.' },
+      { l: 'T', name: 'Todoist', desc: 'Sync one project.' },
+      { l: 'L', name: 'Linear', desc: "Import a team's issues." },
+      { l: 'C', name: 'ClickUp', desc: 'Sync spaces, folders, and lists.' },
+      { l: 'A', name: 'Asana', desc: 'Sync projects.' }
+    ];
+
+    var sentSpec = [
+      [['// One request per email', 'c']],
+      [['{', 'p']],
+      [['  ', 'p'], ['"subject"', 'k'], [':     ', 'p'], ['"Re: Design review"', 's'], [',', 'p']],
+      [['  ', 'p'], ['"sender_name"', 'k'], [': ', 'p'], ['"Apurva"', 's'], [',', 'p']],
+      [['  ', 'p'], ['"text"', 'k'], [':        ', 'p'], ['"Can we move it to Thursday at 3?"', 's'], [',', 'p'], ['  // plain text, quotes and signatures stripped', 'c']],
+      [['  ', 'p'], ['"received"', 'k'], [':    ', 'p'], ['"2026-09-26T09:14:00-07:00"', 's'], [',', 'p']],
+      [['  ', 'p'], ['"time_zone"', 'k'], [':   ', 'p'], ['"America/Los_Angeles"', 's']],
+      [['}', 'p']]
+    ];
+
+    var clients = [
+      { id: 'desktop', label: 'Claude Desktop', hint: 'Add to claude_desktop_config.json, then restart Claude Desktop.' },
+      { id: 'code', label: 'Claude Code', hint: 'Add to .mcp.json in your project.' },
+      { id: 'raycast', label: 'Raycast', hint: 'In Raycast, run Install Server and paste this.' }
+    ];
+    var curClient = clients.filter(function (c) { return c.id === s.client; })[0];
+    var cfg = this.cfgSpec(s.client);
+
+    var tools = [
+      { name: 'list_lists', tip: 'Lists with IDs' },
+      { name: 'list_tasks', tip: 'Filter by list, column, date, and status' },
+      { name: 'create_task', tip: 'Title, list, column, EST, notes, subtasks, schedule' },
+      { name: 'update_task', tip: 'Any field, including moving between columns or lists' },
+      { name: 'complete_task', tip: 'Mark done' },
+      { name: 'complete_subtask', tip: 'Mark done' },
+      { name: 'log_time', tip: 'Add a manual session' },
+      { name: 'start_focus', tip: 'Make a task live in Komodo' }
+    ];
+
+    var sideRight = s.side === 'right';
+    return {
+      nav: nav,
+      pg: pg,
+      pageTitle: cur.label,
+      pageTint: cur.tint,
+      tg: tg,
+      pk: pk,
+      du: du,
+      presets: presets,
+      presetAddCls: s.presets.length >= 5 ? 'k-off' : '',
+      addPreset: function () {
+        var have = self.state.presets;
+        if (have.length >= 5) return;
+        var cand = ['45m', '2h', '5m', '90m', '10m'].filter(function (c) { return have.indexOf(c) < 0; })[0];
+        if (cand) self.setState({ presets: have.concat([cand]) });
+      },
+
+      sideL: sideRight ? '' : 'k-seg-on',
+      sideR: sideRight ? 'k-seg-on' : '',
+      sideLAria: sideRight ? 'false' : 'true',
+      sideRAria: sideRight ? 'true' : 'false',
+      setLeft: function () { self.setState({ side: 'left' }); },
+      setRight: function () { self.setState({ side: 'right' }); },
+      sideWord: sideRight ? 'Right' : 'Left',
+      dockStyle: 'transform:translateX(' + (sideRight ? 152 : 0) + 'px);',
+      previewCaption: (sideRight ? 'Right' : 'Left') + ' edge · ' + s.pick.screen,
+      pomoDim: s.t.pomo ? '' : 'st-dim',
+
+      timedDim: s.t.timed ? '' : 'st-dim',
+      play: play,
+      volume: s.volume,
+      volLabel: s.volume + '%',
+      volStyle: '--v:' + s.volume + '%;',
+      setVol: function (e) { var v = Number(e && e.target ? e.target.value : self.state.volume); if (!isNaN(v) && v !== self.state.volume) self.setState({ volume: v }); },
+
+      conf: s.conf,
+      confetti: this.conf,
+      popCls: s.conf ? 'st-popc' : '',
+      celOff: s.t.success ? '' : 'st-cel-off',
+      celNote: s.t.success ? 'Shown in the Focus Panel for about 2 seconds, then the next task starts.' : 'Success screen is off: finishing a task goes straight to the next one.',
+      previewCel: function () {
+        self.setState({ conf: false });
+        self.later('conf1', 30, function () { self.setState({ conf: true }); });
+        self.later('conf2', 1700, function () { self.setState({ conf: false }); });
+      },
+
+      scRows: scRows,
+
+      gmDotCls: gmS.dotCls,
+      gmDotStyle: gmS.dot,
+      gmStrong: gmS.strong,
+      gmRest: gmS.rest,
+      gmActive: s.gm === 'active',
+      gmScanning: s.gm === 'scanning',
+      gmPaused: s.gm === 'paused',
+      scanNow: function () {
+        self.setState({ gm: 'scanning' });
+        self.later('scan', 2400, function () { self.setState({ gm: 'active', gmChecked: 'checked just now · next in 2 min' }); });
+      },
+      pauseGm: function () { self.setState({ gm: 'paused' }); },
+      resumeGm: function () { self.setState({ gm: 'active', gmChecked: 'checked just now · next in 2 min' }); },
+      gmTabs: gmTabs,
+      gmOverview: s.gmTab === 'overview',
+      gmOther: s.gmTab !== 'overview',
+      gmOtherTitle: gmOther[0],
+      gmOtherBody: gmOther[1],
+
+      goGmail: function () { self.go('gmail'); },
+      goMcp: function () { self.go('mcp'); },
+      soon: soon,
+
+      lastExport: s.lastExport,
+      expIdle: s.exp === 'idle',
+      expBusy: s.exp === 'busy',
+      exportZip: function () {
+        self.setState({ exp: 'busy' });
+        self.later('exp', 1300, function () {
+          self.setState({ exp: 'idle', lastExport: 'Today, 2:14 PM', toast: true });
+          self.later('toast', 4500, function () { self.setState({ toast: false }); });
+        });
+      },
+      toast: s.toast,
+      backupDim: s.t.autoBackup ? '' : 'st-dim',
+
+      keyText: s.keyShown ? 'sk-ant-api03-mK2v…sk-4f2a' : '••••••••sk-4f2a',
+      keyBtn: s.keyShown ? 'Hide' : 'Show',
+      toggleKey: function () { self.setState({ keyShown: !self.state.keyShown }); },
+      testOk: s.test === 'ok',
+      testBusy: s.test === 'busy',
+      testKey: function () { self.setState({ test: 'busy' }); self.later('test', 950, function () { self.setState({ test: 'ok' }); }); },
+      ckGmail: s.ckGmail ? 'k-check-on' : '',
+      ckGmailAria: s.ckGmail ? 'true' : 'false',
+      flipCkGmail: function (e) { if (e && e.preventDefault) e.preventDefault(); self.setState({ ckGmail: !self.state.ckGmail }); },
+      sentLines: this.lines(sentSpec),
+
+      mcpDim: s.t.mcp ? '' : 'st-dim',
+      clients: clients.map(function (c) { return { label: c.label, cls: c.id === s.client ? 'k-seg-on' : '', go: function () { self.setState({ client: c.id, copied: false }); } }; }),
+      clientHint: curClient.hint,
+      cfgLines: this.lines(cfg),
+      copied: s.copied,
+      notCopied: !s.copied,
+      copyCls: s.copied ? 'st-copied' : '',
+      copyCfg: function () {
+        var txt = self.plain(self.cfgSpec(self.state.client));
+        try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(function () {}); } catch (err) {}
+        self.setState({ copied: true });
+        self.later('copy', 2000, function () { self.setState({ copied: false }); });
+      },
+      tools: tools,
+
+      updIdle: s.upd === 'idle',
+      updChecking: s.upd === 'checking',
+      updAvail: s.upd === 'available',
+      checkUpd: function () { self.setState({ upd: 'checking' }); self.later('upd', 1300, function () { self.setState({ upd: 'available' }); }); },
+
+      closeAll: function () { if (self.state.menu || self.state.rec) self.setState({ menu: null, rec: null }); },
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

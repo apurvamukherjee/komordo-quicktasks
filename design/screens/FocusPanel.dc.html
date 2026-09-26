@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Focus Panel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.k .k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k .k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k .k-primary{background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;}
+.k .k-act{color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.k .k-act:hover{background:rgba(255,255,255,0.14);color:#ffffff;}
+.k .k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;}
+.k .k-icon{color:#a1a1a6;}
+.k .k-icon:hover{color:#ffffff;}
+.k .k-btn{font-size:13px;font-weight:600;}
+.k .k-btn-sm{font-size:12px;}
+.k .k-primary{font-weight:700;}
+.fp-panel{border-radius:20px 0 0 20px;background:radial-gradient(420px 280px at 50% -4%,rgba(45,217,196,0.09),transparent 70%),radial-gradient(300px 260px at 100% 42%,rgba(181,242,61,0.05),transparent 70%),linear-gradient(180deg,rgba(22,22,26,0.97),rgba(11,11,13,0.99) 42%,#08080a);border:1px solid rgba(255,255,255,0.08);border-right:0;box-shadow:-46px 0 100px -24px rgba(0,0,0,0.95),-12px 0 36px -18px rgba(0,0,0,0.8),inset 1px 1px 0 rgba(255,255,255,0.05);backdrop-filter:blur(30px) saturate(1.5);-webkit-backdrop-filter:blur(30px) saturate(1.5);}
+.fp-head{display:flex;align-items:center;gap:8px;padding:10px 12px 0 14px;height:52px;flex-shrink:0;}
+.fp-card{position:relative;border-radius:22.5px;overflow:hidden;display:flex;flex-direction:column;}
+.fp-dial{position:relative;width:236px;height:236px;margin:0 auto;flex-shrink:0;}
+.fp-halo-wrap{position:absolute;inset:-26px;animation:fp-breath 4.8s ease-in-out infinite;pointer-events:none;}
+.fp-halo{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent,var(--h1) 20%,transparent 40%,var(--h2) 65%,transparent 85%);filter:blur(18px);animation:k-rot 9s linear infinite;transition:opacity 400ms ease;}
+@keyframes fp-breath{0%,100%{transform:scale(0.93);opacity:0.5;}50%{transform:scale(1.07);opacity:1;}}
+.fp-sweep{position:absolute;inset:0;border-radius:50%;-webkit-mask:radial-gradient(circle,transparent 0 60%,#000 61%);mask:radial-gradient(circle,transparent 0 60%,#000 61%);transition:transform 1000ms linear,opacity 300ms ease;pointer-events:none;}
+.fp-tick{position:absolute;left:117px;top:0;width:2px;border-radius:1px;transform-origin:1px 118px;transition:background 260ms ease,box-shadow 260ms ease;}
+.fp-arc{position:absolute;left:0;top:0;overflow:visible;}
+.fp-arc-p{transition:stroke-dashoffset 900ms cubic-bezier(0.2,0.8,0.2,1);}
+.fp-arm{position:absolute;inset:0;transition:transform 900ms cubic-bezier(0.2,0.8,0.2,1);pointer-events:none;}
+.fp-comet{position:absolute;left:111px;top:19px;width:14px;height:14px;border-radius:50%;background:#ffffff;}
+.fp-comet-ring{position:absolute;left:105px;top:13px;width:26px;height:26px;border-radius:50%;border:1.5px solid currentColor;animation:fp-cring 1.6s var(--ease) infinite;}
+@keyframes fp-cring{0%{transform:scale(0.5);opacity:0.9;}100%{transform:scale(1.5);opacity:0;}}
+.fp-face{position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle at 50% 28%,#17191c,#0b0c0d 68%);box-shadow:inset 0 0 34px rgba(0,0,0,0.85),inset 0 1px 0 rgba(255,255,255,0.06),0 0 0 1px rgba(255,255,255,0.03);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.fp-pulse{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgb(var(--pc) / 0.55);box-shadow:0 0 22px -4px rgb(var(--pc) / 0.5),inset 0 0 22px -6px rgb(var(--pc) / 0.4);opacity:0;pointer-events:none;}
+.fp-pa{animation:fp-pa 1s var(--ease) both;}
+.fp-pb{animation:fp-pb 1s var(--ease) both;}
+@keyframes fp-pa{0%{transform:scale(0.58);opacity:0.7;}100%{transform:scale(1);opacity:0;}}
+@keyframes fp-pb{0%{transform:scale(0.58);opacity:0.7;}100%{transform:scale(1);opacity:0;}}
+.fp-pill{display:flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:0.08em;white-space:nowrap;}
+.fp-time{position:relative;display:flex;align-items:center;font-weight:700;letter-spacing:-0.035em;line-height:1;transition:color 300ms ease,filter 300ms ease;}
+.fp-odo{display:inline-flex;align-items:flex-start;height:1em;line-height:1em;overflow:hidden;}
+.fp-digit{display:inline-block;height:1em;width:0.6em;overflow:hidden;text-align:center;}
+.fp-strip{display:flex;flex-direction:column;transition:transform 480ms var(--spring);}
+.fp-strip span{display:block;height:1em;line-height:1em;}
+.fp-colon{display:inline-block;width:0.3em;text-align:center;}
+.fp-beat{animation:fp-beat 1s ease-in-out infinite;}
+@keyframes fp-beat{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.25;transform:scale(0.86);}}
+.fp-shake{animation:fp-shake 300ms ease-in-out 2;}
+@keyframes fp-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
+.fp-chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 7px;border-radius:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:10.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k .fp-ctrl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:54px;border-radius:14px;background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.07);color:#e5e5ea;font-size:11px;font-weight:600;transition:transform 180ms var(--spring),background 140ms ease,border-color 140ms ease;}
+.k .fp-ctrl:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);transform:translateY(-2px);}
+.k .fp-ctrl:active{transform:scale(0.92);}
+.k .fp-ctrl-primary{position:relative;overflow:hidden;background:linear-gradient(135deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;border-color:rgba(214,255,140,0.6);box-shadow:0 8px 22px -8px rgba(181,242,61,0.7);}
+.k .fp-ctrl-primary:hover{background:linear-gradient(135deg,#46e6d2,#c6ff52);}
+.fp-ctrl-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3s var(--ease) infinite;pointer-events:none;}
+.k .fp-ctrl-danger{background:rgba(255,61,90,0.14);border-color:rgba(255,92,122,0.4);color:#ff8a9e;font-size:12.5px;font-weight:700;}
+.k .fp-ctrl-danger:hover{background:rgba(255,61,90,0.24);border-color:rgba(255,92,122,0.6);}
+.fp-live-in{animation:fp-livein 700ms var(--spring) backwards;}
+@keyframes fp-livein{from{opacity:0;transform:translateY(22px) scale(0.95);filter:blur(8px);}to{opacity:1;transform:none;filter:none;}}
+.fp-live-out{animation:fp-liveout 260ms var(--ease) forwards;}
+@keyframes fp-liveout{to{opacity:0;transform:translateY(-14px) scale(0.97);filter:blur(6px);}}
+.fp-seg-on{animation:fp-seg 1.6s ease-in-out infinite;}
+@keyframes fp-seg{0%,100%{opacity:0.45;box-shadow:none;}50%{opacity:1;box-shadow:0 0 10px -1px rgba(181,242,61,0.8);}}
+.fp-sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.fp-sdot-on{animation:fp-seg 1.6s ease-in-out infinite;}
+.fp-scap{position:relative;width:34px;height:8px;border-radius:99px;background:rgba(255,255,255,0.1);overflow:hidden;}
+.fp-scap-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#ff6ad5,#ff9be4);box-shadow:0 0 10px rgba(255,106,213,0.8);transition:width 900ms var(--ease);}
+.fp-q{padding:8px 12px;border-radius:14px;display:flex;align-items:center;gap:11px;}
+.fp-q-idx{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#e5e5ea;flex-shrink:0;}
+.fp-ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.k .fp-add{display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:12px;border:1px dashed rgba(181,242,61,0.28);color:#a1a1a6;font-size:11.5px;font-weight:700;letter-spacing:0.06em;flex-shrink:0;transition:background 160ms ease,color 160ms ease,border-color 160ms ease;}
+.k .fp-add:hover{background:rgba(181,242,61,0.05);color:#ffffff;border-color:rgba(181,242,61,0.5);}
+.fp-conf{position:absolute;left:50%;top:40%;width:7px;height:12px;border-radius:2px;animation:fp-burst 1300ms cubic-bezier(0.12,0.7,0.3,1) forwards;}
+@keyframes fp-burst{0%{transform:translate(-50%,-50%) rotate(0deg) scale(1);opacity:1;}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r)) scale(0.5);opacity:0;}}
+.fp-pop{animation:fp-pop 560ms var(--spring) both;}
+@keyframes fp-pop{0%{transform:scale(0.3);opacity:0;}60%{transform:scale(1.14);opacity:1;}100%{transform:scale(1);opacity:1;}}
+.fp-shock{position:absolute;left:50%;top:40%;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;border:2px solid rgba(181,242,61,0.8);animation:fp-shock 900ms var(--ease) forwards;}
+.fp-shock2{animation-delay:160ms;border-color:rgba(45,217,196,0.7);}
+@keyframes fp-shock{0%{transform:scale(0.6);opacity:1;}100%{transform:scale(3.2);opacity:0;}}
+.fp-draw{stroke-dasharray:40;animation:fp-draw 480ms 220ms var(--ease) both;}
+@keyframes fp-draw{from{stroke-dashoffset:40;}to{stroke-dashoffset:0;}}
+.fp-fadeup{animation:fp-fadeup 420ms 300ms var(--ease) both;}
+.fp-fadeup2{animation:fp-fadeup 420ms 420ms var(--ease) both;}
+@keyframes fp-fadeup{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.fp-bstage{position:relative;width:236px;height:236px;margin:0 auto;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.fp-bglow{position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,131,0.4),transparent 66%);filter:blur(12px);animation:fp-breathe 4s ease-in-out infinite alternate;}
+.fp-bcircle{position:absolute;inset:30px;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(53,212,131,0.16),rgba(8,20,14,0.9) 70%);border:1.5px solid rgba(95,227,161,0.55);box-shadow:0 0 40px -6px rgba(53,212,131,0.55),inset 0 0 30px rgba(53,212,131,0.14);animation:fp-breathe 4s ease-in-out infinite alternate;}
+.fp-bcircle2{position:absolute;inset:30px;border-radius:50%;border:1px solid rgba(95,227,161,0.25);animation:fp-breathe2 4s ease-in-out infinite alternate;}
+@keyframes fp-breathe{from{transform:scale(1);}to{transform:scale(1.12);}}
+@keyframes fp-breathe2{from{transform:scale(1.02);opacity:0.2;}to{transform:scale(1.26);opacity:0.8;}}
+.fp-lab{grid-area:1/1;}
+.fp-lab-in{animation:fp-labin 8s linear infinite;}
+.fp-lab-out{animation:fp-labout 8s linear infinite;}
+@keyframes fp-labin{0%,44%{opacity:1;}50%,94%{opacity:0;}100%{opacity:1;}}
+@keyframes fp-labout{0%,44%{opacity:0;}50%,94%{opacity:1;}100%{opacity:0;}}
+.fp-calm{position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;}
+.fp-calm-glow{position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,rgba(77,141,255,0.4),transparent 65%);filter:blur(10px);animation:fp-breath 5.5s ease-in-out infinite;}
+.fp-orbit{position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(143,186,255,0.3);animation:k-rot 16s linear infinite;}
+.fp-orbit span{position:absolute;left:44px;top:-4px;width:8px;height:8px;border-radius:50%;background:#8fbaff;box-shadow:0 0 12px 2px rgba(77,141,255,0.8);}
+.fp-won-in{animation:fp-livein 800ms var(--spring) backwards;}
+.fp-spark{position:absolute;width:4px;height:4px;border-radius:50%;animation:fp-twinkle 2.4s ease-in-out infinite;}
+@keyframes fp-twinkle{0%,100%{opacity:0.15;transform:scale(0.6);}50%{opacity:1;transform:scale(1.3);}}
+.k .fp-pick{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);font-size:11.5px;font-weight:600;color:#e5e5ea;transition:background 140ms ease;}
+.k .fp-pick:hover{background:rgba(255,255,255,0.12);}
+</style>
+</helmet>
+
+<div class="k fp-panel" onMouseMove="{{spot}}" style="width:380px;height:960px;box-sizing:border-box;position:relative;overflow:hidden;display:flex;flex-direction:column;">
+
+  <header class="fp-head k-enter" style="--i:0;">
+    <button class="k-btn k-soft k-btn-sm" aria-label="List picker: All lists" title="Choose which lists feed the Focus queue" style="gap:6px;padding:0 8px 0 10px;font-size:12.5px;">
+      All
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+    <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em;margin-left:2px;">Today</div>
+    <div style="display:flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:999px;background:{{modeChipBg}};font-size:9.5px;font-weight:800;letter-spacing:0.08em;color:{{modeChipColor}};">
+      <span class="k-dot {{modeChipPing}}" style="width:5px;height:5px;background:currentColor;"></span>FOCUS
+    </div>
+    <div style="flex-grow:1;"></div>
+    <button class="k-icon" aria-label="Quick Settings" title="Quick Settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+    <button class="k-icon" aria-label="Exit Focus mode" title="Exit Focus mode (Home)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10v9.5h13V10"></path></svg>
+    </button>
+    <button class="k-icon" aria-label="Collapse to floating timer" title="Floating timer ⌘⇧T">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="3"></rect><rect x="12" y="11.5" width="7" height="5.5" rx="1.4" fill="currentColor" fill-opacity="0.25"></rect></svg>
+    </button>
+  </header>
+
+  <div class="sg k-tile k-enter" style="--i:1;--sg:181 242 61;margin:2px 14px 0;padding:12px 14px 13px;border-radius:16px;display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div class="k-num" style="font-size:22px;font-weight:800;letter-spacing:-0.03em;line-height:1;">{{done}}<span style="color:#8e8e93;font-weight:600;">/{{total}}</span></div>
+        <div style="font-size:10.5px;font-weight:800;letter-spacing:0.08em;color:#c9f76a;">DONE</div>
+      </div>
+      <div style="font-size:12px;color:#a1a1a6;">Est left <b class="k-num" style="color:#ffffff;font-weight:700;">{{estLeft}}</b></div>
+    </div>
+    <div style="display:flex;gap:4px;">
+      <sc-for list="{{segments}}" as="seg" hint-placeholder-count="7">
+        <div class="{{seg.cls}}" style="flex-grow:1;height:6px;border-radius:4px;{{seg.style}}"></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{notWon}}" hint-placeholder-val="{{true}}">
+    <div style="position:relative;padding:12px 14px 0;flex-shrink:0;">
+
+      <sc-if value="{{showDial}}" hint-placeholder-val="{{true}}">
+        <div class="fp-live-in">
+          <div class="{{beamCls}} {{liveOutCls}}" style="border-radius:24px;{{beamVars}}">
+            <div class="fp-card" style="background:radial-gradient(110% 70% at 50% 0%,{{tintA}},transparent 60%),radial-gradient(80% 50% at 100% 100%,{{tintB}},transparent 60%),#0c0d0f;padding:16px 14px 14px;">
+
+              <div class="fp-dial">
+                <div class="fp-halo-wrap"><div class="fp-halo" style="--h1:{{haloA}};--h2:{{haloB}};opacity:{{haloOp}};"></div></div>
+                <div class="fp-sweep" style="{{sweepStyle}}"></div>
+                <sc-for list="{{ticks}}" as="tk" hint-placeholder-count="60">
+                  <span class="fp-tick" style="{{tk.style}}"></span>
+                </sc-for>
+                <svg class="fp-arc" width="236" height="236" viewBox="0 0 236 236" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="fpArcGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{{ringA}}"></stop><stop offset="1" stop-color="{{ringB}}"></stop></linearGradient>
+                    <filter id="fpArcGlow" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter>
+                  </defs>
+                  <circle cx="118" cy="118" r="92" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"></circle>
+                  <circle cx="118" cy="118" r="92" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="1.5 7.13"></circle>
+                  <circle class="fp-arc-p" cx="118" cy="118" r="92" fill="none" stroke="url(#fpArcGrad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="578.05" stroke-dashoffset="{{arcOffset}}" transform="rotate(-90 118 118)" filter="url(#fpArcGlow)" opacity="{{arcGlowOp}}"></circle>
+                  <circle class="fp-arc-p" cx="118" cy="118" r="92" fill="none" stroke="url(#fpArcGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="578.05" stroke-dashoffset="{{arcOffset}}" transform="rotate(-90 118 118)"></circle>
+                </svg>
+                <div class="fp-arm" style="transform:rotate({{cometDeg}}deg);color:{{cometColor}};">
+                  <sc-if value="{{cometRing}}" hint-placeholder-val="{{true}}"><span class="fp-comet-ring"></span></sc-if>
+                  <span class="fp-comet" style="{{cometStyle}}"></span>
+                </div>
+                <div class="fp-face">
+                  <div class="{{pulseCls}}" style="--pc:{{pulseRgb}};"></div>
+                  <div class="fp-pill" style="{{pillStyle}}"><span class="{{dotCls}}" style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>{{pillText}}</div>
+                  <div class="fp-time {{timerCls}}" style="font-size:{{timerSize}};{{timerStyle}}">
+                    <sc-if value="{{timesUp}}" hint-placeholder-val="{{false}}"><span style="font-size:0.72em;margin-right:1px;">+</span></sc-if>
+                    <span class="fp-odo k-num">
+                      <sc-for list="{{digits}}" as="d" hint-placeholder-count="5">
+                        <sc-if value="{{d.colon}}" hint-placeholder-val="{{false}}"><span class="{{d.cls}}">:</span></sc-if>
+                        <sc-if value="{{d.num}}" hint-placeholder-val="{{true}}">
+                          <span class="fp-digit"><span class="fp-strip" style="will-change:transform;{{d.style}}"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span>
+                        </sc-if>
+                      </sc-for>
+                    </span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <div style="font-size:12px;font-weight:500;color:{{capColor}};">{{capA}}</div>
+                    <div class="k-num k-mono" style="font-size:10.5px;color:#8e8e93;">{{capB}}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fp-ell" style="margin-top:12px;text-align:center;font-size:17px;font-weight:700;letter-spacing:-0.015em;line-height:22px;">{{live.title}}</div>
+
+              <sc-if value="{{notSprint}}" hint-placeholder-val="{{true}}">
+                <div style="margin-top:9px;display:flex;align-items:center;justify-content:center;gap:5px;">
+                  <sc-if value="{{showFlow}}" hint-placeholder-val="{{true}}">
+                    <span class="fp-chip" style="color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="#ffb547"><path d="M12 2.5c1.2 4.2 6 5.6 6 11a6 6 0 0 1-12 0c0-3.2 2.2-4.6 2.4-7 1.1 1.1 2.1 2.2 3.1 2.2-.3-2.4-.6-4.3.5-6.2Z"></path></svg>
+                      Flow {{flowLabel}}
+                    </span>
+                  </sc-if>
+                  <span class="fp-chip" title="Pomodoro sprint 2 of 4">
+                    <span style="display:flex;gap:3px;">
+                      <sc-for list="{{sprintDots}}" as="sd" hint-placeholder-count="4"><span class="fp-sdot {{sd.cls}}" style="{{sd.style}}"></span></sc-for>
+                    </span>
+                    Sprint 2 of 4
+                  </span>
+                  <span class="fp-chip">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 21 3M15 3h6v6M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
+                    2 links opened
+                  </span>
+                </div>
+              </sc-if>
+              <sc-if value="{{isSprint}}" hint-placeholder-val="{{false}}">
+                <div style="margin-top:9px;display:flex;align-items:center;justify-content:center;gap:10px;height:22px;">
+                  <div style="display:flex;gap:5px;">
+                    <sc-for list="{{sprintCaps}}" as="sc" hint-placeholder-count="4"><span class="fp-scap"><span class="fp-scap-fill" style="{{sc.style}}"></span></span></sc-for>
+                  </div>
+                  <span style="font-size:11.5px;font-weight:600;color:#ff9be4;white-space:nowrap;">Sprint 2 of 4 · 25:00 sprint</span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{notTimesUp}}" hint-placeholder-val="{{true}}">
+                <div style="margin-top:14px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;">
+                  <button class="fp-ctrl" onClick="{{startBreak}}" title="Break ⌘⌥B">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"></path><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 2.5v3M12 2.5v3"></path></svg>
+                    Break
+                  </button>
+                  <button class="fp-ctrl" title="Notes ⌘⌥N">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5Z"></path><path d="M9 12h6M9 16h4"></path></svg>
+                    Notes
+                  </button>
+                  <button class="fp-ctrl {{pauseCls}}" onClick="{{togglePause}}" title="{{pauseTip}}">
+                    <sc-if value="{{running}}" hint-placeholder-val="{{true}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 5v14M16 5v14"></path></svg></sc-if>
+                    <sc-if value="{{paused}}" hint-placeholder-val="{{false}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg></sc-if>
+                    {{pauseLabel}}
+                  </button>
+                  <button class="fp-ctrl" onClick="{{skip}}" title="Skip ⌘⌥S">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5v15l11-7.5Z"></path><path d="M19 5v14"></path></svg>
+                    Skip
+                  </button>
+                  <button class="fp-ctrl {{doneCls}}" onClick="{{markDone}}" title="Done ⌘⌥F">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                    Done
+                  </button>
+                </div>
+              </sc-if>
+              <sc-if value="{{timesUp}}" hint-placeholder-val="{{false}}">
+                <div style="margin-top:14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;">
+                  <button class="fp-ctrl fp-ctrl-danger" onClick="{{add5}}" title="Add 5 minutes to the estimate">+5 min</button>
+                  <button class="fp-ctrl fp-ctrl-danger" onClick="{{add15}}" title="Add 15 minutes to the estimate">+15 min</button>
+                  <button class="fp-ctrl fp-ctrl-primary" onClick="{{markDone}}" title="Done ⌘⌥F">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                    Done
+                  </button>
+                  <button class="fp-ctrl" onClick="{{skip}}" title="Next ⌘⌥S">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                    Next
+                  </button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{onBreak}}" hint-placeholder-val="{{false}}">
+        <div class="k-beam fp-live-in" style="border-radius:24px;--b0:#0f2a1e;--b1:#35d483;--b2:#9dffcb;--bglow:rgba(53,212,131,0.45);">
+          <div class="fp-card" style="height:{{heroH}};background:radial-gradient(110% 70% at 50% 0%,rgba(53,212,131,0.2),transparent 62%),#0b100d;padding:16px 16px 14px;align-items:center;">
+            <div class="fp-pill" style="background:rgba(53,212,131,0.14);color:#5fe3a1;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"></path><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"></path></svg>
+              BREAK
+            </div>
+            <div class="fp-bstage" style="margin-top:4px;">
+              <div class="fp-bglow"></div>
+              <div class="fp-bcircle2"></div>
+              <div class="fp-bcircle"></div>
+              <svg width="236" height="236" viewBox="0 0 236 236" style="position:absolute;left:0;top:0;" aria-hidden="true">
+                <circle cx="118" cy="118" r="110" fill="none" stroke="rgba(53,212,131,0.12)" stroke-width="3"></circle>
+                <circle cx="118" cy="118" r="110" fill="none" stroke="#5fe3a1" stroke-width="3" stroke-linecap="round" stroke-dasharray="691.15" stroke-dashoffset="{{breakOffset}}" transform="rotate(-90 118 118)" style="transition:stroke-dashoffset 900ms cubic-bezier(0.2,0.8,0.2,1);filter:drop-shadow(0 0 6px rgba(53,212,131,0.8));"></circle>
+              </svg>
+              <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <sc-if value="{{breakRunning}}" hint-placeholder-val="{{true}}">
+                  <div style="display:grid;font-size:12px;font-weight:700;letter-spacing:0.06em;color:#9dffcb;">
+                    <span class="fp-lab fp-lab-in" style="text-align:center;">Breathe in</span>
+                    <span class="fp-lab fp-lab-out" style="text-align:center;">Breathe out</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{breakOver}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;color:#9dffcb;">Break's over</div>
+                </sc-if>
+                <div class="k-num" style="font-size:50px;font-weight:700;letter-spacing:-0.035em;line-height:1;color:#5fe3a1;text-shadow:0 0 30px rgba(53,212,131,0.7),0 0 60px rgba(53,212,131,0.35);">{{breakStr}}</div>
+                <div class="k-num" style="font-size:11px;color:#8e8e93;">of {{breakTotalStr}} break</div>
+              </div>
+            </div>
+            <div style="margin-top:6px;font-size:12.5px;color:#a1a1a6;">Stretch, water, eyes off the screen.</div>
+            <div class="fp-ell" style="max-width:100%;margin-top:4px;font-size:12.5px;color:#c7c7cc;">Up next: <b style="color:#ffffff;">{{live.title}}</b></div>
+            <div style="flex-grow:1;"></div>
+            <sc-if value="{{breakRunning}}" hint-placeholder-val="{{true}}">
+              <div style="display:flex;gap:8px;width:100%;">
+                <button class="k-btn k-soft" onClick="{{endBreak}}" title="Skip break ⌘⌥B" style="flex-grow:1;flex-basis:0;height:42px;border-radius:12px;">Skip break</button>
+                <button class="k-btn k-soft" onClick="{{add2Break}}" style="flex-grow:1;flex-basis:0;height:42px;border-radius:12px;">+2 min</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{breakOver}}" hint-placeholder-val="{{false}}">
+              <button class="k-btn k-primary" onClick="{{endBreak}}" style="width:100%;height:42px;border-radius:12px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#06110a"><path d="M7 4.5v15l12-7.5Z"></path></svg>
+                <span class="fp-ell" style="max-width:260px;">Resume {{live.title}}</span>
+              </button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{celebrating}}" hint-placeholder-val="{{false}}">
+        <div class="fp-live-in" style="position:relative;border-radius:24px;padding:1.5px;background:linear-gradient(135deg,#2dd9c4,#b5f23d,#ffb547,#ff6ad5,#8b7cff);box-shadow:0 0 70px -10px rgba(181,242,61,0.6);">
+          <div class="fp-card" onClick="{{advanceNow}}" style="height:{{heroH}};background:radial-gradient(90% 70% at 50% 34%,rgba(181,242,61,0.22),transparent 70%),#0c0d0e;align-items:center;justify-content:center;gap:10px;padding:0 20px;cursor:pointer;">
+            <span class="fp-shock"></span>
+            <span class="fp-shock fp-shock2"></span>
+            <sc-for list="{{confetti}}" as="p" hint-placeholder-count="0">
+              <span class="fp-conf" style="background:{{p.c}};--dx:{{p.dx}};--dy:{{p.dy}};--r:{{p.r}};animation-delay:{{p.d}};"></span>
+            </sc-for>
+            <div class="fp-pop" style="width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,#2dd9c4,#b5f23d);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px -2px rgba(181,242,61,0.9);margin-top:-30px;">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="fp-draw" d="M5 12.5 10 17l9-10"></path></svg>
+            </div>
+            <div class="fp-fadeup" style="margin-top:10px;font-size:22px;font-weight:800;letter-spacing:-0.02em;text-align:center;">{{lastMsg}}</div>
+            <div class="fp-fadeup2 fp-ell" style="max-width:100%;font-size:13px;color:#a1a1a6;">{{nextMsg}}</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{schedOnly}}" hint-placeholder-val="{{false}}">
+        <div class="fp-live-in" style="border-radius:24px;padding:1px;background:linear-gradient(160deg,rgba(77,141,255,0.6),rgba(255,255,255,0.06) 48%,rgba(77,141,255,0.28));box-shadow:0 0 60px -24px rgba(77,141,255,0.6);">
+          <div class="fp-card" style="border-radius:23px;background:radial-gradient(100% 70% at 50% 0%,rgba(77,141,255,0.16),transparent 65%),#0b0d12;padding:26px 20px 18px;align-items:center;text-align:center;">
+            <div class="fp-calm">
+              <div class="fp-calm-glow"></div>
+              <div class="fp-orbit"><span></span></div>
+              <div style="position:relative;width:64px;height:64px;border-radius:20px;background:linear-gradient(160deg,rgba(77,141,255,0.3),rgba(77,141,255,0.08));border:1px solid rgba(143,186,255,0.4);display:flex;align-items:center;justify-content:center;color:#8fbaff;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path><path d="M12 13v2.5l1.6 1"></path></svg>
+              </div>
+            </div>
+            <div class="k-label" style="margin-top:18px;color:#8fbaff;">FOCUS QUEUE IS CLEAR</div>
+            <div style="margin-top:8px;font-size:20px;font-weight:800;letter-spacing:-0.02em;line-height:25px;">Next: Wireframes at 11:00 AM</div>
+            <div style="margin-top:6px;font-size:12.5px;line-height:18px;color:#a1a1a6;max-width:270px;">It joins the queue on time and a reminder fires. Nothing starts on its own before then.</div>
+            <button class="k-btn k-primary" onClick="{{startEarly}}" style="margin-top:18px;width:100%;height:42px;border-radius:12px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#06110a"><path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path></svg>
+              Start early
+            </button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div class="k-scroll" style="position:relative;flex-grow:1;min-height:0;overflow-y:auto;padding:12px 14px 14px;display:flex;flex-direction:column;gap:7px;">
+      <sc-if value="{{hasQueue}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px 2px;">
+          <div class="k-label">UP NEXT</div>
+          <div style="font-size:11px;color:#8e8e93;">hover · bolt makes it live</div>
+        </div>
+      </sc-if>
+
+      <sc-for list="{{queueView}}" as="t" hint-placeholder-count="3">
+        <div class="sg k-card k-enter fp-q" style="--i:{{t.i}};--sg:181 242 61;">
+          <div class="fp-q-idx k-num">{{t.idx}}</div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+            <div class="fp-ell" style="font-size:13.5px;font-weight:600;line-height:18px;color:#f2f2f5;">{{t.title}}</div>
+            <div class="k-num" style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:#a1a1a6;white-space:nowrap;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              {{t.estLabel}}
+              <span style="color:#5a5a5f;">·</span>
+              <span style="color:{{t.takenColor}};">{{t.takenLabel}}</span>
+              <sc-if value="{{t.hasSub}}" hint-placeholder-val="{{false}}">
+                <span style="color:#5a5a5f;">·</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 2 2 3-3M11 7h10M3 16l2 2 3-3M11 17h10"></path></svg>{{t.sub}}
+              </sc-if>
+              <sc-if value="{{t.notes}}" hint-placeholder-val="{{false}}">
+                <span style="color:#5a5a5f;">·</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5Z"></path><path d="M9 12h6M9 16h4"></path></svg>Notes
+              </sc-if>
+            </div>
+          </div>
+          <span class="k-badge" style="width:20px;height:20px;border-radius:6px;font-size:10px;background:{{t.color}};color:{{t.glyph}};">{{t.list}}</span>
+          <div class="k-reveal" style="position:absolute;top:0;bottom:0;right:10px;display:flex;align-items:center;gap:5px;padding-left:26px;background:linear-gradient(90deg,transparent,#141417 24px);">
+            <button class="k-act" aria-label="Mark done" title="Mark done" onClick="{{t.check}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></button>
+            <button class="k-act k-act-go" aria-label="Make live now" title="Make live now" onClick="{{t.bolt}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path></svg></button>
+          </div>
+        </div>
+      </sc-for>
+
+      <button class="fp-add">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b5f23d" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        ADD TASK<span class="k-kbd" style="margin-left:auto;letter-spacing:0;">⌘⌥T</span>
+      </button>
+
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 2px 0;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        <span class="k-label">SCHEDULED TODAY</span>
+        <span class="k-num" style="font-size:11px;color:#8e8e93;">{{schedCount}}</span>
+        <button class="k-act" aria-label="Add scheduled task" style="margin-left:auto;width:22px;height:22px;border-radius:7px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+      </div>
+      <sc-for list="{{scheduled}}" as="sch" hint-placeholder-count="1">
+        <div class="sg k-card" style="--sg:77 141 255;padding:8px 12px;border-radius:14px;display:flex;align-items:center;gap:12px;">
+          <div style="width:44px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:4px 0;border-radius:10px;background:rgba(77,141,255,0.1);border:1px solid rgba(77,141,255,0.22);">
+            <div class="k-num" style="font-size:13.5px;font-weight:800;color:#8fbaff;line-height:17px;">{{sch.time}}</div>
+            <div style="font-size:9.5px;font-weight:700;color:#8e8e93;letter-spacing:0.06em;">{{sch.ampm}}</div>
+          </div>
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+            <div class="fp-ell" style="font-size:13.5px;font-weight:600;line-height:18px;">{{sch.title}}</div>
+            <div style="font-size:11.5px;color:#a1a1a6;">{{sch.meta}}</div>
+          </div>
+          <div style="width:28px;height:28px;border-radius:9px;background:rgba(77,141,255,0.12);color:#8fbaff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <sc-if value="{{sch.video}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="12" height="10" rx="2"></rect><path d="m15 11 6-3v8l-6-3"></path></svg></sc-if>
+            <sc-if value="{{sch.cal}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></sc-if>
+          </div>
+        </div>
+      </sc-for>
+
+      <button class="sg k-btn" style="--sg:53 212 131;flex-shrink:0;justify-content:flex-start;height:40px;padding:0 12px;margin-top:2px;border-radius:12px;background:rgba(53,212,131,0.06);border:1px solid rgba(53,212,131,0.18);font-size:12.5px;color:#c7c7cc;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m8 12.5 3 3 5-6"></path></svg>
+        <span class="k-num"><b style="color:#ffffff;">{{doneList}} Done</b> · {{doneTime}}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><path d="m9 6 6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{won}}" hint-placeholder-val="{{false}}">
+    <div class="k-scroll" style="flex-grow:1;min-height:0;overflow-y:auto;padding:12px 14px 16px;display:flex;flex-direction:column;gap:10px;">
+      <div class="fp-won-in" style="position:relative;border-radius:24px;padding:1.5px;background:linear-gradient(135deg,#2dd9c4,#b5f23d,#ffb547,#ff6ad5);box-shadow:0 0 80px -24px rgba(255,181,71,0.6);">
+        <div class="fp-card" style="background:radial-gradient(100% 50% at 50% 0%,rgba(255,181,71,0.16),transparent 70%),radial-gradient(80% 40% at 0% 100%,rgba(45,217,196,0.08),transparent 70%),#0c0d0e;padding:22px 18px 18px;gap:16px;">
+          <span class="fp-spark" style="left:30px;top:26px;background:#b5f23d;"></span>
+          <span class="fp-spark" style="left:300px;top:40px;background:#ffb547;animation-delay:0.6s;"></span>
+          <span class="fp-spark" style="left:250px;top:18px;background:#ff6ad5;animation-delay:1.2s;"></span>
+          <span class="fp-spark" style="left:318px;top:96px;background:#2dd9c4;animation-delay:1.8s;"></span>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#ffb547,#b5f23d);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px -8px rgba(255,181,71,0.8);margin-bottom:6px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a0e02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"></path><path d="M7 6H4.5v1.5A3 3 0 0 0 7.5 10.5M17 6h2.5v1.5a3 3 0 0 1-3 3M12 14v3.5M8.5 20.5h7M9.5 17.5h5v3h-5Z"></path></svg>
+            </div>
+            <div style="font-size:27px;font-weight:800;letter-spacing:-0.03em;line-height:1.1;">You won the day.</div>
+            <div style="font-size:13px;color:#a1a1a6;">Saturday, Sep 26 · the Focus queue is empty.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+            <div class="sg k-tile" style="--sg:181 242 61;padding:12px;border-radius:14px;"><div class="k-num" style="font-size:22px;font-weight:800;letter-spacing:-0.03em;white-space:nowrap;">7</div><div style="font-size:11px;color:#a1a1a6;">tasks</div></div>
+            <div class="sg k-tile" style="--sg:45 217 196;padding:12px;border-radius:14px;"><div class="k-num" style="font-size:22px;font-weight:800;letter-spacing:-0.03em;white-space:nowrap;">5h 40m</div><div style="font-size:11px;color:#a1a1a6;">focused</div></div>
+            <div class="sg k-tile" style="--sg:181 242 61;padding:12px;border-radius:14px;background:rgba(181,242,61,0.08);border-color:rgba(181,242,61,0.2);"><div class="k-num" style="font-size:22px;font-weight:800;letter-spacing:-0.03em;white-space:nowrap;color:#c9f76a;">82%</div><div style="font-size:11px;color:#a1a1a6;">on est.</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:3px;height:8px;">
+              <div style="flex-grow:4;flex-basis:0;border-radius:4px;background:#35d483;box-shadow:0 0 10px -2px rgba(53,212,131,0.8);"></div>
+              <div style="flex-grow:1;flex-basis:0;border-radius:4px;background:#b5f23d;"></div>
+              <div style="flex-grow:2;flex-basis:0;border-radius:4px;background:#ffb547;"></div>
+            </div>
+            <div class="k-num" style="display:flex;align-items:center;gap:12px;font-size:12px;color:#c7c7cc;">
+              <span style="display:flex;align-items:center;gap:5px;"><span class="k-dot" style="background:#35d483;"></span>Early 4</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span class="k-dot" style="background:#b5f23d;"></span>On time 1</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span class="k-dot" style="background:#ffb547;"></span>Late 2</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#c7c7cc;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffb547"><path d="M12 2.5c1.2 4.2 6 5.6 6 11a6 6 0 0 1-12 0c0-3.2 2.2-4.6 2.4-7 1.1 1.1 2.1 2.2 3.1 2.2-.3-2.4-.6-4.3.5-6.2Z"></path></svg>
+            <span><b style="color:#ffffff;">4-day</b> streak</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.07);"></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="k-label">NOT FINISHED (2)</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="k-badge" style="width:20px;height:20px;border-radius:6px;font-size:10px;background:#b5f23d;color:#06110a;">W</span>
+              <div class="fp-ell" style="flex-grow:1;font-size:13px;color:#e5e5ea;">Hire a product designer</div>
+              <button class="fp-pick">Tomorrow<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="k-badge" style="width:20px;height:20px;border-radius:6px;font-size:10px;background:#b5f23d;color:#06110a;">W</span>
+              <div class="fp-ell" style="flex-grow:1;font-size:13px;color:#e5e5ea;">Q4 engineering roadmap</div>
+              <button class="fp-pick">This week<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:2px;">
+            <button class="k-btn k-soft" style="flex-grow:1;flex-basis:0;height:42px;border-radius:12px;">See reports</button>
+            <button class="k-btn k-primary" onClick="{{replay}}" title="Close the summary" style="flex-grow:1;flex-basis:0;height:42px;border-radius:12px;">Done</button>
+          </div>
+        </div>
+      </div>
+      <div style="flex-grow:1;"></div>
+      <button class="sg k-btn" style="--sg:53 212 131;flex-shrink:0;justify-content:flex-start;height:40px;padding:0 12px;border-radius:12px;background:rgba(53,212,131,0.06);border:1px solid rgba(53,212,131,0.18);font-size:12.5px;color:#c7c7cc;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#35d483" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m8 12.5 3 3 5-6"></path></svg>
+        <span class="k-num"><b style="color:#ffffff;">7 Done</b> · 5hr 40min</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><path d="m9 6 6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["running","paused","timesup","sprint","break","onlyScheduled","endOfQueue"],"default":"running","section":"Demo"},"$preview":{"width":380,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var colors = ['#b5f23d', '#2dd9c4', '#4d8dff', '#8b7cff', '#ff6ad5', '#ffb547', '#35d483', '#ff5c7a'];
+    this.conf = [];
+    for (var i = 0; i < 44; i++) {
+      var ang = (i / 44) * Math.PI * 2 + (i % 3) * 0.2;
+      var dist = 110 + (i * 37) % 90;
+      this.conf.push({
+        c: colors[i % colors.length],
+        dx: Math.round(Math.cos(ang) * dist) + 'px',
+        dy: Math.round(Math.sin(ang) * dist - 30) + 'px',
+        r: ((i * 83) % 720 - 360) + 'deg',
+        d: ((i % 6) * 25) + 'ms'
+      });
+    }
+    this.state = this.initial(props.state || 'running');
+  }
+  initial(mode) {
+    var live = { id: 't1', title: 'Design review prep with Apurva', list: 'W', color: '#b5f23d', glyph: '#06110a', est: 3600, taken: 3033 };
+    var queue = [
+      { id: 't2', title: 'Wire NSDataDetector date parsing', list: 'W', color: '#b5f23d', glyph: '#06110a', est: 5400, taken: 1800, sub: '3/4', notes: false },
+      { id: 't3', title: 'Review accounts', list: 'W', color: '#b5f23d', glyph: '#06110a', est: 9000, taken: 0, sub: '', notes: true },
+      { id: 't4', title: 'Prep 1:1 with Apurva', list: 'L', color: '#ff6ad5', glyph: '#1a0414', est: 1800, taken: 0, sub: '0/3', notes: false }
+    ];
+    var sync = { time: '3:00', ampm: 'PM', title: 'Sync with core team', meta: 'Google Meet · 45min · Reminder on', video: true, cal: false };
+    var s = {
+      live: live, queue: queue, scheduled: [sync], elapsed: live.taken, flowStart: live.taken - 1500,
+      running: true, pomodoro: false, sprintElapsed: 627, sprintLen: 1500,
+      onBreak: false, breakLeft: 252, breakTotal: 300, celebrating: false, schedOnly: false,
+      done: 2, total: 7, doneTime: 9000, won: false, lastMsg: '', nextMsg: '', swapOut: false, gap: false
+    };
+    if (mode === 'paused') s.running = false;
+    if (mode === 'timesup') s.elapsed = live.est + 134;
+    if (mode === 'sprint') s.pomodoro = true;
+    if (mode === 'break') { s.onBreak = true; s.running = false; }
+    if (mode === 'onlyScheduled') {
+      s.schedOnly = true; s.running = false; s.queue = []; s.done = 6; s.doneTime = 17400;
+      s.scheduled = [{ time: '11:00', ampm: 'AM', title: 'Wireframes', meta: '2hr · Reminder on', video: false, cal: true }];
+    }
+    if (mode === 'endOfQueue') { s.won = true; s.running = false; s.queue = []; s.done = 7; s.doneTime = 20400; }
+    return s;
+  }
+  componentDidMount() {
+    var self = this;
+    this.iv = setInterval(function () { self.tick(); }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.to); clearTimeout(this.to2); }
+  componentDidUpdate(prev) {
+    if (prev.state !== this.props.state) {
+      clearTimeout(this.to); clearTimeout(this.to2);
+      this.setState(this.initial(this.props.state || 'running'));
+    }
+  }
+  tick() {
+    var s = this.state;
+    if (s.celebrating || s.won || s.schedOnly) return;
+    if (s.onBreak) { if (s.breakLeft > 0) this.setState({ breakLeft: s.breakLeft - 1 }); return; }
+    if (!s.running) return;
+    if (s.pomodoro && s.sprintElapsed + 1 >= s.sprintLen) {
+      this.setState({ elapsed: s.elapsed + 1, sprintElapsed: 0, onBreak: true, running: false, breakLeft: 300, breakTotal: 300 });
+      return;
+    }
+    this.setState({ elapsed: s.elapsed + 1, sprintElapsed: s.pomodoro ? s.sprintElapsed + 1 : s.sprintElapsed });
+  }
+  pad(n) { return (n < 10 ? '0' : '') + n; }
+  clock(sec) {
+    sec = Math.abs(Math.floor(sec));
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+    return h > 0 ? h + ':' + this.pad(m) + ':' + this.pad(x) : this.pad(m) + ':' + this.pad(x);
+  }
+  dur(sec) {
+    var m = Math.max(0, Math.round(sec / 60));
+    var h = Math.floor(m / 60), r = m % 60;
+    if (h && r) return h + 'hr ' + r + 'min';
+    if (h) return h + 'hr';
+    return r + 'min';
+  }
+  swap(apply) {
+    var self = this;
+    this.setState({ swapOut: true });
+    clearTimeout(this.to2);
+    this.to2 = setTimeout(function () {
+      var patch = apply();
+      patch.swapOut = false; patch.gap = true;
+      self.setState(patch);
+      self.to2 = setTimeout(function () { self.setState({ gap: false }); }, 30);
+    }, 260);
+  }
+  markDone() {
+    var s = this.state;
+    if (s.celebrating || s.swapOut) return;
+    var diff = s.live.est - s.elapsed;
+    var msg = diff >= 60 ? 'Nailed it. ' + this.dur(diff) + ' early.' : (diff > -60 ? 'Done. Right on time.' : 'Done. ' + this.dur(-diff) + ' over, still counts.');
+    var next = s.queue.length ? 'Next up: ' + s.queue[0].title : 'That was the last one.';
+    var self = this;
+    this.setState({ celebrating: true, lastMsg: msg, nextMsg: next, done: s.done + 1, doneTime: s.doneTime + s.elapsed, onBreak: false });
+    clearTimeout(this.to);
+    this.to = setTimeout(function () { self.advance(); }, 2600);
+  }
+  advance() {
+    var s = this.state;
+    clearTimeout(this.to);
+    if (!s.celebrating) return;
+    if (!s.queue.length) { this.setState({ celebrating: false, won: true }); return; }
+    var next = s.queue[0];
+    this.setState({ celebrating: false, live: next, queue: s.queue.slice(1), elapsed: next.taken, flowStart: next.taken, sprintElapsed: 0, running: true });
+  }
+  skip() {
+    var self = this;
+    if (!this.state.queue.length || this.state.swapOut) return;
+    this.swap(function () {
+      var s = self.state;
+      var cur = Object.assign({}, s.live, { taken: s.elapsed });
+      var next = s.queue[0];
+      return { live: next, queue: s.queue.slice(1).concat([cur]), elapsed: next.taken, flowStart: next.taken, running: true };
+    });
+  }
+  makeLive(i) {
+    var self = this;
+    if (this.state.swapOut) return;
+    this.swap(function () {
+      var s = self.state;
+      var cur = Object.assign({}, s.live, { taken: s.elapsed });
+      var next = s.queue[i];
+      var rest = s.queue.filter(function (_, j) { return j !== i; });
+      return { live: next, queue: [cur].concat(rest), elapsed: next.taken, flowStart: next.taken, running: true, onBreak: false, celebrating: false };
+    });
+  }
+  complete(i) {
+    var s = this.state;
+    var t = s.queue[i];
+    this.setState({ queue: s.queue.filter(function (_, j) { return j !== i; }), done: s.done + 1, doneTime: s.doneTime + t.taken });
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var sprint = s.pomodoro;
+    var remaining = sprint ? s.sprintLen - s.sprintElapsed : s.live.est - s.elapsed;
+    var timesUp = !sprint && remaining < 0;
+    var mode = timesUp ? 'timesup' : (!s.running ? 'paused' : (sprint ? 'sprint' : 'running'));
+    var total = sprint ? s.sprintLen : s.live.est;
+    var pct = Math.max(0, Math.min(1, (total - remaining) / total));
+    var sec = s.elapsed % 60;
+    var rgb = { running: '181,242,61', sprint: '255,106,213', paused: '142,142,147', timesup: '255,92,122' }[mode];
+
+    var clk = this.clock(remaining);
+    var digits = clk.split('').map(function (ch) {
+      if (ch === ':') return { colon: true, num: false, style: '', cls: 'fp-colon ' + (mode === 'paused' ? 'k-blink' : 'fp-beat') };
+      return { colon: false, num: true, style: 'transform:translateY(-' + (Number(ch) * 10) + '%);', cls: '' };
+    });
+
+    var ticks = [];
+    for (var i = 0; i < 60; i++) {
+      var major = i % 5 === 0;
+      var d = (sec - i + 60) % 60;
+      var h = major ? 12 : 7, bg, extra = '';
+      if (mode === 'paused') bg = i <= sec ? 'rgba(142,142,147,' + (major ? 0.6 : 0.4) + ')' : 'rgba(255,255,255,' + (major ? 0.16 : 0.07) + ')';
+      else if (d === 0) { bg = '#ffffff'; h = 16; extra = 'box-shadow:0 0 10px 2px rgba(' + rgb + ',0.95),0 0 3px #ffffff;'; }
+      else if (d < 15) { bg = 'rgba(' + rgb + ',' + (1 - d / 15).toFixed(2) + ')'; if (d < 4) extra = 'box-shadow:0 0 6px rgba(' + rgb + ',' + (0.6 - d * 0.15).toFixed(2) + ');'; if (d < 3 && !major) h = 9; }
+      else bg = 'rgba(255,255,255,' + (major ? 0.22 : 0.08) + ')';
+      ticks.push({ style: 'height:' + h + 'px;transform:rotate(' + (i * 6) + 'deg);background:' + bg + ';' + extra });
+    }
+
+    var beams = {
+      running: '--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.55);',
+      sprint: '--b0:#2e1026;--b1:#ff6ad5;--b2:#b5f23d;--bglow:rgba(255,106,213,0.5);',
+      paused: '--b0:#26262a;--b1:#5a5a5f;--b2:#8e8e93;--bglow:transparent;',
+      timesup: '--b0:#3a0d17;--b1:#ff3d5a;--b2:#ff8a3d;--bglow:rgba(255,61,90,0.6);'
+    };
+    var pills = {
+      running: 'background:rgba(181,242,61,0.14);color:#c9f76a;',
+      sprint: 'background:rgba(255,106,213,0.16);color:#ff9be4;box-shadow:inset 0 0 0 1px rgba(255,106,213,0.3);',
+      paused: 'background:rgba(255,255,255,0.08);color:#c7c7cc;',
+      timesup: 'background:rgba(255,61,90,0.16);color:#ff8a9e;'
+    };
+    var pillText = { running: 'LIVE', sprint: 'SPRINT 2 OF 4', paused: 'PAUSED', timesup: "TIME'S UP" }[mode];
+    var tintA = { running: 'rgba(45,217,196,0.2)', sprint: 'rgba(255,106,213,0.18)', paused: 'rgba(255,255,255,0.04)', timesup: 'rgba(255,61,90,0.22)' }[mode];
+    var tintB = { running: 'rgba(181,242,61,0.1)', sprint: 'rgba(181,242,61,0.08)', paused: 'transparent', timesup: 'rgba(255,138,61,0.1)' }[mode];
+    var ring = { running: ['#2dd9c4', '#b5f23d'], sprint: ['#ff6ad5', '#b5f23d'], paused: ['#5a5a5f', '#8e8e93'], timesup: ['#ff3d5a', '#ff8a3d'] }[mode];
+    var halo = { running: ['#2dd9c4', '#b5f23d'], sprint: ['#ff6ad5', '#2dd9c4'], paused: ['#2dd9c4', '#b5f23d'], timesup: ['#ff3d5a', '#ff8a3d'] }[mode];
+    var timerStyle = {
+      running: 'color:#ffffff;filter:drop-shadow(0 0 14px rgba(181,242,61,0.7)) drop-shadow(0 0 3px rgba(181,242,61,0.5));',
+      sprint: 'color:#ffffff;filter:drop-shadow(0 0 14px rgba(255,106,213,0.65)) drop-shadow(0 0 3px rgba(181,242,61,0.4));',
+      paused: 'color:#a1a1a6;',
+      timesup: 'color:#ff6b85;filter:drop-shadow(0 0 14px rgba(255,61,90,0.75));'
+    }[mode];
+    var capA, capB;
+    if (timesUp) { capA = 'over the ' + this.dur(s.live.est) + ' estimate'; capB = this.clock(s.elapsed) + ' elapsed'; }
+    else if (sprint) { capA = 'left of 25:00 sprint'; capB = this.clock(s.elapsed) + ' on task'; }
+    else { capA = 'left of ' + this.dur(s.live.est); capB = this.clock(s.elapsed) + ' elapsed'; }
+
+    var segs = [];
+    for (var j = 0; j < s.total; j++) {
+      if (j < s.done) segs.push({ cls: '', style: 'background:linear-gradient(90deg,#2dd9c4,#b5f23d);box-shadow:0 0 10px -2px rgba(181,242,61,0.7);' });
+      else if (j === s.done && !s.won) segs.push({ cls: s.schedOnly ? '' : 'fp-seg-on', style: s.schedOnly ? 'background:rgba(77,141,255,0.45);' : 'background:rgba(181,242,61,0.55);' });
+      else segs.push({ cls: '', style: 'background:rgba(255,255,255,0.1);' });
+    }
+
+    var left = 0;
+    if (s.schedOnly) left = 7200;
+    else if (!s.won) {
+      left = Math.max(0, s.live.est - s.elapsed);
+      s.queue.forEach(function (t) { left += Math.max(0, t.est - t.taken); });
+    }
+
+    var queueView = s.queue.map(function (t, k) {
+      return {
+        id: t.id, title: t.title, list: t.list, color: t.color, glyph: t.glyph, idx: k + 2, i: k + 1,
+        estLabel: self.dur(t.est),
+        takenLabel: t.taken ? self.clock(t.taken) + ' tracked' : '00:00',
+        takenColor: t.taken ? '#c9f76a' : '#8e8e93',
+        hasSub: !!t.sub, sub: t.sub, notes: t.notes,
+        bolt: function () { self.makeLive(k); },
+        check: function () { self.complete(k); }
+      };
+    });
+
+    var sprintDots = [
+      { cls: '', style: 'background:#b5f23d;box-shadow:0 0 6px rgba(181,242,61,0.8);' },
+      { cls: mode === 'paused' ? '' : 'fp-sdot-on', style: 'background:#b5f23d;' },
+      { cls: '', style: 'background:rgba(255,255,255,0.18);' },
+      { cls: '', style: 'background:rgba(255,255,255,0.18);' }
+    ];
+    var sp = Math.round(Math.min(1, s.sprintElapsed / s.sprintLen) * 100);
+    var sprintCaps = [{ style: 'width:100%;' }, { style: 'width:' + sp + '%;' }, { style: 'width:0%;' }, { style: 'width:0%;' }];
+
+    var flow = Math.max(0, s.elapsed - s.flowStart);
+    var anyLive = !s.onBreak && !s.celebrating && !s.won && !s.schedOnly;
+    var live = mode !== 'paused';
+    return {
+      live: s.live,
+      notWon: !s.won,
+      won: s.won,
+      showDial: anyLive && !s.gap,
+      liveOutCls: s.swapOut ? 'fp-live-out' : '',
+      onBreak: s.onBreak && !s.celebrating,
+      breakRunning: s.breakLeft > 0,
+      breakOver: s.breakLeft <= 0,
+      celebrating: s.celebrating,
+      schedOnly: s.schedOnly && !s.celebrating,
+      heroH: '399px',
+      modeChipBg: s.onBreak ? 'rgba(53,212,131,0.12)' : (timesUp ? 'rgba(255,61,90,0.14)' : (s.running ? 'rgba(181,242,61,0.1)' : 'rgba(255,255,255,0.06)')),
+      modeChipColor: s.onBreak ? '#5fe3a1' : (timesUp ? '#ff8a9e' : (s.running ? '#c9f76a' : '#a1a1a6')),
+      modeChipPing: (s.running || s.onBreak) ? 'k-ping' : '',
+      hasQueue: queueView.length > 0,
+      queueView: queueView,
+      scheduled: s.scheduled,
+      schedCount: s.scheduled.length,
+      done: s.done,
+      total: s.total,
+      doneList: s.done,
+      doneTime: this.dur(s.doneTime),
+      segments: segs,
+      estLeft: this.dur(left),
+      flowLabel: this.dur(flow),
+      showFlow: mode === 'running',
+      isSprint: sprint,
+      notSprint: !sprint,
+      sprintDots: sprintDots,
+      sprintCaps: sprintCaps,
+      digits: digits,
+      ticks: ticks,
+      sweepStyle: 'transform:rotate(' + (s.elapsed * 6) + 'deg);opacity:' + (live ? 1 : 0) + ';background:conic-gradient(from 276deg,transparent 0deg,rgba(' + rgb + ',0.3) 84deg,transparent 84.5deg);',
+      arcOffset: (578.05 * (1 - pct)).toFixed(1),
+      arcGlowOp: live ? 0.75 : 0,
+      ringA: ring[0], ringB: ring[1],
+      cometDeg: (pct * 360).toFixed(2),
+      cometColor: 'rgb(' + rgb + ')',
+      cometRing: live,
+      cometStyle: live ? 'box-shadow:0 0 16px 5px rgba(' + rgb + ',0.9),0 0 4px 1px #ffffff;' : 'background:#8e8e93;box-shadow:none;',
+      haloA: halo[0], haloB: halo[1],
+      haloOp: live ? (mode === 'timesup' ? 0.75 : 0.62) : 0,
+      pulseCls: live ? 'fp-pulse ' + (s.elapsed % 2 ? 'fp-pa' : 'fp-pb') : 'fp-pulse',
+      pulseRgb: rgb.split(',').join(' '),
+      timesUp: timesUp,
+      notTimesUp: !timesUp,
+      running: s.running && !timesUp,
+      paused: !s.running,
+      pauseLabel: s.running ? 'Pause' : 'Resume',
+      pauseTip: s.running ? 'Pause ⌘⌥P' : 'Resume ⌘⌥P',
+      pauseCls: s.running ? '' : 'fp-ctrl-primary',
+      doneCls: s.running || timesUp ? 'fp-ctrl-primary' : '',
+      beamCls: mode === 'paused' ? 'k-beam k-beam-still' : 'k-beam',
+      beamVars: beams[mode],
+      pillStyle: pills[mode],
+      pillText: pillText,
+      dotCls: mode === 'paused' ? '' : 'k-ping',
+      tintA: tintA, tintB: tintB,
+      timerCls: timesUp ? 'fp-shake' : '',
+      timerSize: clk.length > 5 ? '38px' : '50px',
+      timerStyle: timerStyle,
+      capA: capA, capB: capB,
+      capColor: timesUp ? '#ff8a9e' : '#c7c7cc',
+      breakStr: this.clock(Math.max(0, s.breakLeft)),
+      breakTotalStr: this.clock(s.breakTotal),
+      breakOffset: (691.15 * (1 - Math.max(0, s.breakLeft) / s.breakTotal)).toFixed(1),
+      confetti: this.conf,
+      lastMsg: s.lastMsg,
+      nextMsg: s.nextMsg,
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      },
+      togglePause: function () { var run = !self.state.running; self.setState({ running: run, flowStart: run ? self.state.elapsed : self.state.flowStart }); },
+      skip: function () { self.skip(); },
+      markDone: function () { self.markDone(); },
+      advanceNow: function () { self.advance(); },
+      startBreak: function () { self.setState({ onBreak: true, breakLeft: 300, breakTotal: 300, running: false }); },
+      endBreak: function () { self.setState({ onBreak: false, running: true, flowStart: self.state.elapsed }); },
+      add2Break: function () { self.setState({ breakLeft: self.state.breakLeft + 120, breakTotal: self.state.breakTotal + 120 }); },
+      add5: function () { var l = Object.assign({}, self.state.live, { est: self.state.live.est + 300 }); self.setState({ live: l, running: true }); },
+      add15: function () { var l = Object.assign({}, self.state.live, { est: self.state.live.est + 900 }); self.setState({ live: l, running: true }); },
+      startEarly: function () {
+        var w = { id: 't9', title: 'Wireframes', list: 'W', color: '#b5f23d', glyph: '#06110a', est: 7200, taken: 0 };
+        self.setState({ schedOnly: false, live: w, scheduled: [], elapsed: 0, flowStart: 0, running: true });
+      },
+      replay: function () { self.setState(self.initial('running')); }
+    };
+  }
+}
+</script>
+</body>
+</html>

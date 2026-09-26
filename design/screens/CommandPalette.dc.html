@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Command Palette</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.k .k-btn{padding:0 14px;font-size:13px;font-weight:600;}
+.k .k-btn-sm{padding:0 10px;font-size:12px;}
+.k .k-btn-lg{padding:0 20px;font-size:14px;}
+.k .k-primary{background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;}
+.k .k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k .k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k .k-ghost{color:#c7c7cc;}
+.k .k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k .k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;}
+.k .k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k .k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k .k-act{color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.k .k-act:hover{background:rgba(255,255,255,0.14);color:#ffffff;}
+.k .k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;}
+.k .k-icon{color:#a1a1a6;}
+.k .k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k .k-tog{background:rgba(255,255,255,0.14);}
+.k .k-tog-on{background:#35d483;}
+.k .k-check{border:1.5px solid rgba(255,255,255,0.3);}
+.k .k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.cp-cap{display:flex;align-items:center;gap:8px;height:18px;margin-bottom:10px;}
+.cp-frame{position:relative;width:640px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);background:#050506;box-shadow:0 30px 70px -30px rgba(0,0,0,0.9);}
+.cp-bd{position:absolute;inset:0;filter:blur(3px) saturate(0.9);transform:scale(1.02);}
+.cp-dim{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 0%,rgba(0,0,0,0.35),rgba(0,0,0,0.62));}
+.cp-pal{position:absolute;top:36px;left:40px;width:560px;border-radius:16px;background:rgba(22,22,26,0.94);backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid rgba(255,255,255,0.12);box-shadow:0 36px 90px -12px rgba(0,0,0,0.95),0 0 0 1px rgba(0,0,0,0.6),0 0 80px -30px rgba(45,217,196,0.35),inset 0 1px 0 rgba(255,255,255,0.07);}
+.cp-search{height:54px;display:flex;align-items:center;gap:12px;padding:0 16px 0 18px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.cp-in{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:17px;font-weight:500;letter-spacing:-0.01em;caret-color:#2dd9c4;}
+.cp-in::placeholder{color:#8e8e93;}
+.cp-q{flex-grow:1;font-size:17px;font-weight:500;letter-spacing:-0.01em;color:#ffffff;display:flex;align-items:center;}
+.cp-caret{display:inline-block;width:2px;height:20px;margin-left:1px;border-radius:1px;background:#2dd9c4;box-shadow:0 0 8px rgba(45,217,196,0.9);}
+.cp-body{padding:6px;max-height:292px;overflow-y:auto;}
+.cp-head{padding:10px 12px 5px 14px;font-size:10.5px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;}
+.cp-row{position:relative;display:flex;align-items:center;gap:10px;min-height:44px;padding:7px 12px 7px 14px;border-radius:10px;cursor:default;transition:background 120ms ease;}
+.cp-hov:hover{background:rgba(255,255,255,0.05);}
+.cp-row-on,.cp-hov.cp-row-on:hover{background:rgba(255,255,255,0.075);}
+.cp-row-on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:2px;border-radius:2px;background:#2dd9c4;box-shadow:0 0 10px rgba(45,217,196,0.9);}
+.cp-tw{flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.cp-t{font-size:13.5px;font-weight:500;color:#e5e5ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cp-row-on .cp-t{color:#ffffff;}
+.cp-t-done,.cp-row-on .cp-t-done{color:#8e8e93;text-decoration:line-through;text-decoration-color:rgba(142,142,147,0.8);}
+.cp-snip{font-size:11.5px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.k mark.cp-hit{background:rgba(181,242,61,0.16);color:#d6ff8c;border-radius:4px;padding:0 1px;box-shadow:0 0 0 1px rgba(181,242,61,0.22);}
+.k .cp-t-done mark.cp-hit{color:#b9d98a;background:rgba(181,242,61,0.08);}
+.cp-list{display:flex;align-items:center;gap:6px;width:100px;flex-shrink:0;font-size:12px;color:#a1a1a6;white-space:nowrap;}
+.cp-b{width:18px;height:18px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex-shrink:0;}
+.cp-meta{width:112px;flex-shrink:0;text-align:right;font-size:12px;color:#a1a1a6;white-space:nowrap;}
+.cp-ent{width:22px;flex-shrink:0;display:flex;justify-content:flex-end;}
+.cp-ci{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-foot{height:40px;display:flex;align-items:center;gap:14px;padding:0 14px 0 16px;border-top:1px solid rgba(255,255,255,0.07);font-size:11.5px;color:#8e8e93;}
+.cp-key{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.cp-dotsep{color:#5a5a5f;}
+.cp-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 20px 16px;text-align:center;}
+.cp-emi{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:6px;background:radial-gradient(circle,rgba(45,217,196,0.18),rgba(45,217,196,0.04) 70%);box-shadow:0 0 0 1px rgba(45,217,196,0.22),0 0 30px -6px rgba(45,217,196,0.5);color:#5ce6d4;}
+.cp-an{position:relative;height:420px;border-radius:18px;padding:26px 40px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);}
+.cp-call{position:absolute;display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:11px;color:#c7c7cc;white-space:nowrap;}
+.cp-call-l{font-size:10px;font-weight:700;letter-spacing:0.08em;color:#5ce6d4;}
+.cp-tick{position:absolute;width:1px;background:linear-gradient(180deg,rgba(45,217,196,0.8),rgba(45,217,196,0.1));}
+.cp-tok{display:flex;flex-direction:column;gap:4px;padding:11px 12px;border-radius:12px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.cp-tok-k{font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8e8e93;}
+.cp-tok-v{font-size:12.5px;font-weight:600;color:#e5e5ea;display:flex;align-items:center;gap:6px;}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="width:1440px;height:1160px;border-radius:16px;overflow:hidden;position:relative;background:radial-gradient(760px 460px at 20% -10%,rgba(45,217,196,0.09),transparent 60%),radial-gradient(640px 420px at 90% 105%,rgba(181,242,61,0.06),transparent 60%),#000000;box-shadow:0 0 0 1px rgba(255,255,255,0.08);">
+
+  <div style="padding:44px 48px 0;display:flex;align-items:flex-end;justify-content:space-between;">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div class="k-label" style="color:#b5f23d;">SEARCH &amp; COMMAND PALETTE · P0</div>
+      <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-0.03em;">Command palette</h1>
+      <div style="font-size:13px;color:#a1a1a6;">⌘F in the Home window. Titles, notes and subtasks across every list, including Done. Type &gt; for commands.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="k-kbd">⌘F</span><span style="font-size:12px;color:#8e8e93;">opens · 560pt sheet near the top of the window</span>
+    </div>
+  </div>
+
+  <div style="padding:30px 48px 0;display:grid;grid-template-columns:640px 640px;column-gap:64px;row-gap:34px;">
+
+    <!-- RESULTS (interactive) -->
+    <div>
+      <div class="cp-cap"><span class="k-label" style="color:#c9f76a;">RESULTS</span><span class="k-label" style="color:#8e8e93;">· LIVE: TYPE TO FILTER, HOVER TO SELECT, &gt; FOR COMMANDS</span></div>
+      <div class="cp-frame" style="height:440px;">
+        <div class="cp-bd" aria-hidden="true">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:150px;background:linear-gradient(180deg,#17171b,#0c0c0e);border-right:1px solid rgba(255,255,255,0.06);padding:44px 14px 0;display:flex;flex-direction:column;gap:11px;">
+            <div style="position:absolute;top:14px;left:14px;display:flex;gap:7px;"><span class="k-tl" style="background:#ff5f57;"></span><span class="k-tl" style="background:#febc2e;"></span><span class="k-tl" style="background:#28c840;"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#2dd9c4,#b5f23d);"></span><span style="width:54px;height:8px;border-radius:4px;background:rgba(255,255,255,0.3);"></span></div>
+            <span style="margin-top:6px;width:88%;height:18px;border-radius:6px;background:rgba(255,255,255,0.09);"></span>
+            <span style="width:60%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="width:52%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="margin-top:10px;width:30%;height:5px;border-radius:3px;background:rgba(255,255,255,0.12);"></span>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#b5f23d;"></span><span style="width:46px;height:7px;border-radius:4px;background:rgba(255,255,255,0.2);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#2dd9c4;"></span><span style="width:56px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#4d8dff;"></span><span style="width:62px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#ff6ad5;"></span><span style="width:40px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+          </div>
+          <div style="position:absolute;left:170px;top:22px;display:flex;align-items:center;gap:10px;"><span style="width:70px;height:22px;border-radius:8px;background:rgba(255,255,255,0.08);"></span><span style="width:200px;height:22px;border-radius:8px;background:rgba(255,255,255,0.05);"></span></div>
+          <div style="position:absolute;left:170px;top:70px;width:96px;height:16px;border-radius:5px;background:rgba(255,255,255,0.3);"></div>
+          <div style="position:absolute;left:166px;top:110px;display:flex;gap:12px;">
+            <div style="width:160px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(139,124,255,0.7);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:78px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:66px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:60px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:170px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(77,141,255,0.8);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:44px;border-radius:12px;background:rgba(77,141,255,0.1);"></span>
+              <span style="height:84px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:240px;height:520px;border-radius:22px;padding:1.5px;background:linear-gradient(160deg,rgba(45,217,196,0.8),rgba(181,242,61,0.4) 35%,rgba(255,255,255,0.06));">
+              <div style="height:100%;border-radius:20.5px;background:radial-gradient(120% 50% at 30% 0%,rgba(45,217,196,0.25),transparent 60%),#0a0c0b;padding:44px 12px;display:flex;flex-direction:column;gap:10px;">
+                <span style="height:150px;border-radius:18px;background:radial-gradient(90% 70% at 0% 0%,rgba(181,242,61,0.2),transparent 60%),#0f1110;border:1px solid rgba(181,242,61,0.35);"></span>
+                <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cp-dim"></div>
+        <div class="cp-pal sg k-pop-in" style="--sg:45 217 196;">
+          <label class="cp-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <input class="cp-in" aria-label="Search tasks or type &gt; for commands" placeholder="Search tasks, or type &gt; for commands" value="{{q}}" onInput="{{onQ}}" onChange="{{onQ}}">
+            <sc-if value="{{hasQ}}" hint-placeholder-val="{{true}}"><button class="k-icon" aria-label="Clear search" onClick="{{clearQ}}" style="width:24px;height:24px;border-radius:7px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></sc-if>
+            <span class="k-kbd">esc</span>
+          </label>
+          <div class="cp-body k-scroll">
+            <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+              <sc-if value="{{it.isHead}}" hint-placeholder-val="{{false}}"><div class="cp-head">{{it.label}}</div></sc-if>
+              <sc-if value="{{it.isRow}}" hint-placeholder-val="{{true}}">
+                <div class="{{it.cls}}" role="option" aria-selected="{{it.ariaSel}}" onMouseEnter="{{it.hover}}" onClick="{{it.hover}}">
+                  <span class="{{it.checkCls}}" style="width:16px;height:16px;border-radius:5px;"><sc-if value="{{it.done}}" hint-placeholder-val="{{false}}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#06110a" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></span>
+                  <div class="cp-tw">
+                    <div class="{{it.titleCls}}">{{it.pre}}<sc-if value="{{it.hasHit}}" hint-placeholder-val="{{true}}"><mark class="cp-hit">{{it.hit}}</mark></sc-if>{{it.post}}</div>
+                    <sc-if value="{{it.hasSnip}}" hint-placeholder-val="{{false}}"><div class="cp-snip">{{it.sLabel}} · {{it.sPre}}<mark class="cp-hit">{{it.sHit}}</mark>{{it.sPost}}</div></sc-if>
+                  </div>
+                  <span class="cp-list"><span class="cp-b" style="{{it.badgeStyle}}">{{it.badge}}</span>{{it.listName}}</span>
+                  <span class="cp-meta k-num">{{it.meta}}</span>
+                  <span class="cp-ent"><sc-if value="{{it.sel}}" hint-placeholder-val="{{false}}"><span class="k-kbd">↵</span></sc-if></span>
+                </div>
+              </sc-if>
+              <sc-if value="{{it.isCmd}}" hint-placeholder-val="{{false}}">
+                <div class="{{it.cls}}" role="option" aria-selected="{{it.ariaSel}}" onMouseEnter="{{it.hover}}" onClick="{{it.hover}}" style="min-height:40px;">
+                  <span class="cp-ci" style="{{it.iconStyle}}">
+                    <sc-if value="{{it.icNew}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></sc-if>
+                    <sc-if value="{{it.icStart}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg></sc-if>
+                    <sc-if value="{{it.icExport}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path><path d="M3 4h18v4H3ZM12 11v6M9.5 14.5 12 17l2.5-2.5"></path></svg></sc-if>
+                    <sc-if value="{{it.icGmail}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></sc-if>
+                    <sc-if value="{{it.icSettings}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"></path><circle cx="15" cy="6" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></sc-if>
+                  </span>
+                  <div class="cp-tw"><div class="cp-t">{{it.pre}}<sc-if value="{{it.hasHit}}" hint-placeholder-val="{{false}}"><mark class="cp-hit">{{it.hit}}</mark></sc-if>{{it.post}}</div></div>
+                  <span style="font-size:11.5px;color:#8e8e93;white-space:nowrap;">{{it.meta}}</span>
+                  <sc-if value="{{it.hasKbd}}" hint-placeholder-val="{{false}}"><span class="k-kbd">{{it.kbd}}</span></sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{it.isEmpty}}" hint-placeholder-val="{{false}}">
+                <div class="cp-empty">
+                  <div class="cp-emi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5M8.5 8.5l5 5M13.5 8.5l-5 5"></path></svg></div>
+                  <div style="font-size:14px;font-weight:600;color:#ffffff;">{{it.label}}</div>
+                  <div style="font-size:12px;color:#8e8e93;">{{it.meta}}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{it.isCreate}}" hint-placeholder-val="{{false}}">
+                <div class="{{it.cls}}" role="option" aria-selected="{{it.ariaSel}}" onMouseEnter="{{it.hover}}" onClick="{{it.hover}}" style="min-height:40px;">
+                  <span class="cp-ci" style="background:rgba(181,242,61,0.14);color:#c9f76a;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+                  <div class="cp-tw"><div class="cp-t">{{it.label}}</div></div>
+                  <span class="cp-list" style="width:auto;"><span class="cp-b" style="background:#b5f23d;color:#06110a;">W</span>Work · Today</span>
+                  <span class="cp-ent"><sc-if value="{{it.sel}}" hint-placeholder-val="{{true}}"><span class="k-kbd">↵</span></sc-if></span>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+          <div class="cp-foot">
+            <span class="cp-key"><span class="k-kbd">↑↓</span>move</span>
+            <span class="cp-key"><span class="k-kbd">↵</span>{{enterHint}}</span>
+            <sc-if value="{{showStartHint}}" hint-placeholder-val="{{true}}"><span class="cp-key"><span class="k-kbd">⌘↵</span>start now</span></sc-if>
+            <span class="cp-key"><span class="k-kbd">esc</span>close</span>
+            <span class="k-num" style="margin-left:auto;">{{countLabel}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY (static) -->
+    <div>
+      <div class="cp-cap"><span class="k-label">EMPTY · NO MATCH</span></div>
+      <div class="cp-frame" style="height:440px;">
+        <div class="cp-bd" aria-hidden="true">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:150px;background:linear-gradient(180deg,#17171b,#0c0c0e);border-right:1px solid rgba(255,255,255,0.06);padding:44px 14px 0;display:flex;flex-direction:column;gap:11px;">
+            <div style="position:absolute;top:14px;left:14px;display:flex;gap:7px;"><span class="k-tl" style="background:#ff5f57;"></span><span class="k-tl" style="background:#febc2e;"></span><span class="k-tl" style="background:#28c840;"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#2dd9c4,#b5f23d);"></span><span style="width:54px;height:8px;border-radius:4px;background:rgba(255,255,255,0.3);"></span></div>
+            <span style="margin-top:6px;width:88%;height:18px;border-radius:6px;background:rgba(255,255,255,0.09);"></span>
+            <span style="width:60%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="width:52%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="margin-top:10px;width:30%;height:5px;border-radius:3px;background:rgba(255,255,255,0.12);"></span>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#b5f23d;"></span><span style="width:46px;height:7px;border-radius:4px;background:rgba(255,255,255,0.2);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#2dd9c4;"></span><span style="width:56px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#4d8dff;"></span><span style="width:62px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#ff6ad5;"></span><span style="width:40px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+          </div>
+          <div style="position:absolute;left:170px;top:22px;display:flex;align-items:center;gap:10px;"><span style="width:70px;height:22px;border-radius:8px;background:rgba(255,255,255,0.08);"></span><span style="width:200px;height:22px;border-radius:8px;background:rgba(255,255,255,0.05);"></span></div>
+          <div style="position:absolute;left:170px;top:70px;width:96px;height:16px;border-radius:5px;background:rgba(255,255,255,0.3);"></div>
+          <div style="position:absolute;left:166px;top:110px;display:flex;gap:12px;">
+            <div style="width:160px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(139,124,255,0.7);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:78px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:66px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:60px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:170px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(77,141,255,0.8);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:44px;border-radius:12px;background:rgba(77,141,255,0.1);"></span>
+              <span style="height:84px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:240px;height:520px;border-radius:22px;padding:1.5px;background:linear-gradient(160deg,rgba(45,217,196,0.8),rgba(181,242,61,0.4) 35%,rgba(255,255,255,0.06));">
+              <div style="height:100%;border-radius:20.5px;background:radial-gradient(120% 50% at 30% 0%,rgba(45,217,196,0.25),transparent 60%),#0a0c0b;padding:44px 12px;display:flex;flex-direction:column;gap:10px;">
+                <span style="height:150px;border-radius:18px;background:radial-gradient(90% 70% at 0% 0%,rgba(181,242,61,0.2),transparent 60%),#0f1110;border:1px solid rgba(181,242,61,0.35);"></span>
+                <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cp-dim"></div>
+        <div class="cp-pal sg k-pop-in" style="--sg:45 217 196;animation-delay:80ms;">
+          <div class="cp-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <div class="cp-q">xyz<span class="cp-caret k-blink"></span></div>
+            <span class="k-kbd">esc</span>
+          </div>
+          <div style="padding:6px;">
+            <div class="cp-empty">
+              <div class="cp-emi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5M8.5 8.5l5 5M13.5 8.5l-5 5"></path></svg></div>
+              <div style="font-size:14px;font-weight:600;color:#ffffff;">No tasks match 'xyz'.</div>
+              <div style="font-size:12px;color:#8e8e93;">Searched titles, notes and subtasks in every list, including Done.</div>
+            </div>
+            <div class="cp-row cp-hov cp-row-on" role="option" aria-selected="true" style="min-height:40px;">
+              <span class="cp-ci" style="background:rgba(181,242,61,0.14);color:#c9f76a;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+              <div class="cp-tw"><div class="cp-t">Create task "xyz"</div></div>
+              <span class="cp-list" style="width:auto;"><span class="cp-b" style="background:#b5f23d;color:#06110a;">W</span>Work · Today</span>
+              <span class="cp-ent"><span class="k-kbd">↵</span></span>
+            </div>
+          </div>
+          <div class="cp-foot">
+            <span class="cp-key"><span class="k-kbd">↵</span>create</span>
+            <span class="cp-key"><span class="k-kbd">⌘↵</span>create &amp; start</span>
+            <span class="cp-key"><span class="k-kbd">esc</span>close</span>
+            <span style="margin-left:auto;">0 results</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMAND MODE (static) -->
+    <div>
+      <div class="cp-cap"><span class="k-label">COMMAND MODE · QUERY STARTS WITH &gt;</span></div>
+      <div class="cp-frame" style="height:420px;">
+        <div class="cp-bd" aria-hidden="true">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:150px;background:linear-gradient(180deg,#17171b,#0c0c0e);border-right:1px solid rgba(255,255,255,0.06);padding:44px 14px 0;display:flex;flex-direction:column;gap:11px;">
+            <div style="position:absolute;top:14px;left:14px;display:flex;gap:7px;"><span class="k-tl" style="background:#ff5f57;"></span><span class="k-tl" style="background:#febc2e;"></span><span class="k-tl" style="background:#28c840;"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#2dd9c4,#b5f23d);"></span><span style="width:54px;height:8px;border-radius:4px;background:rgba(255,255,255,0.3);"></span></div>
+            <span style="margin-top:6px;width:88%;height:18px;border-radius:6px;background:rgba(255,255,255,0.09);"></span>
+            <span style="width:60%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="width:52%;height:7px;border-radius:4px;background:rgba(255,255,255,0.14);"></span>
+            <span style="margin-top:10px;width:30%;height:5px;border-radius:3px;background:rgba(255,255,255,0.12);"></span>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#b5f23d;"></span><span style="width:46px;height:7px;border-radius:4px;background:rgba(255,255,255,0.2);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#2dd9c4;"></span><span style="width:56px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#4d8dff;"></span><span style="width:62px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:5px;background:#ff6ad5;"></span><span style="width:40px;height:7px;border-radius:4px;background:rgba(255,255,255,0.16);"></span></div>
+          </div>
+          <div style="position:absolute;left:170px;top:22px;display:flex;align-items:center;gap:10px;"><span style="width:70px;height:22px;border-radius:8px;background:rgba(255,255,255,0.08);"></span><span style="width:200px;height:22px;border-radius:8px;background:rgba(255,255,255,0.05);"></span></div>
+          <div style="position:absolute;left:170px;top:70px;width:96px;height:16px;border-radius:5px;background:rgba(255,255,255,0.3);"></div>
+          <div style="position:absolute;left:166px;top:110px;display:flex;gap:12px;">
+            <div style="width:160px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(139,124,255,0.7);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:78px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:66px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:60px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:170px;height:520px;border-radius:20px;background:#0b0b0d;border:1px solid rgba(255,255,255,0.06);border-top:2px solid rgba(77,141,255,0.8);padding:44px 10px;display:flex;flex-direction:column;gap:10px;">
+              <span style="height:44px;border-radius:12px;background:rgba(77,141,255,0.1);"></span>
+              <span style="height:84px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+            </div>
+            <div style="width:240px;height:520px;border-radius:22px;padding:1.5px;background:linear-gradient(160deg,rgba(45,217,196,0.8),rgba(181,242,61,0.4) 35%,rgba(255,255,255,0.06));">
+              <div style="height:100%;border-radius:20.5px;background:radial-gradient(120% 50% at 30% 0%,rgba(45,217,196,0.25),transparent 60%),#0a0c0b;padding:44px 12px;display:flex;flex-direction:column;gap:10px;">
+                <span style="height:150px;border-radius:18px;background:radial-gradient(90% 70% at 0% 0%,rgba(181,242,61,0.2),transparent 60%),#0f1110;border:1px solid rgba(181,242,61,0.35);"></span>
+                <span style="height:70px;border-radius:14px;background:linear-gradient(180deg,#19191c,#131315);border:1px solid rgba(255,255,255,0.06);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cp-dim"></div>
+        <div class="cp-pal sg k-pop-in" style="--sg:181 242 61;animation-delay:140ms;">
+          <div class="cp-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9f76a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 7 5 5-5 5M12 17h7"></path></svg>
+            <div class="cp-q"><span style="color:#c9f76a;">&gt;</span><span class="cp-caret k-blink"></span></div>
+            <span class="k-chip k-chip-lime" style="height:22px;font-size:11px;">Commands</span>
+            <span class="k-kbd">esc</span>
+          </div>
+          <div style="padding:6px;">
+            <div class="cp-head">COMMANDS</div>
+            <div class="cp-row cp-hov cp-row-on" role="option" aria-selected="true" style="min-height:40px;">
+              <span class="cp-ci" style="background:rgba(181,242,61,0.14);color:#c9f76a;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+              <div class="cp-tw"><div class="cp-t">New Task</div></div>
+              <span class="k-kbd">⌘⌥T</span>
+            </div>
+            <div class="cp-row cp-hov" role="option" aria-selected="false" style="min-height:40px;">
+              <span class="cp-ci" style="background:linear-gradient(135deg,#2dd9c4,#b5f23d);color:#06110a;box-shadow:0 4px 14px -4px rgba(181,242,61,0.7);"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5Z"></path></svg></span>
+              <div class="cp-tw"><div class="cp-t">Start</div></div>
+              <span style="font-size:11.5px;color:#8e8e93;">Focus mode · top of the queue</span>
+            </div>
+            <div class="cp-row cp-hov" role="option" aria-selected="false" style="min-height:40px;">
+              <span class="cp-ci" style="background:rgba(53,212,131,0.14);color:#5fe3a1;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path><path d="M3 4h18v4H3ZM12 11v6M9.5 14.5 12 17l2.5-2.5"></path></svg></span>
+              <div class="cp-tw"><div class="cp-t">Export Backup</div></div>
+              <span class="k-mono" style="font-size:11px;color:#8e8e93;">komodo-backup-2026-09-26.zip</span>
+            </div>
+            <div class="cp-row cp-hov" role="option" aria-selected="false" style="min-height:40px;">
+              <span class="cp-ci" style="background:rgba(255,138,106,0.14);color:#ff8a6a;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></span>
+              <div class="cp-tw"><div class="cp-t">Scan Gmail Now</div></div>
+              <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#8e8e93;"><span class="k-dot" style="background:#35d483;"></span>Last scan 1 min ago</span>
+            </div>
+            <div class="cp-row cp-hov" role="option" aria-selected="false" style="min-height:40px;">
+              <span class="cp-ci" style="background:rgba(255,255,255,0.07);color:#c7c7cc;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"></path><circle cx="15" cy="6" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></span>
+              <div class="cp-tw"><div class="cp-t">Settings</div></div>
+              <span class="k-kbd">⌘,</span>
+            </div>
+          </div>
+          <div class="cp-foot">
+            <span class="cp-key"><span class="k-kbd">↑↓</span>move</span>
+            <span class="cp-key"><span class="k-kbd">↵</span>run</span>
+            <span class="cp-key"><span class="k-kbd">⌫</span>back to search</span>
+            <span class="cp-key"><span class="k-kbd">esc</span>close</span>
+            <span style="margin-left:auto;">5 commands</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW ANATOMY -->
+    <div>
+      <div class="cp-cap"><span class="k-label">ROW ANATOMY · SELECTED RESULT</span></div>
+      <div class="cp-an sg" style="--sg:45 217 196;">
+        <div class="cp-call" style="left:40px;top:26px;"><span class="cp-call-l">LEADING BAR</span>2pt teal · selected only</div>
+        <div class="cp-call" style="left:196px;top:26px;"><span class="cp-call-l">TITLE</span>match in lime</div>
+        <div class="cp-call" style="left:330px;top:26px;"><span class="cp-call-l">LIST</span>badge + name</div>
+        <div class="cp-tick" style="left:47px;top:62px;height:50px;"></div>
+        <div class="cp-tick" style="left:200px;top:62px;height:43px;"></div>
+        <div class="cp-tick" style="left:336px;top:62px;height:45px;"></div>
+
+        <div style="position:absolute;left:40px;top:98px;width:560px;padding:6px;border-radius:16px;background:rgba(22,22,26,0.94);border:1px solid rgba(255,255,255,0.12);box-shadow:0 20px 50px -20px rgba(0,0,0,0.9);">
+          <div class="cp-row cp-row-on">
+            <span class="k-check" style="width:16px;height:16px;border-radius:5px;"></span>
+            <div class="cp-tw"><div class="cp-t"><mark class="cp-hit">Design rev</mark>iew prep with Apurva</div></div>
+            <span class="cp-list"><span class="cp-b" style="background:#b5f23d;color:#06110a;">W</span>Work</span>
+            <span class="cp-meta k-num">Today · 1hr</span>
+            <span class="cp-ent"><span class="k-kbd">↵</span></span>
+          </div>
+        </div>
+
+        <div class="cp-tick" style="left:69px;top:140px;height:54px;"></div>
+        <div class="cp-tick" style="left:520px;top:142px;height:52px;"></div>
+        <div class="cp-tick" style="left:571px;top:142px;height:78px;"></div>
+        <div class="cp-call" style="left:60px;top:196px;"><span class="cp-call-l">STATUS</span>open · done (lime, title struck)</div>
+        <div class="cp-call" style="left:420px;top:196px;align-items:flex-end;width:106px;"><span class="cp-call-l">WHEN · ESTIMATE</span>Today · 1hr</div>
+        <div class="cp-call" style="left:520px;top:222px;align-items:flex-end;width:70px;"><span class="cp-call-l">RETURN</span>opens</div>
+
+        <div style="position:absolute;left:40px;right:40px;bottom:26px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+          <div class="cp-tok"><span class="cp-tok-k">ROW</span><span class="cp-tok-v k-num">44pt · radius 10</span></div>
+          <div class="cp-tok"><span class="cp-tok-k">SELECTED</span><span class="cp-tok-v"><span style="width:12px;height:12px;border-radius:4px;background:rgba(255,255,255,0.12);"></span>surfaceHover</span></div>
+          <div class="cp-tok"><span class="cp-tok-k">BAR</span><span class="cp-tok-v"><span style="width:3px;height:14px;border-radius:2px;background:#2dd9c4;box-shadow:0 0 8px #2dd9c4;"></span>teal #2dd9c4</span></div>
+          <div class="cp-tok"><span class="cp-tok-k">MATCH</span><span class="cp-tok-v"><mark class="cp-hit">lime</mark> 16% fill</span></div>
+          <div class="cp-tok"><span class="cp-tok-k">GROUP HEADER</span><span class="cp-tok-v">label · by list</span></div>
+          <div class="cp-tok"><span class="cp-tok-k">HOVER</span><span class="cp-tok-v">moves selection</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1160}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { q: 'design rev', sel: 0 };
+    this.lists = {
+      W: { name: 'Work', group: 'WORK', bg: '#b5f23d', fg: '#06110a', order: 0 },
+      P: { name: 'Personal', group: 'PERSONAL', bg: '#2dd9c4', fg: '#04141a', order: 1 },
+      S: { name: 'Side project', group: 'SIDE PROJECT', bg: '#4d8dff', fg: '#030a1a', order: 2 },
+      L: { name: 'Launch', group: 'LAUNCH', bg: '#ff6ad5', fg: '#1a0414', order: 3 },
+      G: { name: 'Growth', group: 'GROWTH', bg: '#ffb547', fg: '#1a0e02', order: 4 }
+    };
+    this.tasks = [
+      { list: 'W', title: 'Design review prep with Apurva', meta: 'Today · 1hr' },
+      { list: 'W', title: 'Design review notes', meta: 'This week · 30min' },
+      { list: 'W', title: 'Q4 engineering roadmap', meta: 'Backlog · 3hr', notes: 'Lock scope after the design review with Apurva.' },
+      { list: 'W', title: 'Hire a product designer', meta: 'Backlog · 1hr' },
+      { list: 'W', title: 'Wire NSDataDetector date parsing', meta: 'Today · 1hr 30min', sub: 'Handle "next Thu 3pm"' },
+      { list: 'W', title: 'Review accounts', meta: 'Today · 2hr 30min' },
+      { list: 'P', title: 'Design review: portfolio site', meta: 'Done · Sep 12', done: true },
+      { list: 'P', title: 'Submit visa form', meta: 'Due Oct 10 · 30min' },
+      { list: 'P', title: 'Weekly review', meta: 'Every Friday · 45min' },
+      { list: 'S', title: 'Wireframes: floating timer pill', meta: 'Sun 10:00 AM · 2hr' },
+      { list: 'S', title: 'Rich-text notes: RTF export', meta: 'This week · 1hr 15min' },
+      { list: 'L', title: 'Prep 1:1 with Apurva', meta: 'Today · 30min' },
+      { list: 'L', title: 'Launch checklist', meta: 'Done · Sep 20', done: true, sub: 'Final design pass on the menu bar icon' },
+      { list: 'G', title: 'Onboarding email sequence', meta: 'Backlog · 2hr' }
+    ];
+    this.cmds = [
+      { label: 'New Task', kbd: '⌘⌥T', meta: '', ic: 'icNew', style: 'background:rgba(181,242,61,0.14);color:#c9f76a;' },
+      { label: 'Start', kbd: '', meta: 'Focus mode · top of the queue', ic: 'icStart', style: 'background:linear-gradient(135deg,#2dd9c4,#b5f23d);color:#06110a;' },
+      { label: 'Export Backup', kbd: '', meta: 'komodo-backup-2026-09-26.zip', ic: 'icExport', style: 'background:rgba(53,212,131,0.14);color:#5fe3a1;' },
+      { label: 'Scan Gmail Now', kbd: '', meta: 'Last scan 1 min ago', ic: 'icGmail', style: 'background:rgba(255,138,106,0.14);color:#ff8a6a;' },
+      { label: 'Settings', kbd: '⌘,', meta: '', ic: 'icSettings', style: 'background:rgba(255,255,255,0.07);color:#c7c7cc;' }
+    ];
+  }
+  base() {
+    return {
+      isHead: false, isRow: false, isCmd: false, isEmpty: false, isCreate: false,
+      label: '', cls: 'cp-row', ariaSel: 'false', sel: false, hover: null,
+      checkCls: 'k-check', done: false, titleCls: 'cp-t', pre: '', hit: '', post: '', hasHit: false,
+      hasSnip: false, sLabel: '', sPre: '', sHit: '', sPost: '', badge: '', badgeStyle: '', listName: '', meta: '',
+      iconStyle: '', icNew: false, icStart: false, icExport: false, icGmail: false, icSettings: false, hasKbd: false, kbd: ''
+    };
+  }
+  split(text, q) {
+    var i = q ? text.toLowerCase().indexOf(q) : -1;
+    if (i < 0) return { pre: text, hit: '', post: '', has: false };
+    return { pre: text.slice(0, i), hit: text.slice(i, i + q.length), post: text.slice(i + q.length), has: true };
+  }
+  snippet(text, q) {
+    var i = text.toLowerCase().indexOf(q);
+    var start = Math.max(0, i - 18);
+    if (start > 0) { var sp = text.indexOf(' ', start); if (sp >= 0 && sp < i) start = sp + 1; }
+    var pre = (start > 0 ? '…' : '') + text.slice(start, i);
+    return { pre: pre, hit: text.slice(i, i + q.length), post: text.slice(i + q.length) };
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var raw = s.q || '';
+    var items = [];
+    var selectable = 0;
+    var mode = 'tasks';
+    var count = 0;
+    var mk = function (o) { return Object.assign(self.base(), o); };
+    var addSel = function (o) {
+      var idx = selectable++;
+      var on = idx === Math.min(s.sel, 999);
+      o.sel = on;
+      o.ariaSel = on ? 'true' : 'false';
+      o.cls = 'cp-row' + (on ? ' cp-row-on' : '');
+      o.hover = function () { if (self.state.sel !== idx) self.setState({ sel: idx }); };
+      items.push(o);
+    };
+    if (raw.charAt(0) === '>') {
+      mode = 'cmds';
+      var cq = raw.slice(1).trim().toLowerCase();
+      var hits = this.cmds.filter(function (c) { return !cq || c.label.toLowerCase().indexOf(cq) >= 0; });
+      count = hits.length;
+      if (hits.length) {
+        items.push(mk({ isHead: true, label: 'COMMANDS' }));
+        hits.forEach(function (c) {
+          var sp = self.split(c.label, cq);
+          var o = mk({ isCmd: true, pre: sp.pre, hit: sp.hit, post: sp.post, hasHit: sp.has, meta: c.meta, iconStyle: c.style, hasKbd: !!c.kbd, kbd: c.kbd });
+          o[c.ic] = true;
+          addSel(o);
+        });
+      } else {
+        items.push(mk({ isEmpty: true, label: "No commands match '" + raw.slice(1).trim() + "'.", meta: 'Try New Task, Start, Export Backup, Scan Gmail Now or Settings.' }));
+      }
+    } else {
+      var q = raw.trim().toLowerCase();
+      var matched = [];
+      this.tasks.forEach(function (t) {
+        if (!q) return;
+        if (t.title.toLowerCase().indexOf(q) >= 0) matched.push({ t: t, where: 'title' });
+        else if (t.notes && t.notes.toLowerCase().indexOf(q) >= 0) matched.push({ t: t, where: 'notes' });
+        else if (t.sub && t.sub.toLowerCase().indexOf(q) >= 0) matched.push({ t: t, where: 'sub' });
+      });
+      if (!q) matched = [0, 11, 7, 9, 4, 13].map(function (n) { return { t: self.tasks[n], where: 'title' }; });
+      else matched.sort(function (a, b) {
+        var la = self.lists[a.t.list].order, lb = self.lists[b.t.list].order;
+        if (la !== lb) return la - lb;
+        return (a.t.done ? 1 : 0) - (b.t.done ? 1 : 0);
+      });
+      count = matched.length;
+      if (!matched.length) {
+        mode = 'empty';
+        items.push(mk({ isEmpty: true, label: "No tasks match '" + raw.trim() + "'.", meta: 'Searched titles, notes and subtasks in every list, including Done.' }));
+        addSel(mk({ isCreate: true, label: 'Create task "' + raw.trim() + '"' }));
+      } else {
+        var lastList = '';
+        matched.forEach(function (m) {
+          var t = m.t, L = self.lists[t.list];
+          if (!q && !lastList) items.push(mk({ isHead: true, label: 'RECENT' }));
+          if (q && t.list !== lastList) items.push(mk({ isHead: true, label: L.group }));
+          lastList = t.list;
+          var sp = m.where === 'title' ? self.split(t.title, q) : { pre: t.title, hit: '', post: '', has: false };
+          var o = mk({
+            isRow: true, pre: sp.pre, hit: sp.hit, post: sp.post, hasHit: sp.has,
+            done: !!t.done, checkCls: t.done ? 'k-check k-check-on' : 'k-check',
+            titleCls: t.done ? 'cp-t cp-t-done' : 'cp-t',
+            badge: t.list, badgeStyle: 'background:' + L.bg + ';color:' + L.fg + ';', listName: L.name, meta: t.meta
+          });
+          if (m.where !== 'title') {
+            var sn = self.snippet(m.where === 'notes' ? t.notes : t.sub, q);
+            o.hasSnip = true; o.sLabel = m.where === 'notes' ? 'Notes' : 'Subtask';
+            o.sPre = sn.pre; o.sHit = sn.hit; o.sPost = sn.post;
+          }
+          addSel(o);
+        });
+      }
+    }
+    var setQ = function (e) {
+      var v = e && e.target ? e.target.value : '';
+      if (v !== self.state.q) self.setState({ q: v, sel: 0 });
+    };
+    return {
+      q: s.q,
+      hasQ: !!s.q,
+      items: items,
+      onQ: setQ,
+      clearQ: function () { self.setState({ q: '', sel: 0 }); },
+      enterHint: mode === 'cmds' ? 'run' : (mode === 'empty' ? 'create' : 'open'),
+      showStartHint: mode !== 'cmds',
+      countLabel: mode === 'cmds' ? count + (count === 1 ? ' command' : ' commands') : (raw.trim() ? count + (count === 1 ? ' result' : ' results') : 'Recent'),
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

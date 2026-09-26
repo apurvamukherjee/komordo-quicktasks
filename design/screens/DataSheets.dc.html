@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Komodo — Data, backup and sheets</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000;}
+.k{--ease:cubic-bezier(0.2,0.8,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;}
+.k *{box-sizing:border-box;}
+:where(.k) button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;}
+:where(.k) input,:where(.k) textarea{font:inherit;color:inherit;}
+.k-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.k-mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.k-scroll{scrollbar-width:none;}
+.k-scroll::-webkit-scrollbar{display:none;}
+.k-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:#a1a1a6;}
+.k-kbd{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);color:#c7c7cc;white-space:nowrap;}
+.k-sg-host{}
+.sg{position:relative;isolation:isolate;--sg:181 242 61;}
+.sg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(300px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.14),transparent 62%);opacity:0;transition:opacity 320ms ease;pointer-events:none;z-index:-1;}
+.sg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:radial-gradient(220px circle at var(--mx,50%) var(--my,-30%),rgb(var(--sg) / 0.95),rgb(var(--sg) / 0.22) 45%,transparent 72%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 320ms ease;pointer-events:none;}
+.sg:hover::before,.sg:hover::after{opacity:1;}
+.k-card{border-radius:18px;background:linear-gradient(180deg,#161619,#111113);border:1px solid rgba(255,255,255,0.07);box-shadow:inset 0 1px 0 rgba(255,255,255,0.045),0 10px 24px -18px rgba(0,0,0,0.9);transition:transform 300ms var(--spring),box-shadow 300ms ease,background 200ms ease;}
+.k-card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 24px 44px -20px rgba(0,0,0,0.95),0 18px 48px -26px rgb(var(--sg) / 0.75);}
+.k-card .k-reveal{opacity:0;transform:translateX(8px);transition:opacity 180ms ease,transform 240ms var(--ease);pointer-events:none;}
+.k-card:hover .k-reveal{opacity:1;transform:none;pointer-events:auto;}
+.k-panel{border-radius:24px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.06);}
+.k-tile{border-radius:18px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);}
+.k-win{border-radius:16px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.09);box-shadow:0 40px 90px -20px rgba(0,0,0,0.9);overflow:hidden;}
+.k-sheet{border-radius:20px;background:linear-gradient(180deg,#141417,#0d0d0f);border:1px solid rgba(255,255,255,0.1);box-shadow:0 40px 80px -20px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-pop{border-radius:14px;background:rgba(24,24,28,0.94);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px -12px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.06);}
+.k-row{transition:background 140ms ease;}
+.k-row:hover{background:rgba(255,255,255,0.05);}
+.k-tl{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:transform 180ms var(--spring),background 160ms ease,box-shadow 220ms ease,filter 160ms ease,border-color 160ms ease;}
+.k-btn:hover{transform:translateY(-1px);}
+.k-btn:active{transform:scale(0.95);}
+.k-btn-sm{height:28px;padding:0 10px;border-radius:8px;font-size:12px;}
+.k-btn-lg{height:40px;padding:0 20px;border-radius:12px;font-size:14px;}
+.k-primary{position:relative;overflow:hidden;background:linear-gradient(120deg,#2dd9c4,#b5f23d);color:#06110a;font-weight:700;box-shadow:inset 0 0 0 1px rgba(214,255,140,0.45),0 8px 24px -8px rgba(181,242,61,0.6);}
+.k-primary:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55),0 12px 32px -6px rgba(181,242,61,0.8);}
+.k-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.55) 50%,transparent 70%);transform:translateX(-130%);animation:k-shine 3.6s var(--ease) infinite;pointer-events:none;}
+.k-soft{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:#ffffff;}
+.k-soft:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.16);}
+.k-ghost{color:#c7c7cc;}
+.k-ghost:hover{background:rgba(255,255,255,0.07);color:#ffffff;}
+.k-danger{background:#ff3d5a;color:#1a0207;font-weight:700;box-shadow:0 8px 24px -10px rgba(255,61,90,0.8);}
+.k-danger:hover{filter:brightness(1.08);}
+.k-danger-ghost{color:#ff6b85;border:1px solid rgba(255,92,122,0.35);background:rgba(255,61,90,0.06);}
+.k-danger-ghost:hover{background:rgba(255,61,90,0.14);}
+.k-off{opacity:0.4;pointer-events:none;}
+.k-act{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#c7c7cc;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);transition:transform 160ms var(--spring),background 140ms ease,color 140ms ease;}
+.k-act:hover{transform:scale(1.1);background:rgba(255,255,255,0.14);color:#ffffff;}
+.k-act:active{transform:scale(0.9);}
+.k-act-go:hover{background:#b5f23d;color:#06110a;border-color:#b5f23d;box-shadow:0 0 18px -2px rgba(181,242,61,0.8);}
+.k-icon{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#a1a1a6;transition:background 140ms ease,color 140ms ease,transform 160ms var(--spring);}
+.k-icon:hover{background:rgba(255,255,255,0.08);color:#ffffff;}
+.k-icon:active{transform:scale(0.9);}
+.k-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);font-size:11.5px;font-weight:600;color:#c7c7cc;white-space:nowrap;}
+.k-chip-lime{color:#c9f76a;background:rgba(181,242,61,0.12);border-color:rgba(181,242,61,0.3);}
+.k-chip-teal{color:#5ce6d4;background:rgba(45,217,196,0.12);border-color:rgba(45,217,196,0.3);}
+.k-chip-blue{color:#8fbaff;background:rgba(77,141,255,0.12);border-color:rgba(77,141,255,0.3);}
+.k-chip-violet{color:#b0a6ff;background:rgba(139,124,255,0.12);border-color:rgba(139,124,255,0.28);}
+.k-chip-amber{color:#ffc978;background:rgba(255,181,71,0.12);border-color:rgba(255,181,71,0.3);}
+.k-chip-red{color:#ff8a9e;background:rgba(255,61,90,0.12);border-color:rgba(255,92,122,0.3);}
+.k-chip-green{color:#5fe3a1;background:rgba(53,212,131,0.12);border-color:rgba(53,212,131,0.28);}
+.k-chip-pink{color:#ff9be4;background:rgba(255,106,213,0.1);border-color:rgba(255,106,213,0.26);}
+.k-chip-outline{background:transparent;border-color:rgba(255,255,255,0.2);color:#a1a1a6;}
+.k-badge{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex-shrink:0;}
+.k-field{display:flex;align-items:center;gap:9px;height:36px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:border-color 160ms ease,box-shadow 200ms ease,background 160ms ease;}
+.k-field:hover{border-color:rgba(255,255,255,0.14);}
+.k-field:focus-within{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field input,.k-field textarea{flex-grow:1;min-width:0;background:transparent;border:0;outline:0;color:#ffffff;font-size:13px;resize:none;}
+.k-field-focus{border-color:rgba(45,217,196,0.6);box-shadow:0 0 0 4px rgba(45,217,196,0.12);background:#141417;}
+.k-field-err{border-color:rgba(255,61,90,0.7);box-shadow:0 0 0 4px rgba(255,61,90,0.1);}
+.k-tog{position:relative;display:inline-block;width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.14);flex-shrink:0;transition:background 180ms ease,box-shadow 220ms ease;}
+.k-tog::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 260ms var(--spring);}
+.k-tog-on{background:#35d483;box-shadow:0 0 16px -4px rgba(53,212,131,0.7);}
+.k-tog-on::after{transform:translateX(16px);}
+.k-check{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 220ms var(--spring),background 160ms ease;}
+.k-check:active{transform:scale(0.85);}
+.k-check-on{background:#b5f23d;border-color:#b5f23d;}
+.k-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);}
+.k-seg-b{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#a1a1a6;transition:background 160ms ease,color 160ms ease;}
+.k-seg-b:hover{color:#ffffff;}
+.k-seg-on{background:rgba(255,255,255,0.12);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.k-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.k-ping{position:relative;}
+.k-ping::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:k-ping 1.6s var(--ease) infinite;}
+@property --k-a{syntax:"<angle>";inherits:false;initial-value:0deg;}
+.k-beam{padding:1.5px;border-radius:22px;--b0:#12302a;--b1:#2dd9c4;--b2:#b5f23d;--bglow:rgba(181,242,61,0.5);background:conic-gradient(from var(--k-a),var(--b0) 0deg,var(--b1) 60deg,var(--b2) 120deg,var(--b0) 190deg,var(--b0) 360deg);animation:k-spin 4.5s linear infinite,k-breathe 3.2s ease-in-out infinite;}
+.k-beam-still{animation:none;}
+.k-enter{animation:k-rise 620ms var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms);}
+.k-pop-in{animation:k-popin 420ms var(--spring) backwards;}
+.k-blink{animation:k-blink 1s step-end infinite;}
+.k-shake{animation:k-shake 300ms ease-in-out 3;}
+.k-float{animation:k-float 5s ease-in-out infinite;}
+@keyframes k-shine{0%,62%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes k-ping{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(2.8);opacity:0;}}
+@keyframes k-spin{to{--k-a:360deg;}}
+@keyframes k-breathe{0%,100%{box-shadow:0 0 36px -12px var(--bglow);}50%{box-shadow:0 0 66px -6px var(--bglow);}}
+@keyframes k-rise{from{opacity:0;transform:translateY(12px) scale(0.985);filter:blur(6px);}to{opacity:1;transform:none;filter:none;}}
+@keyframes k-popin{from{opacity:0;transform:scale(0.94) translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes k-blink{0%,49%{opacity:1;}50%,100%{opacity:0.25;}}
+@keyframes k-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes k-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes k-rot{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.k *,.k *::before,.k *::after{animation:none !important;transition:none !important;}}
+.ds-pg{border-radius:20px;background:#0a0a0c;border:1px solid rgba(255,255,255,0.08);padding:20px;display:flex;flex-direction:column;gap:12px;}
+.ds-grp{border-radius:16px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);}
+.ds-row{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+.ds-row + .ds-row{border-top:1px solid rgba(255,255,255,0.05);}
+.ds-l{font-size:13.5px;font-weight:600;}
+.ds-d{font-size:12px;color:#8e8e93;line-height:1.4;margin-top:2px;}
+.ds-back{position:relative;border-radius:18px;padding:34px 28px;background:repeating-linear-gradient(135deg,rgba(255,255,255,0.015) 0 10px,transparent 10px 20px),#050506;border:1px solid rgba(255,255,255,0.05);display:flex;align-items:flex-start;justify-content:center;}
+.ds-sheet{width:420px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.ds-icon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+@keyframes ds-spin{to{transform:rotate(360deg);}}
+.ds-spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(6,17,10,0.25);border-top-color:#06110a;animation:ds-spin 700ms linear infinite;}
+@keyframes ds-drain{from{width:100%;}to{width:0%;}}
+.ds-armed{box-shadow:0 0 0 4px rgba(255,61,90,0.18),0 10px 30px -8px rgba(255,61,90,0.9);animation:ds-pulse 1.4s ease-in-out infinite;}
+@keyframes ds-pulse{0%,100%{box-shadow:0 0 0 3px rgba(255,61,90,0.14),0 10px 30px -8px rgba(255,61,90,0.8);}50%{box-shadow:0 0 0 7px rgba(255,61,90,0.08),0 12px 40px -6px rgba(255,61,90,1);}}
+</style>
+</helmet>
+
+<div class="k" onMouseMove="{{spot}}" style="box-sizing:border-box;width:1520px;height:1650px;padding:48px;display:flex;flex-direction:column;gap:30px;background:radial-gradient(800px 420px at 12% -6%,rgba(53,212,131,0.07),transparent 62%),radial-gradient(700px 500px at 96% 70%,rgba(255,61,90,0.05),transparent 60%),#000000;">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="k-label" style="color:#b5f23d;">DATA &amp; BACKUP · P0</div>
+      <div style="font-size:30px;font-weight:800;letter-spacing:-0.03em;">Your data stays yours</div>
+      <div style="font-size:13px;color:#a1a1a6;">One SQLite file on this Mac. Zip export any time, daily automatic backups, safe restore. Tokens live in the Keychain and are never exported.</div>
+    </div>
+    <span class="k-chip k-chip-green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>Stored on this Mac</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start;">
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="k-label" style="color:{{pg.capColor}};">{{pg.caption}}</div>
+        <div class="ds-pg sg" style="--sg:{{pg.tint}};">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Data &amp; backup</div>
+            <span class="k-chip k-chip-green" style="height:22px;font-size:10.5px;">On this Mac</span>
+          </div>
+          <div class="ds-grp">
+            <div class="ds-row">
+              <div style="flex-grow:1;"><div class="ds-l">Export backup</div><div class="ds-d">{{pg.exportDesc}}</div></div>
+              <sc-if value="{{pg.busy}}" hint-placeholder-val="{{false}}"><button class="k-btn k-btn-sm k-primary" style="gap:8px;"><span class="ds-spin"></span>Exporting…</button></sc-if>
+              <sc-if value="{{pg.idle}}" hint-placeholder-val="{{true}}"><button class="k-btn k-btn-sm k-soft"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"></path></svg>Export zip</button></sc-if>
+            </div>
+          </div>
+          <div class="ds-grp">
+            <div class="ds-row"><div style="flex-grow:1;"><div class="ds-l">Automatic daily backup</div></div><span class="k-tog k-tog-on"></span></div>
+            <div class="ds-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{pg.folderColor}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>
+                <span class="k-mono" style="font-size:11.5px;color:#c7c7cc;flex-grow:1;">{{pg.folder}}</span>
+                <button class="k-btn k-btn-sm k-soft" style="height:24px;font-size:11px;">Change</button>
+                <button class="k-btn k-btn-sm k-ghost" style="height:24px;font-size:11px;">Show</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#a1a1a6;">Keep last <span class="k-chip" style="height:22px;">14 ▾</span><span style="margin-left:auto;{{pg.lastStyle}}">{{pg.last}}</span></div>
+            </div>
+            <div class="ds-row"><div class="ds-d" style="margin:0;">Tip: choose an iCloud Drive or Dropbox folder for a copy off this Mac.</div></div>
+          </div>
+          <div class="ds-grp">
+            <div class="ds-row"><div style="flex-grow:1;"><div class="ds-l">Password-protect backups</div></div><span class="k-chip k-chip-outline" style="height:20px;font-size:10px;">P1</span><span class="k-tog"></span></div>
+            <div class="ds-row"><div style="flex-grow:1;"><div class="ds-l">Restore from backup</div><div class="ds-d">Replaces all current data. Your current data is backed up first.</div></div><button class="k-btn k-btn-sm k-soft">Choose file…</button></div>
+          </div>
+          <div class="ds-grp" style="border-color:rgba(255,92,122,0.2);background:rgba(255,61,90,0.03);">
+            <div class="ds-row"><div style="flex-grow:1;"><div class="k-label" style="color:#ff6b85;font-size:10px;">DANGER ZONE</div><div class="ds-l" style="margin-top:4px;">Delete all data</div></div><button class="k-btn k-btn-sm k-danger">Delete all data</button></div>
+          </div>
+          <sc-if value="{{pg.toast}}" hint-placeholder-val="{{false}}">
+            <div class="k-pop" style="overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 10px 0 12px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg>
+                <span style="font-size:12.5px;font-weight:600;flex-grow:1;">Backup saved: <span class="k-mono" style="font-size:11px;">komodo-backup-2026-09-26.zip</span></span>
+                <button class="k-btn k-btn-sm" style="color:#b5f23d;height:26px;">Show in Finder</button>
+              </div>
+              <div style="height:2px;background:rgba(255,255,255,0.06);"><div style="height:100%;background:#b5f23d;animation:ds-drain 5s linear infinite;"></div></div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="k-label">RESTORE · CONFIRM</div>
+      <div class="ds-back">
+        <div class="k-sheet k-pop-in ds-sheet sg" style="--sg:45 217 196;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="ds-icon" style="background:rgba(45,217,196,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5ce6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"></path></svg></div>
+            <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Restore this backup?</div>
+          </div>
+          <div style="border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);padding:12px 14px;display:flex;flex-direction:column;gap:4px;">
+            <div class="k-mono" style="font-size:12.5px;color:#ffffff;">komodo-backup-2026-09-20.zip</div>
+            <div style="font-size:12px;color:#a1a1a6;">Sep 20, 2026 · Komodo 1.0.3</div>
+            <div style="display:flex;gap:6px;margin-top:6px;"><span class="k-chip">12 lists</span><span class="k-chip">340 tasks</span><span class="k-chip">1,204 sessions</span></div>
+          </div>
+          <div style="font-size:13px;color:#c7c7cc;line-height:1.5;">Your current data is backed up first, then replaced.</div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="k-btn k-soft">Cancel</button><button class="k-btn k-primary">Restore</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="k-label" style="color:#5fe3a1;">RESTORE · SUCCESS</div>
+      <div class="ds-back">
+        <div class="k-sheet ds-sheet sg" style="--sg:53 212 131;background:radial-gradient(90% 70% at 50% 0%,rgba(53,212,131,0.14),transparent 70%),linear-gradient(180deg,#141417,#0d0d0f);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="ds-icon" style="background:rgba(53,212,131,0.16);box-shadow:0 0 30px -6px rgba(53,212,131,0.7);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></div>
+            <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Restored.</div>
+          </div>
+          <div style="font-size:13px;color:#c7c7cc;line-height:1.5;">Reconnect Google to resume Gmail → Calendar. Tokens are never inside backups.</div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="k-btn k-soft">Later</button><button class="k-btn k-primary">Reconnect</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="k-label" style="color:#ff8a9e;">RESTORE · 3 ERRORS</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="k-sheet sg" style="--sg:255 61 90;padding:14px 16px;display:flex;align-items:center;gap:12px;border-color:rgba(255,92,122,0.25);">
+          <div class="ds-icon" style="width:34px;height:34px;border-radius:10px;background:rgba(255,61,90,0.14);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
+          <div style="flex-grow:1;font-size:13px;line-height:1.4;">This backup is from a newer version of Komodo. Update the app first.</div>
+          <button class="k-btn k-btn-sm k-soft">Check for Updates…</button>
+        </div>
+        <div class="k-sheet sg" style="--sg:255 61 90;padding:14px 16px;display:flex;align-items:center;gap:12px;border-color:rgba(255,92,122,0.25);">
+          <div class="ds-icon" style="width:34px;height:34px;border-radius:10px;background:rgba(255,61,90,0.14);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6Z"></path><path d="M10 12l4 4M14 12l-4 4"></path></svg></div>
+          <div style="flex-grow:1;font-size:13px;line-height:1.4;">This file isn't a Komodo backup.</div>
+          <button class="k-btn k-btn-sm k-soft">Choose another…</button>
+        </div>
+        <div class="k-sheet sg" style="--sg:255 61 90;padding:14px 16px;display:flex;align-items:center;gap:12px;border-color:rgba(255,92,122,0.25);">
+          <div class="ds-icon" style="width:34px;height:34px;border-radius:10px;background:rgba(255,61,90,0.14);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20Z"></path><path d="M12 10v4M12 17.5v.5"></path></svg></div>
+          <div style="flex-grow:1;font-size:13px;line-height:1.4;">The backup is damaged.</div>
+          <button class="k-btn k-btn-sm k-soft">OK</button>
+        </div>
+        <div style="font-size:11.5px;color:#8e8e93;">Nothing is replaced when a restore fails. The manifest is checked before any file is touched.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="k-label" style="color:#ff8a9e;">DELETE ALL · TYPED CONFIRM · TRY TYPING DELETE</div>
+      <div class="ds-back" style="padding:40px 28px;">
+        <div class="k-sheet k-pop-in ds-sheet sg" style="--sg:255 61 90;width:460px;border-color:{{delBorder}};">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="ds-icon" style="background:rgba(255,61,90,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"></path></svg></div>
+            <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Delete all data?</div>
+          </div>
+          <div style="font-size:13px;color:#c7c7cc;line-height:1.5;">This deletes every list, task, and session on this Mac and disconnects Google.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:12px;color:#a1a1a6;">Type <b class="k-mono" style="color:#ffffff;">DELETE</b> to confirm</div>
+            <label class="{{delFieldCls}}"><input aria-label="Type DELETE to confirm" placeholder="DELETE" value="{{typed}}" onInput="{{onType}}" style="font-family:'Geist Mono',ui-monospace,Menlo,monospace;letter-spacing:0.12em;"><sc-if value="{{armed}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b85" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></label>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="k-btn k-soft" onClick="{{clear}}">Cancel</button><button class="{{delBtnCls}}">Delete all</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="k-label">INTEGRATION TOKEN SHEET · PERSONAL API TOKEN</div>
+      <div class="ds-back" style="padding:40px 28px;">
+        <div class="k-sheet ds-sheet sg" style="--sg:45 217 196;width:460px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="ds-icon" style="background:#1c1c1f;border:1px solid rgba(255,255,255,0.1);font-size:16px;font-weight:800;color:#e5e5ea;">T</div>
+            <div style="flex-grow:1;"><div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">Connect Todoist</div><div style="font-size:12px;color:#8e8e93;">Two-way · one project · polled every 5 min</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;font-weight:600;color:#c7c7cc;">Paste your API token</span><a href="#" style="font-size:12px;color:#5ce6d4;text-decoration:none;">Where to find it ↗</a></div>
+            <div style="display:flex;gap:8px;">
+              <label class="k-field" style="flex-grow:1;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9M17 6l2 2M15 8l2 2"></path></svg><input aria-label="API token" value="••••••••••••••••c91e" style="font-family:'Geist Mono',ui-monospace,Menlo,monospace;"><button class="k-btn k-btn-sm k-ghost" style="height:22px;font-size:11px;">Show</button></label>
+              <button class="k-btn k-soft" onClick="{{test}}">Test</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;{{testStyle}}">{{testText}}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(53,212,131,0.06);border:1px solid rgba(53,212,131,0.16);font-size:12px;color:#c7c7cc;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5fe3a1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"></path></svg>
+            Stored in the macOS Keychain. Never exported.
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;"><button class="k-btn k-soft">Cancel</button><button class="k-btn k-primary">Save</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1520,"height":1650}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { typed: 'DEL', test: 'ok' };
+  }
+  componentWillUnmount() { clearTimeout(this.to); }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var armed = s.typed === 'DELETE';
+    var pages = [
+      { caption: 'DEFAULT', capColor: '#a1a1a6', tint: '53 212 131', exportDesc: 'Everything except passwords and tokens. Last export: Sep 24, 6:12 PM.', busy: false, idle: true, folder: '~/Documents/Komodo Backups', folderColor: '#8e8e93', last: 'Last backup: Today 9:05 AM ✓', lastStyle: 'color:#5fe3a1;', toast: false },
+      { caption: 'EXPORTING · SPINNER, THEN TOAST', capColor: '#c9f76a', tint: '181 242 61', exportDesc: 'Writing komodo-backup-2026-09-26.zip…', busy: true, idle: false, folder: '~/Documents/Komodo Backups', folderColor: '#8e8e93', last: 'Last backup: Today 9:05 AM ✓', lastStyle: 'color:#5fe3a1;', toast: true },
+      { caption: 'AUTOMATIC BACKUP FAILED', capColor: '#ff8a9e', tint: '255 61 90', exportDesc: 'Everything except passwords and tokens. Last export: Sep 24, 6:12 PM.', busy: false, idle: true, folder: '/Volumes/Backup Drive/Komodo', folderColor: '#ff6b85', last: 'Last backup failed: folder not found', lastStyle: 'color:#ff6b85;font-weight:700;', toast: false }
+    ];
+    var testMap = {
+      idle: { t: 'Not tested yet', st: 'color:#8e8e93;' },
+      testing: { t: 'Testing…', st: 'color:#5ce6d4;' },
+      ok: { t: '✓ Token works · 3 projects found', st: 'color:#5fe3a1;font-weight:600;' }
+    };
+    return {
+      pages: pages,
+      typed: s.typed,
+      armed: armed,
+      delFieldCls: 'k-field' + (armed ? ' k-field-err' : ''),
+      delBorder: armed ? 'rgba(255,92,122,0.5)' : 'rgba(255,255,255,0.1)',
+      delBtnCls: 'k-btn k-danger' + (armed ? ' ds-armed' : ' k-off'),
+      onType: function (e) { self.setState({ typed: e.target.value }); },
+      clear: function () { self.setState({ typed: '' }); },
+      testText: testMap[s.test].t,
+      testStyle: testMap[s.test].st,
+      test: function () {
+        self.setState({ test: 'testing' });
+        clearTimeout(self.to);
+        self.to = setTimeout(function () { self.setState({ test: 'ok' }); }, 1200);
+      },
+      spot: function (e) {
+        var el = e.target;
+        while (el && el !== e.currentTarget) {
+          if (el.classList && el.classList.contains('sg')) {
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+            el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+          }
+          el = el.parentNode;
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
