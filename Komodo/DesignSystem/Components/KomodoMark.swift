@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The Komodo mark: a timer ring with a crown (DESIGN_HANDOFF §5; never a bolt). Drawn on a 24-unit
-/// grid like the canvas SVG and scaled to fit.
+/// The Komodo mark: a timer ring with a crown and a check inside, matching the app icon and menu bar icon
+/// (DESIGN_SYSTEM §6.1; never a bolt). Drawn on a 24-unit grid like the canvas SVG and scaled to fit.
 struct KomodoMarkShape: Shape {
     func path(in rect: CGRect) -> Path {
         let unit = min(rect.width, rect.height) / 24
@@ -21,8 +21,9 @@ struct KomodoMarkShape: Shape {
             endAngle: .degrees(-58 + sweep),
             clockwise: false
         )
-        path.move(to: point(12, 13.5))
-        path.addLine(to: point(12, 9.5))
+        path.move(to: point(9, 13.5))
+        path.addLine(to: point(11.1, 15.6))
+        path.addLine(to: point(15.1, 11.2))
         path.move(to: point(10, 2.8))
         path.addLine(to: point(14, 2.8))
         return path
@@ -49,7 +50,7 @@ struct KomodoMark: View {
                 KomodoMarkShape()
                     .stroke(
                         Palette.onAccent,
-                        style: StrokeStyle(lineWidth: glyph * Self.strokeShare, lineCap: .round)
+                        style: StrokeStyle(lineWidth: glyph * Self.strokeShare, lineCap: .round, lineJoin: .round)
                     )
                     .frame(width: glyph, height: glyph)
             }
