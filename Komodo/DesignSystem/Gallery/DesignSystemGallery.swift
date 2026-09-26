@@ -19,6 +19,7 @@
             case motion
             case controls
             case cards
+            case components
         }
 
         private static let scrollTarget = UserDefaults.standard.string(forKey: "galleryScrollTo")
@@ -46,6 +47,7 @@
                         }
                         .id(Section.controls)
                         TaskCardSection().id(Section.cards)
+                        ComponentsSection().id(Section.components)
                     }
                     .padding(64)
                     .frame(width: GalleryCanvas.width)

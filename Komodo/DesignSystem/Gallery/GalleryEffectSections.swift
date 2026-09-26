@@ -7,7 +7,7 @@
             var title: String
             var use: String
             var chip: String
-            var chipTint: GalleryChip.Tint
+            var chipTint: Chip.Tint
             var tint: Color
         }
 
@@ -35,12 +35,12 @@
                 label: "SIGNATURE · CURSOR SPOTLIGHT · MOVE YOUR POINTER OVER THESE", labelColor: Palette.limeText,
                 ambient: Palette.lime
             ) {
-                GalleryChip(text: "applies to every card, tile, sheet group, menu", tint: .lime)
+                Chip("applies to every card, tile, sheet group, menu", tint: .lime)
             } content: {
                 WeightedHStack(weights: [1, 1, 1], spacing: 18) {
                     ForEach(demos, id: \.title) { demo in
                         VStack(alignment: .leading, spacing: 6) {
-                            GalleryChip(text: demo.chip, tint: demo.chipTint)
+                            Chip(demo.chip, tint: demo.chipTint)
                             Text(demo.title)
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundStyle(Palette.textPrimary)
@@ -155,7 +155,7 @@
 
         var body: some View {
             VStack(spacing: 18) {
-                GalleryPrimaryButton(title: "Start", symbol: "play.fill", size: .large)
+                Button("Start", systemImage: "play.fill") {}.buttonStyle(.komodo(.primary, size: .large))
                 TimelineView(.animation(paused: reduceMotion)) { context in
                     let tile = RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
                     Text("New card enters")
@@ -196,10 +196,10 @@
                         .shake(trigger: context.date)
                 }
                 HStack(spacing: 6) {
-                    GalleryChip(text: "+5 min", tint: .red)
-                    GalleryChip(text: "+15 min", tint: .red)
-                    GalleryChip(text: "Done", tint: .lime)
-                    GalleryChip(text: "Next")
+                    Chip("+5 min", tint: .red)
+                    Chip("+15 min", tint: .red)
+                    Chip("Done", tint: .lime)
+                    Chip("Next")
                 }
             }
         }

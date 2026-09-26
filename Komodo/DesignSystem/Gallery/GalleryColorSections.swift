@@ -104,12 +104,11 @@
             var glow: Color?
         }
 
-        private struct ListColor {
+        private struct ListSwatch {
             var letter: String
             var name: String
             var detail: String
-            var fill: Color
-            var glyph: Color
+            var color: ListColor
         }
 
         private let accents = [
@@ -149,14 +148,11 @@
         ]
 
         private let lists = [
-            ListColor(letter: "W", name: "Work", detail: "lime · #06110A", fill: Palette.lime, glyph: Palette.onAccent),
-            ListColor(
-                letter: "P", name: "Personal", detail: "teal · #04141A", fill: Palette.teal, glyph: Palette.onTeal),
-            ListColor(
-                letter: "S", name: "Side project", detail: "blue · #030A1A", fill: Palette.blue, glyph: Palette.onBlue),
-            ListColor(letter: "L", name: "Launch", detail: "pink · #1A0414", fill: Palette.pink, glyph: Palette.onPink),
-            ListColor(
-                letter: "G", name: "Growth", detail: "amber · #1A0E02", fill: Palette.amber, glyph: Palette.onAmber),
+            ListSwatch(letter: "W", name: "Work", detail: "lime · #06110A", color: .lime),
+            ListSwatch(letter: "P", name: "Personal", detail: "teal · #04141A", color: .teal),
+            ListSwatch(letter: "S", name: "Side project", detail: "blue · #030A1A", color: .blue),
+            ListSwatch(letter: "L", name: "Launch", detail: "pink · #1A0414", color: .pink),
+            ListSwatch(letter: "G", name: "Growth", detail: "amber · #1A0E02", color: .amber),
         ]
 
         var body: some View {
@@ -185,7 +181,7 @@
                 WeightedHStack(weights: Array(repeating: 1, count: lists.count), spacing: 12) {
                     ForEach(lists, id: \.letter) { list in
                         HStack(spacing: 10) {
-                            GalleryBadge(letter: list.letter, fill: list.fill, glyph: list.glyph)
+                            ListBadge(letter: list.letter, color: list.color)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(list.name)
                                     .font(.system(size: 13, weight: .semibold))
@@ -195,7 +191,7 @@
                             Spacer(minLength: 0)
                         }
                         .padding(12)
-                        .spotlight(list.fill, radius: Radius.tile, lifts: false) {
+                        .spotlight(list.color.fill, radius: Radius.tile, lifts: false) {
                             RoundedRectangle(cornerRadius: Radius.tile, style: .continuous).fill(Palette.card)
                         }
                     }
