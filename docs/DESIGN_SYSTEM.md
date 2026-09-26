@@ -229,9 +229,10 @@ Provider logos (Google, Microsoft, Notion, and so on) follow each brand's guidel
 
 | Asset | Spec |
 | --- | --- |
-| App icon | A 1024×1024 master on Apple's macOS icon grid: a near-black body (`#141416` → `#030303`) with a faint teal and lime spotlight, a stopwatch ring in the column spectrum (violet → blue → teal → lime, gap under the crown) with a soft glow, and a white check inside it. Below 64 px the strokes thicken and the track drops out. Rendered by `scripts/render-app-icon.swift`. On macOS 26+ it's built in **Icon Composer**, so it adapts to light, dark, and tinted appearances. An `AppIcon` set in the asset catalog covers macOS 14–15 |
-| Menu bar icon | An image set rendered as a **template image** (black plus alpha), 18×18 pt at @1x and @2x, so macOS tints it for light and dark menu bars |
-| Menu bar states | **Idle:** the mark. **Running:** the mark plus the time as text. **Attention** (Google needs reconnecting): the mark with a small dot cut into its top-right. Template images can't be colored, so the difference is the shape |
+| App icon | `Komodo/Resources/AppIcon.icon`, an **Icon Composer** file: a near-black fill (`#141416` → `#030303`) with two glass layers, a stopwatch ring in the column spectrum (violet → blue → teal → lime, gap under the crown, colored shadow) and a gray crown with a white check. macOS 26+ derives the light, dark, clear and tinted appearances from it, and Xcode flattens it into `AppIcon.icns` for macOS 14–15, so there's no separate `AppIcon` set. The layer PNGs come from `scripts/render-icons.swift` |
+| Menu bar icon | Image sets `MenuBarIcon`, `MenuBarIconRunning` and `MenuBarIconAttention`, rendered as **template images** (black plus alpha), 18×18 pt at @1x and @2x, so macOS tints them for light and dark menu bars. Same script |
+| Menu bar states | **Idle:** the mark (ring, crown with stem, check). **Running:** the ring and crown with a filled wedge, plus the time as text. **Attention** (Google needs reconnecting): the idle mark with a dot cut into its top-right. Template images can't be colored, so the difference is the shape |
+| In-app mark | `KomodoMarkShape` draws the same ring, crown and check on the same 24-unit grid |
 
 ## 7. Voice and microcopy
 

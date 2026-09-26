@@ -1,6 +1,6 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-27. `main` is pushed and in sync with `origin/main`. `CHANGELOG.md` has the full list of
+Last updated: 2026-09-27. The app icon and menu bar icon commits on `main` are local and not pushed yet. `CHANGELOG.md` has the full list of
 what landed.
 
 ---
@@ -65,7 +65,8 @@ Komodo/
     Gallery/          Debug-only replica of Foundations.png plus a Components section
   Features/Board/     HomeView, SidebarView, BoardView (toolbar + header), BoardColumnView, TodayStageView,
                       BoardStore (+Cards adapter), BoardSamples
-  Resources/          Assets.xcassets (color sets, AppIcon)
+  Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons)
+scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
   Board/              WeekRange, BoardLayout, DayPlan, FocusHistory
@@ -134,8 +135,10 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, command palette
   row, page dots, code block, folder picker, stat tile, celebration and day-summary cards. Build each with the
   screen that uses it.
-- **App icon on macOS 26+:** only the `AppIcon` asset set exists. The Icon Composer `.icon` file with light,
-  dark and tinted appearances (DESIGN_SYSTEM §6.1) isn't made yet.
+- **Menu bar icons** exist as image sets, but nothing shows them until the menu bar extra lands (System
+  surfaces milestone, DESIGN_SYSTEM §14.1).
+- **README recording** still shows the old sidebar mark (clock hand, no check). Re-record it with the next
+  README media refresh.
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
@@ -159,7 +162,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Violet, green, red badge glyphs | Nearest defined dark glyph | DESIGN_SYSTEM §2.4 only defines five |
 | Key cap label in the gallery | "SF Mono" | What ships; the canvas used Geist Mono as a stand-in |
 | README scope | No AI mentions, including the product's AI features | The user's rule; the README only showcases shipped work |
-| App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717`. The menu bar icon (not built yet) still follows `System.png` |
+| App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717` |
+| Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
 ---
 
@@ -209,6 +213,14 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - Move the pointer off the window before recording; posting a `mouseMoved` CGEvent works.
   - SwiftUI saves the Home window frame under `NSWindow Frame home` in the `app.komodo.Komodo` defaults.
     Delete it to get a fresh `defaultSize`.
+- **Icons:**
+  - Don't add an `AppIcon.appiconset` next to `AppIcon.icon`. Xcode builds from the `.icon` for every macOS
+    version and ignores the set.
+  - Icon Composer masks the whole 1024 canvas, so the `.icon` layers are scaled up from the 824 pt grid.
+  - Check the `.icon` without Xcode: `ictool Komodo/Resources/AppIcon.icon --export-image --output-file out.png
+    --platform macOS --rendition Default --width 512 --height 512 --scale 1`. Renditions: `Default`, `Dark`,
+    `TintedDark`, `ClearDark`. `ictool` is in `Icon Composer.app/Contents/Executables/`.
+  - `ImageRenderer` output differs by 1/255 between runs. Commit re-rendered PNGs only when the drawing changed.
 - **Parallel sessions:** two sessions editing the same folder overwrote each other once. Run only one working
   session per checkout.
 

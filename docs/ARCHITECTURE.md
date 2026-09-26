@@ -416,7 +416,7 @@ Komodo/                          app target
 ├─ Features/                     Board/ · TaskDetail/ · Focus/ · Reports/ · Gmail/ · Backup/
 │                                Settings/ · Onboarding/ · Search/ · Assistant/
 ├─ DesignSystem/                 Palette.swift · Typography.swift · Metrics.swift · Components/
-└─ Resources/                    Assets.xcassets (colors, AppIcon, MenuBarIcon) · Sounds/ · Celebrations/
+└─ Resources/                    AppIcon.icon · Assets.xcassets (colors, MenuBarIcon) · Sounds/ · Celebrations/
 KomodoCore/                      local Swift package, no UI
 ├─ Sources/KomodoCore/           models · database · timer reducer · buckets · recurrence ·
 │                                estimate parser · Gmail rules · backup manifest · CSV

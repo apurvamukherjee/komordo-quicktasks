@@ -8,12 +8,17 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
-### App icon — 2026-09-27
+### App icon and menu bar icon — 2026-09-27
 
 #### Added
-- **App icon** for every macOS size: a black body with a stopwatch ring in the Board's column spectrum
-  (violet → blue → teal → lime) and a check inside it. Small sizes use thicker strokes. Rendered from one
-  SwiftUI drawing by `scripts/render-app-icon.swift`.
+- **App icon** as an Icon Composer file (`AppIcon.icon`): a black body with a stopwatch ring in the Board's
+  column spectrum (violet → blue → teal → lime) and a check inside it. macOS 26 derives the light, dark, clear
+  and tinted looks from it, and Xcode flattens it for macOS 14–15.
+- **Menu bar icons** for idle, running and attention, as template images for light and dark menu bars.
+- `scripts/render-icons.swift` renders the icon layers and the menu bar images from SwiftUI drawings.
+
+#### Changed
+- The Komodo mark in the sidebar has a check in place of the clock hand, to match the icons.
 
 ### Board, single list — 2026-09-27
 
