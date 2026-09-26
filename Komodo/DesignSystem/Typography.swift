@@ -16,8 +16,9 @@ enum Typography {
     // SwiftUI fonts can't carry tracking, so it's applied with `.tracking(_:)` at the call site.
     // Values are the canvas's em-based letter-spacing converted to points.
     enum Tracking {
-        static let timerHero: CGFloat = -1.5
+        static let timerHero: CGFloat = -1.75
         static let display: CGFloat = -0.9
+        static let title: CGFloat = -0.38
         static let label: CGFloat = 0.88
     }
 }
