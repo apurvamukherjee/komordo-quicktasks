@@ -22,8 +22,28 @@ struct HomeView: View {
                 }
         }
         .animation(Motion.base, value: isSidebarVisible)
+        // Esc closes the inspector from anywhere in the window; fields that use Esc themselves handle it first.
+        .onExitCommand { store.inspect(nil) }
+        .background { shortcuts }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
+    }
+
+    /// Keys with no visible button: ⌘↑ / ⌘↓ step through tasks in the inspector (DESIGN_SYSTEM §13.5), and ⌘⌥N opens
+    /// the live task's notes (FEATURES §4.5).
+    private var shortcuts: some View {
+        Group {
+            Button("Previous task") { store.inspectAdjacent(-1) }
+                .keyboardShortcut(.upArrow, modifiers: .command)
+                .disabled(store.inspectedTaskID == nil)
+            Button("Next task") { store.inspectAdjacent(1) }
+                .keyboardShortcut(.downArrow, modifiers: .command)
+                .disabled(store.inspectedTaskID == nil)
+            Button("Notes") { store.inspect(store.liveTask?.id) }
+                .keyboardShortcut("n", modifiers: [.command, .option])
+                .disabled(store.liveTask == nil)
+        }
+        .hidden()
     }
 
     private var isInspectorPresented: Binding<Bool> {
