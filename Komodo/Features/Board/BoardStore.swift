@@ -29,10 +29,11 @@ import SwiftUI
     let toasts = ToastCenter()
     let calendar: Calendar
     private let clock: () -> Date
+    private let openURL: (URL) -> Void
 
     init(
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
-        clock: @escaping () -> Date = { Date() }
+        clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) }
     ) {
         self.lists = lists
         self.tasks = tasks
@@ -40,6 +41,7 @@ import SwiftUI
         self.lastListID = selectedListID
         self.calendar = calendar
         self.clock = clock
+        self.openURL = openURL
         // A sample or restored open session means a task is already live.
         if let live = tasks.first(where: { task in task.sessions.contains { $0.end == nil } }) {
             focus.taskID = live.id
@@ -259,6 +261,7 @@ import SwiftUI
     private func begin(_ id: String) {
         focus.taskID = id
         focus.isDayWon = false
+        tasks.first { $0.id == id }?.linksToOpen.forEach(openURL)
         openSession(id)
         focus.flowStartedAt = tasks.first { $0.id == id }?.timeTaken(at: now) ?? 0
     }

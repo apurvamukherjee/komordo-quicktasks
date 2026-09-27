@@ -24,7 +24,7 @@ extension BoardStore {
             title: task.title, listLetter: list?.letter ?? "?",
             listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime,
             source: task.source.map { $0 == .gmail ? "From Gmail" : "From Calendar" },
-            estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt, linksOpened: task.links.count,
+            estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt, linksOpened: task.linksToOpen.count,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count))
     }
 
