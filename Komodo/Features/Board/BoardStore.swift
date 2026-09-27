@@ -24,6 +24,8 @@ import SwiftUI
     var isPomodoroOn = true
     /// Filters cards by title, notes and subtasks until the command palette takes over search.
     var searchText = ""
+    /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
+    var inspectedTaskID: String?
     /// The list to return to from All lists.
     private(set) var lastListID: String?
     let toasts = ToastCenter()
@@ -176,6 +178,103 @@ import SwiftUI
             let b = tasks.firstIndex(where: { $0.id == siblings[target].id })
         else { return }
         (tasks[a].rank, tasks[b].rank) = (tasks[b].rank, tasks[a].rank)
+    }
+
+    // MARK: Inspector (DESIGN_SYSTEM §13.5)
+
+    var inspectedTask: TaskItem? { inspectedTaskID.flatMap { id in tasks.first { $0.id == id } } }
+
+    /// Board order, left to right and top to bottom, for ⌘↑ / ⌘↓.
+    var inspectorOrder: [TaskItem] {
+        let layout = self.layout
+        return layout.backlog + layout.week + layout.upNext + layout.scheduledToday + layout.doneToday
+    }
+
+    func inspect(_ id: String?) { inspectedTaskID = id }
+
+    func inspectAdjacent(_ offset: Int) {
+        let order = inspectorOrder
+        guard let id = inspectedTaskID, let position = order.firstIndex(where: { $0.id == id }),
+            order.indices.contains(position + offset)
+        else { return }
+        inspectedTaskID = order[position + offset].id
+    }
+
+    /// A running task's title and EST are locked, and so is its time taken (FEATURES §4.3).
+    func isRunning(_ task: TaskItem) -> Bool { task.sessions.contains { $0.end == nil } }
+
+    /// Every inspector edit goes through here so "Edited … ago" stays true.
+    func update(_ id: String, _ change: (inout TaskItem) -> Void) {
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        change(&tasks[index])
+        tasks[index].editedAt = now
+    }
+
+    func rename(_ id: String, to title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let task = tasks.first(where: { $0.id == id }), !isRunning(task) else { return }
+        update(id) { $0.title = trimmed }
+    }
+
+    func setEstimate(_ id: String, to estimate: TimeInterval) {
+        guard let task = tasks.first(where: { $0.id == id }), !isRunning(task) else { return }
+        update(id) { $0.estimate = estimate }
+    }
+
+    func setTimeTaken(_ id: String, to taken: TimeInterval) {
+        let now = self.now
+        update(id) { $0.setTimeTaken(taken, at: now) }
+    }
+
+    func addSubtask(to id: String, title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        update(id) { $0.subtasks.append(Subtask(id: UUID().uuidString, title: trimmed)) }
+    }
+
+    func updateSubtask(_ subtaskID: String, of id: String, _ change: (inout Subtask) -> Void) {
+        update(id) { task in
+            guard let index = task.subtasks.firstIndex(where: { $0.id == subtaskID }) else { return }
+            change(&task.subtasks[index])
+        }
+    }
+
+    func deleteSubtask(_ subtaskID: String, of id: String) {
+        update(id) { $0.subtasks.removeAll { $0.id == subtaskID } }
+    }
+
+    /// A fresh copy just below the original: same details, no time, not done.
+    func duplicate(_ id: String) {
+        guard let original = tasks.first(where: { $0.id == id }) else { return }
+        var copy = original
+        copy.id = UUID().uuidString
+        copy.rank = original.rank + 0.5
+        copy.sessions = []
+        copy.completedAt = nil
+        copy.createdAt = now
+        copy.editedAt = nil
+        copy.subtasks = original.subtasks.map { Subtask(id: UUID().uuidString, title: $0.title) }
+        tasks.append(copy)
+        inspectedTaskID = copy.id
+    }
+
+    /// Removes a task with Undo. Trash comes later (FEATURES §4.20); until then Undo is the way back.
+    func delete(_ id: String) {
+        // A deleted live task stops its clock first, so Undo brings it back paused rather than running unseen.
+        if focus.taskID == id {
+            closeSession(id)
+            focus = Focus()
+        }
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        let removed = tasks.remove(at: index)
+        if inspectedTaskID == id { inspectedTaskID = nil }
+        toasts.show(
+            Toast(
+                message: "Task deleted", detail: removed.title,
+                action: .init(title: "Undo", shortcut: "⌘Z") { [weak self] in
+                    guard let self, !self.tasks.contains(where: { $0.id == removed.id }) else { return }
+                    self.tasks.append(removed)
+                }))
     }
 
     // MARK: Focus (FEATURES §4.8)
