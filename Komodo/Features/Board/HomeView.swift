@@ -15,10 +15,19 @@ struct HomeView: View {
                     .transition(.move(edge: .leading))
             }
             BoardView(store: store)
+                .inspector(isPresented: isInspectorPresented) {
+                    InspectorView(store: store)
+                        .inspectorColumnWidth(
+                            min: Layout.inspectorMin, ideal: Layout.inspectorIdeal, max: Layout.inspectorMax)
+                }
         }
         .animation(Motion.base, value: isSidebarVisible)
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
+    }
+
+    private var isInspectorPresented: Binding<Bool> {
+        Binding(get: { store.inspectedTaskID != nil }, set: { if !$0 { store.inspect(nil) } })
     }
 }
 

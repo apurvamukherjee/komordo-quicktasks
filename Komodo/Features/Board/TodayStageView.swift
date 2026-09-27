@@ -154,7 +154,8 @@ struct TodayStageView: View {
 
     private var controlActions: ControlBarActions {
         ControlBarActions(
-            takeBreak: store.takeBreak, openNotes: {}, togglePause: store.togglePause, skip: store.skip,
+            takeBreak: store.takeBreak, openNotes: { store.inspect(store.focus.taskID) },
+            togglePause: store.togglePause, skip: store.skip,
             done: store.completeLive, addFive: { store.extendEstimate(by: 300) },
             addFifteen: { store.extendEstimate(by: 900) }, next: store.skip)
     }
