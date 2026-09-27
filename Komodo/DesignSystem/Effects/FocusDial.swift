@@ -19,6 +19,11 @@ struct FocusDialMetrics: Sendable {
     static let board = FocusDialMetrics(
         size: 120, ringRadius: 42, ringWidth: 7, majorTick: 9, minorTick: 6, comet: 13, haloInset: 18, haloBlur: 14
     )
+    /// The inspector's live header (Inspector.dc.html): the ring alone, no ticks, comet or halo.
+    static let inspector = FocusDialMetrics(
+        size: 46, ringRadius: 18, ringWidth: 5, majorTick: 0, minorTick: 0, comet: 0, haloInset: 0, haloBlur: 0,
+        haloOpacity: 0
+    )
     /// The Foundations motion demo.
     static let showcase = FocusDialMetrics(
         size: 150, ringRadius: 54, ringWidth: 8, majorTick: 10, minorTick: 6, comet: 14, haloInset: 14, haloBlur: 12
@@ -60,7 +65,7 @@ struct FocusDial<Center: View>: View {
             let second = Int(elapsed) % 60
 
             ZStack {
-                if tone.isMoving && !reduceMotion {
+                if tone.isMoving && !reduceMotion && metrics.haloOpacity > 0 {
                     DialHalo(tone: tone, metrics: metrics)
                 }
                 ForEach(0..<60, id: \.self) { index in
