@@ -56,14 +56,13 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     public var repeatSummary: String?
     public var completedAt: Date?
     public var subtasks: [Subtask]
-    public var linkCount: Int
     public var source: TaskSource?
     public var sessions: [WorkSession]
 
     public init(
         id: String, listID: String, title: String, bucket: Bucket, rank: Double, estimate: TimeInterval? = nil,
         notes: String? = nil, scheduledDate: LocalDate? = nil, scheduledMinute: Int? = nil, dueDate: LocalDate? = nil,
-        repeatSummary: String? = nil, completedAt: Date? = nil, subtasks: [Subtask] = [], linkCount: Int = 0,
+        repeatSummary: String? = nil, completedAt: Date? = nil, subtasks: [Subtask] = [],
         source: TaskSource? = nil, sessions: [WorkSession] = []
     ) {
         self.id = id
@@ -79,7 +78,6 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         self.repeatSummary = repeatSummary
         self.completedAt = completedAt
         self.subtasks = subtasks
-        self.linkCount = linkCount
         self.source = source
         self.sessions = sessions
     }
@@ -87,6 +85,10 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     public var isDone: Bool { completedAt != nil }
     public var hasNotes: Bool { !(notes ?? "").isEmpty }
     public var subtasksDone: Int { subtasks.filter(\.isDone).count }
+
+    /// The web links in the notes, in order and without repeats. Found in the text rather than stored, so the
+    /// Links chip and auto-open always agree with what the notes say (FEATURES §4.5).
+    public var links: [URL] { NoteLinks.find(in: notes ?? "") }
 
     /// Summed from sessions and never stored (ARCHITECTURE §5).
     public func timeTaken(at now: Date) -> TimeInterval {

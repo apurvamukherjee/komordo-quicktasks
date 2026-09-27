@@ -11,11 +11,11 @@ extension BoardStore {
             listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime, estimate: task.estimate,
             timeTaken: taken,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count),
-            hasNotes: task.hasNotes, linkCount: task.linkCount, timing: timing(for: task),
+            hasNotes: task.hasNotes, linkCount: task.links.count, timing: timing(for: task),
             source: task.source.map { $0 == .gmail ? .gmail : .calendar }, outcome: outcome(for: task),
             // Parked cards stay compact until there's something to track, as on the canvas.
             showsProgress: task.estimate != nil
-                && (taken > 0 || !task.subtasks.isEmpty || task.hasNotes || task.linkCount > 0))
+                && (taken > 0 || !task.subtasks.isEmpty || task.hasNotes || task.links.count > 0))
     }
 
     func liveModel(for task: TaskItem) -> LiveTaskModel {
@@ -24,7 +24,7 @@ extension BoardStore {
             title: task.title, listLetter: list?.letter ?? "?",
             listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime,
             source: task.source.map { $0 == .gmail ? "From Gmail" : "From Calendar" },
-            estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt, linksOpened: task.linkCount,
+            estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt, linksOpened: task.links.count,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count))
     }
 

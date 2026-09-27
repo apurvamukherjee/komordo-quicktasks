@@ -62,7 +62,9 @@ enum BoardSamples {
                 sessions: [WorkSession(start: yesterday, end: yesterday.addingTimeInterval(1_080))]),
             TaskItem(
                 id: "rtf", listID: "work", title: "Rich-text notes: RTF export", bucket: .week, rank: 2,
-                estimate: 4_500, linkCount: 2),
+                estimate: 4_500,
+                notes: "Spec: https://developer.apple.com/documentation/appkit/nstextview\n"
+                    + "Sample: https://github.com/komodo-app/rtf-fixtures"),
             TaskItem(
                 id: "visa", listID: "work", title: "Submit visa form", bucket: .week, rank: 3, estimate: 1_800,
                 dueDate: today.adding(days: 14, calendar: calendar), source: .gmail),
@@ -70,7 +72,10 @@ enum BoardSamples {
             // Today: the live task, the queue, a meeting, and two done
             TaskItem(
                 id: "design-review", listID: "work", title: "Design review prep with Apurva", bucket: .today,
-                rank: 0, estimate: 3_600, subtasks: subtasks(2, of: 3), linkCount: 2, source: .gmail,
+                rank: 0, estimate: 3_600,
+                notes: "Notes stay editable while the task is live.\nFigma: https://figma.com/file/komodo-inspector\n"
+                    + "Deck: https://pitch.com/komodo-review",
+                subtasks: subtasks(2, of: 3), source: .gmail,
                 sessions: [WorkSession(start: minutesAgo(50.5))]),
             TaskItem(
                 id: "detector", listID: "work", title: "Wire NSDataDetector date parsing", bucket: .today, rank: 1,
