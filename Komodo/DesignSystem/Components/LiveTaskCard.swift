@@ -327,7 +327,7 @@ private struct LiveCardBackground: View {
     }
 }
 
-private struct TightLabelStyle: LabelStyle {
+struct TightLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 5) {
             configuration.icon.font(.system(size: 10.5))
