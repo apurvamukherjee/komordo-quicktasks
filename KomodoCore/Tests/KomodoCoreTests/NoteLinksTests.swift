@@ -20,3 +20,19 @@ struct NoteLinksTests {
         #expect(NoteLinks.find(in: "Growth plan, feedback.").isEmpty)
     }
 }
+
+struct LinksToOpenTests {
+    private func task(notes: String, opensLinks: Bool = true) -> TaskItem {
+        TaskItem(id: "t", listID: "work", title: "t", bucket: .today, rank: 0, notes: notes, opensLinks: opensLinks)
+    }
+
+    @Test func opensAtMostFive() {
+        let notes = (1...7).map { "https://example.com/\($0)" }.joined(separator: " ")
+        #expect(task(notes: notes).linksToOpen.count == 5)
+        #expect(task(notes: notes).links.count == 7)
+    }
+
+    @Test func opensNothingWhenTurnedOff() {
+        #expect(task(notes: "https://figma.com/file/abc", opensLinks: false).linksToOpen.isEmpty)
+    }
+}

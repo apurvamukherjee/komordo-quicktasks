@@ -47,7 +47,12 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     /// Priority within its column; lower comes first. Moves write a value between the neighbours.
     public var rank: Double
     public var estimate: TimeInterval?
+    /// Plain text, for search, cards and export.
     public var notes: String?
+    /// The same notes with formatting, as RTF for the editor (ARCHITECTURE §4 `notes_rtf`).
+    public var notesRTF: Data?
+    /// Open the notes' links when the task goes live (the schema's `auto_open_links`).
+    public var opensLinks: Bool
     public var scheduledDate: LocalDate?
     /// Minutes after local midnight; nil means all day.
     public var scheduledMinute: Int?
@@ -61,7 +66,8 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
 
     public init(
         id: String, listID: String, title: String, bucket: Bucket, rank: Double, estimate: TimeInterval? = nil,
-        notes: String? = nil, scheduledDate: LocalDate? = nil, scheduledMinute: Int? = nil, dueDate: LocalDate? = nil,
+        notes: String? = nil, notesRTF: Data? = nil, opensLinks: Bool = true, scheduledDate: LocalDate? = nil,
+        scheduledMinute: Int? = nil, dueDate: LocalDate? = nil,
         repeatSummary: String? = nil, completedAt: Date? = nil, subtasks: [Subtask] = [],
         source: TaskSource? = nil, sessions: [WorkSession] = []
     ) {
@@ -72,6 +78,8 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         self.rank = rank
         self.estimate = estimate
         self.notes = notes
+        self.notesRTF = notesRTF
+        self.opensLinks = opensLinks
         self.scheduledDate = scheduledDate
         self.scheduledMinute = scheduledMinute
         self.dueDate = dueDate
@@ -89,6 +97,10 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     /// The web links in the notes, in order and without repeats. Found in the text rather than stored, so the
     /// Links chip and auto-open always agree with what the notes say (FEATURES §4.5).
     public var links: [URL] { NoteLinks.find(in: notes ?? "") }
+
+    /// What opens in the browser when the task goes live: at most five links, none when the toggle is off.
+    public var linksToOpen: [URL] { opensLinks ? Array(links.prefix(Self.maxLinksToOpen)) : [] }
+    public static let maxLinksToOpen = 5
 
     /// Summed from sessions and never stored (ARCHITECTURE §5).
     public func timeTaken(at now: Date) -> TimeInterval {
