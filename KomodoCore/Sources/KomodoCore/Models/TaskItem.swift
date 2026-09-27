@@ -62,14 +62,21 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     public var completedAt: Date?
     public var subtasks: [Subtask]
     public var source: TaskSource?
+    /// Who and what the task came from, such as `Apurva · “Re: Design review”`, and where to open it.
+    public var sourceTitle: String?
+    public var sourceURL: URL?
     public var sessions: [WorkSession]
+    /// nil for tasks made before these were recorded.
+    public var createdAt: Date?
+    public var editedAt: Date?
 
     public init(
         id: String, listID: String, title: String, bucket: Bucket, rank: Double, estimate: TimeInterval? = nil,
         notes: String? = nil, notesRTF: Data? = nil, opensLinks: Bool = true, scheduledDate: LocalDate? = nil,
         scheduledMinute: Int? = nil, dueDate: LocalDate? = nil,
         repeatSummary: String? = nil, completedAt: Date? = nil, subtasks: [Subtask] = [],
-        source: TaskSource? = nil, sessions: [WorkSession] = []
+        source: TaskSource? = nil, sourceTitle: String? = nil, sourceURL: URL? = nil, sessions: [WorkSession] = [],
+        createdAt: Date? = nil, editedAt: Date? = nil
     ) {
         self.id = id
         self.listID = listID
@@ -87,7 +94,11 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         self.completedAt = completedAt
         self.subtasks = subtasks
         self.source = source
+        self.sourceTitle = sourceTitle
+        self.sourceURL = sourceURL
         self.sessions = sessions
+        self.createdAt = createdAt
+        self.editedAt = editedAt
     }
 
     public var isDone: Bool { completedAt != nil }
