@@ -126,7 +126,7 @@ import SwiftUI
         let rank = atTop ? (ranks.min() ?? 0) - 1 : (ranks.max() ?? 0) + 1
         let task = TaskItem(
             id: UUID().uuidString, listID: listID, title: parsed.title, bucket: bucket, rank: rank,
-            estimate: estimate ?? parsed.estimate)
+            estimate: estimate ?? parsed.estimate, createdAt: now)
         tasks.append(task)
         return task
     }

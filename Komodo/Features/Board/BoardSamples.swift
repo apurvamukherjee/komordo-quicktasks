@@ -34,18 +34,24 @@ enum BoardSamples {
         let laterThisWeek = today < week.end ? week.end : nil
         let yesterday = now.addingTimeInterval(-86_400)
         func minutesAgo(_ minutes: Double) -> Date { now.addingTimeInterval(-minutes * 60) }
-        func subtasks(_ done: Int, of total: Int) -> [Subtask] {
-            (0..<total).map { Subtask(id: UUID().uuidString, title: "Step \($0 + 1)", isDone: $0 < done) }
+        func subtasks(_ done: Int, _ titles: String...) -> [Subtask] {
+            titles.enumerated().map { Subtask(id: UUID().uuidString, title: $1, isDone: $0 < done) }
         }
+        let inbox = URL(string: "https://mail.google.com/mail/u/0/#inbox")
 
         var tasks = [
             // Backlog
             TaskItem(
                 id: "roadmap", listID: "work", title: "Q4 engineering roadmap", bucket: .backlog, rank: 1,
-                estimate: 10_800, notes: "Themes, bets, and what we're not doing.", subtasks: subtasks(0, of: 5)),
+                estimate: 10_800, notes: "Themes, bets, and what we're not doing.",
+                subtasks: subtasks(
+                    0, "List the themes", "Size each bet", "Draft the not-doing list", "Review with leads", "Publish")),
             TaskItem(
                 id: "mcp", listID: "work", title: "Local MCP server: tool surface spec", bucket: .backlog, rank: 2,
-                estimate: 5_400, subtasks: subtasks(2, of: 6),
+                estimate: 5_400,
+                subtasks: subtasks(
+                    2, "List the tools", "Name the resources", "Write the schemas", "Auth model", "Error codes",
+                    "Examples"),
                 sessions: [WorkSession(start: yesterday, end: yesterday.addingTimeInterval(1_200))]),
             TaskItem(
                 id: "weekly", listID: "work", title: "Weekly review", bucket: .backlog, rank: 3, estimate: 2_700,
@@ -58,7 +64,7 @@ enum BoardSamples {
             TaskItem(
                 id: "wireframes", listID: "work", title: "Wireframes: floating timer pill", bucket: .week, rank: 1,
                 estimate: 7_200, scheduledDate: laterThisWeek, scheduledMinute: laterThisWeek == nil ? nil : 600,
-                subtasks: subtasks(1, of: 3),
+                subtasks: subtasks(1, "Idle and running states", "Hover controls", "Time’s up"),
                 sessions: [WorkSession(start: yesterday, end: yesterday.addingTimeInterval(1_080))]),
             TaskItem(
                 id: "rtf", listID: "work", title: "Rich-text notes: RTF export", bucket: .week, rank: 2,
@@ -67,7 +73,9 @@ enum BoardSamples {
                     + "Sample: https://github.com/komodo-app/rtf-fixtures"),
             TaskItem(
                 id: "visa", listID: "work", title: "Submit visa form", bucket: .week, rank: 3, estimate: 1_800,
-                dueDate: today.adding(days: 14, calendar: calendar), source: .gmail),
+                notes: "Deadline found in the consulate’s email.", dueDate: today.adding(days: 14, calendar: calendar),
+                subtasks: subtasks(0, "Scan the passport page", "Fill section B"), source: .gmail,
+                sourceTitle: "Consulate · “Your visa appointment”", sourceURL: inbox),
 
             // Today: the live task, the queue, a meeting, and two done
             TaskItem(
@@ -75,18 +83,22 @@ enum BoardSamples {
                 rank: 0, estimate: 3_600,
                 notes: "Notes stay editable while the task is live.\nFigma: https://figma.com/file/komodo-inspector\n"
                     + "Deck: https://pitch.com/komodo-review",
-                subtasks: subtasks(2, of: 3), source: .gmail,
+                subtasks: subtasks(2, "Pull last sprint notes", "List open questions", "Share deck link"),
+                source: .gmail,
+                sourceTitle: "Apurva · “Re: Design review”", sourceURL: inbox,
                 sessions: [WorkSession(start: minutesAgo(50.5))]),
             TaskItem(
                 id: "detector", listID: "work", title: "Wire NSDataDetector date parsing", bucket: .today, rank: 1,
-                estimate: 5_400, subtasks: subtasks(3, of: 4),
+                estimate: 5_400,
+                subtasks: subtasks(3, "Match dates in the body", "Handle time zones", "Skip quoted replies", "Tests"),
                 sessions: [WorkSession(start: minutesAgo(140), end: minutesAgo(110))]),
             TaskItem(
                 id: "accounts", listID: "work", title: "Review accounts", bucket: .today, rank: 2, estimate: 9_000,
                 notes: "Q3 invoices and the new vendor."),
             TaskItem(
                 id: "one-on-one", listID: "work", title: "Prep 1:1 with Apurva", bucket: .today, rank: 3,
-                estimate: 1_800, notes: "Growth plan, feedback.", subtasks: subtasks(0, of: 3)),
+                estimate: 1_800, notes: "Growth plan, feedback.",
+                subtasks: subtasks(0, "Wins this month", "Growth plan", "Feedback both ways")),
             TaskItem(
                 id: "casa", listID: "work", title: "Sync with core team on CASA review", bucket: .today, rank: 4,
                 estimate: 2_700, scheduledDate: today, scheduledMinute: 15 * 60, source: .calendar),
@@ -98,6 +110,12 @@ enum BoardSamples {
                 id: "copy", listID: "work", title: "Fix onboarding copy", bucket: .today, rank: -1, estimate: 2_700,
                 completedAt: minutesAgo(150), sessions: [WorkSession(start: minutesAgo(182), end: minutesAgo(150))]),
         ]
+
+        // Made over the past fortnight, a few touched recently, so the inspector's footer reads naturally.
+        for index in tasks.indices {
+            tasks[index].createdAt = now.addingTimeInterval(-Double(3 + index % 12) * 86_400)
+            if index % 3 == 0 { tasks[index].editedAt = minutesAgo(Double(2 + index * 7)) }
+        }
 
         // Other lists, so the sidebar counts and All lists have something to show.
         let others: [(String, [String])] = [
