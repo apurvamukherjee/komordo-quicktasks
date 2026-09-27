@@ -107,6 +107,27 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         sessions.reduce(0) { $0 + $1.duration(until: now) }
     }
 
+    /// Edits time taken (FEATURES §4.3) by changing sessions, since time taken is never stored. More time adds a
+    /// session ending now; less trims the latest sessions first. Does nothing while a session is open, because
+    /// the clock is still writing to it.
+    public mutating func setTimeTaken(_ target: TimeInterval, at now: Date) {
+        guard sessions.allSatisfy({ $0.end != nil }) else { return }
+        var excess = timeTaken(at: now) - max(0, target)
+        if excess < 0 {
+            sessions.append(WorkSession(start: now.addingTimeInterval(excess), end: now))
+            return
+        }
+        while excess > 0, let last = sessions.indices.last {
+            let length = sessions[last].duration(until: now)
+            if length > excess {
+                sessions[last].end = sessions[last].start.addingTimeInterval(length - excess)
+                return
+            }
+            sessions.removeLast()
+            excess -= length
+        }
+    }
+
     /// What's left of the estimate; zero once it's used up or when there is no estimate.
     public func remaining(at now: Date) -> TimeInterval {
         guard let estimate else { return 0 }
