@@ -5,6 +5,8 @@ import SwiftUI
 /// text that doesn't parse keeps the old value and shows the danger edge until it's fixed.
 struct DurationField: View {
     @Binding var duration: TimeInterval
+    /// For fields that appear on demand, like time taken in the inspector.
+    var focusesOnAppear = false
 
     @State private var draft: String?
     @FocusState private var isFocused: Bool
@@ -34,6 +36,7 @@ struct DurationField: View {
             .background(isFocused ? Palette.card : Color.white.opacity(0.04), in: shape)
             .overlay(shape.strokeBorder(borderColor, lineWidth: 1))
             .onSubmit(commit)
+            .onAppear { if focusesOnAppear { isFocused = true } }
             .onChange(of: isFocused) { _, focused in
                 if !focused { commit() }
             }
