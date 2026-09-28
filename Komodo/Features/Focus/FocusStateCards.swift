@@ -263,7 +263,8 @@ struct FocusWonCard: View {
             Text(label).font(.system(size: 11)).foregroundStyle(Palette.textSecondary)
         }
         .padding(Space.s3)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        // Fill the row's height too, so a value that scales down doesn't leave its tile shorter.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .spotlight(tint, radius: Radius.tile, lifts: false) {
             if isHighlighted {
                 shape.fill(Palette.lime.opacity(0.08)).overlay(shape.strokeBorder(Palette.lime.opacity(0.2)))

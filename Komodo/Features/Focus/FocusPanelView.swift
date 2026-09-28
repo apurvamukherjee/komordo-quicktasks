@@ -204,7 +204,8 @@ struct FocusPanelView: View {
                 }
                 .padding(.horizontal, 2)
                 .padding(.bottom, 2)
-                let first = store.liveTask == nil ? 1 : 2
+                // The paused task keeps its place at the top during a break.
+                let first = store.focus.taskID == nil ? 1 : 2
                 ForEach(Array(queue.enumerated()), id: \.element.id) { index, task in
                     FocusQueueRow(
                         model: store.cardModel(for: task), position: first + index,
