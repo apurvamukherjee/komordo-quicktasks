@@ -1,7 +1,8 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-27. The app icon and menu bar icon commits on `main` are local and not pushed yet. `CHANGELOG.md` has the full list of
-what landed.
+Last updated: 2026-09-28. Milestones 5b (Inspector) and 5c (Quick add, Schedule popover and Repeat) are on
+`main`. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build
+new commits on top. `CHANGELOG.md` has the full list of what landed.
 
 ---
 
@@ -20,11 +21,12 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": build the Task inspector to match
-design/previews/Inspector.png and design/screens/Inspector.dc.html (DESIGN_SYSTEM §13.5), with the behavior
-from FEATURES §4.3–4.5. Open it by clicking a card on the Board, and wire the live card's Notes tile to it.
-Keep using the in-memory BoardStore and sample data. Show me a screenshot of the running app next to
-Inspector.png, and list every place where you followed one spec over another.
+Then continue from docs/HANDOFF.md §4 "Next task": build the Focus Panel and its states to match
+design/previews/FocusPanel.png and FocusStates.png and design/screens/FocusPanel.dc.html and FocusStates.dc.html
+(DESIGN_SYSTEM §13.8), with the behavior from FEATURES §4.8 and §6.3. Keep using the in-memory BoardStore and
+sample data. I use this Mac while you work: capture Komodo's own windows (screencapture -l) and use the Debug
+launch flags instead of moving my pointer. Show me a screenshot of the running app next to FocusPanel.png, and
+list every place where you followed one spec over another.
 ```
 
 ---
@@ -40,9 +42,9 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 3 | Effects + Design System Gallery | ✅ | Gallery recreates `Foundations.png`; Debug only |
 | 4 | Components (DESIGN_SYSTEM §9–10, DESIGN_HANDOFF §3 list) | ✅ | See §5 for components not built yet |
 | 5a | Board, single list (`Main.png`) | ✅ | In-memory sample data; checked side by side with `Main.png` |
-| 5b | **Inspector** | ⏭ **Next** | See §4 |
-| 5c | Quick add panel (⌘⌥T), Schedule popover + Repeat | ⬜ | The inline and Today quick add already exist |
-| 5d | Focus Panel + FocusStates | ⬜ | The Board already runs Focus mode in its Today stage |
+| 5b | Inspector (`Inspector.png`) | ✅ | Notes are RTF in an `NSTextView` |
+| 5c | Quick add panel (⌘⌥T), Schedule popover + Repeat | ✅ | Checked against `Schedule.png` and `BoardStates.png`; see §5 for what's left |
+| 5d | **Focus Panel + FocusStates** | ⏭ **Next** | See §4. The Board already runs Focus mode in its Today stage |
 | 5e | Floating timer, Celebration, Day summary, Command palette | ⬜ | |
 | 5f | Settings, Gmail → Calendar, Data & backup, Onboarding, System surfaces | ⬜ | ARCHITECTURE puts Settings and Gmail in Phase 0a |
 | — | Persistence (SQLite with GRDB) | ⬜ | Not started. A new dependency needs the user's OK first (bundle cost plus one alternative) |
@@ -59,12 +61,16 @@ Komodo/
   App/                KomodoApp (scenes, commands, LaunchOptions), AppDelegate, DebugCommands (Debug menu, gallery)
   DesignSystem/       Palette, Typography, Metrics (Space/Radius/Layout), Motion, Elevation,
                       WeightedHStack, FlowLayout
-    Effects/          Spotlight, BeamBorder, FocusDial, OdometerText, TimerTone, Ping, Shake, Sheen, Rise, Aurora
+    Effects/          Spotlight, BeamBorder, FocusDial, OdometerText, TimerTone, Ping, Shake, Sheen, Rise, Aurora,
+                      LayerEffect (hosts the Core Animation loops)
     Components/       Buttons, chips, badges, fields, TaskCard/QueueCard, LiveTaskCard, BreakCard, DayMeter,
                       ControlBar, Toast, Banner, PopoverSurface, CardSurface, KomodoMark
     Gallery/          Debug-only replica of Foundations.png plus a Components section
   Features/Board/     HomeView, SidebarView, BoardView (toolbar + header), BoardColumnView, TodayStageView,
                       BoardStore (+Cards adapter), BoardSamples
+  Features/Inspector/ InspectorView, InspectorDetails (+ InspectorRow/InspectorValue), Subtasks, Notes, Activity
+  Features/Schedule/  SchedulePopover (steps, month grid), ScheduleDetailsStep, RepeatPicker (+ CustomRepeatSheet)
+  Features/QuickAdd/  QuickAddPanel (⌘⌥T, overlaid on the Board)
   Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons)
 scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
@@ -73,6 +79,7 @@ KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Timer/              FocusClock, TimerFormat
   Formatting/         DurationFormat
   Parsing/            EstimateParser
+  Recurrence/         RepeatRule (kinds, occurrences, wording), Recurrence (this week's copies)
 docs/                 Specs, this handoff, and media/ (README screenshots and recordings)
 design/               previews/*.png (pixel truth) and screens/*.dc.html (exact values)
 ```
@@ -90,29 +97,31 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   `TimelineView`. When the database lands, the clock becomes `Date.init` and the offset becomes zero.
 - **Cards:** `TaskCardModel` is a plain display model. `BoardStore+Cards.swift` turns a `TaskItem` into it,
   including chip wording and dates.
+- **Continuous effects** loop as Core Animation layer animations through `LayerEffect`. Never drive a looping
+  effect from `TimelineView`, because it re-runs the Board's layout every frame.
+- **Repeats:** a repeating task is a parent that stays in its column. `Recurrence.expanding` makes this week's
+  copies with IDs like `weekly@2026-10-02`, so running it again never duplicates. Deleted copies are
+  remembered and stay gone.
+- **Undo:** `offerUndo` registers with the window's `UndoManager` and shows the toast, so ⌘Z and the toast's
+  button do the same restore.
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
 ---
 
-## 4. Next task: Task inspector
+## 4. Next task: Focus Panel and FocusStates
 
-- **Spec:** DESIGN_SYSTEM §13.5 (normal, live and locked, from Gmail, with subtasks and notes);
-  FEATURES §4.3 (editing, and title and EST locked while live), §4.4 (subtasks), §4.5 (notes). Pixels:
-  `design/previews/Inspector.png`; values: `design/screens/Inspector.dc.html`.
+- **Spec:** DESIGN_SYSTEM §13.8; FEATURES §4.8 (Focus mode) and §6.3 (focus session). Pixels:
+  `design/previews/FocusPanel.png` and `FocusStates.png`; values: `design/screens/FocusPanel.dc.html` and
+  `FocusStates.dc.html`.
 - **Hooks already in place:**
-  - Clicking a card currently only focuses it (`boardCardBehavior` in `BoardColumnView.swift`). The inspector
-    should open from there.
-  - The live card's **Notes** tile is a no-op (`openNotes: {}` in `TodayStageView.controlActions`). Wire it to
-    the inspector.
-  - The Board has no inspector yet. DESIGN_SYSTEM §4.1 puts it on the trailing edge: 380 pt ideal, 320–460.
-    Because the Home window is a custom `HStack` rather than `NavigationSplitView` (see §6), check whether
-    `.inspector` works there or build a trailing panel.
-  - `TaskItem` already has `notes`, `subtasks`, `estimate`, `scheduledDate`/`scheduledMinute`, `dueDate`,
-    `repeatSummary`, `linkCount` and `source`. Add store actions for edits: title, EST (DurationField exists),
-    subtasks, notes and time taken.
-- **Notes editor:** FEATURES and DESIGN_SYSTEM §10.6 call for a wrapped `NSTextView` with RTF and a toolbar.
-  Start with plain text if RTF is too much for one milestone, and say so.
+  - The Board runs Focus mode in its Today stage (`TodayStageView`), and `BoardStore.focus` holds the live
+    task, sprints and breaks. Build the panel on the same store; don't add a second timer.
+  - `FocusClock` rebuilds the countdown from sessions on every read, and `LiveTaskCard` / `ControlBar` /
+    `BreakCard` already exist.
+  - The docked panel width is `Layout.focusPanelWidth` (340 pt).
+- **Capturing:** add a Debug flag like `-openFocusPanel YES` to `LaunchOptions` so the panel can be captured with
+  `screencapture -l` without touching the pointer (see §7).
 
 ---
 
@@ -127,8 +136,19 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   Each has a `.help` note.
 - **Search** filters the Board in place. DESIGN_SYSTEM §13.7 says it should open the command palette; switch
   it over when the palette lands.
-- **Card actions:** the hover row has Move and Done only. The canvas also shows Schedule and ⋯; those come
-  with the Schedule popover. The right-click menu already has Move, Done and Make live.
+- **Reminders** are stored (`remindsAtStart`) and shown as "Reminder on", but nothing fires until the
+  notifications milestone.
+- **Archive** in the card menu stays disabled until Trash lands.
+- **Repeat copies** are made at launch and after schedule changes only. Midnight rollover and wake from sleep
+  need a trigger (FEATURES §4.7).
+- **Schedule step 2:** the time is a native stepper field with a clear button. The canvas draws a clock icon in
+  the field and a "+ ADD" link, and has the repeat icon inside the menu button.
+- **Inspector at 1440 pt:** with the inspector open, the Board's columns get narrow enough that "Backlog" and
+  "This week" wrap. Give the column titles `lineLimit(1)` or hide the inspector below a width.
+- **README recording** has not been re-recorded for 5b or 5c. The screenshots are fresh, but recording needs the
+  pointer and the screen. Ask the maintainer for a window when it's time.
+- **Background captures:** switches are drawn grey when Komodo isn't the active app, so the "Reminder at start
+  time" switch looks off in `docs/media/schedule-details.png` even though it's on.
 - **Celebration:** Done completes the task and starts the next one, but there is no confetti or celebration
   card yet (Celebration milestone).
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
@@ -137,8 +157,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   screen that uses it.
 - **Menu bar icons** exist as image sets, but nothing shows them until the menu bar extra lands (System
   surfaces milestone, DESIGN_SYSTEM §14.1).
-- **README recording** still shows the old sidebar mark (clock hand, no check). Re-record it with the next
-  README media refresh.
+- **README recording** (`board.gif`) still shows the old sidebar mark (clock hand, no check).
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
@@ -163,6 +182,9 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Key cap label in the gallery | "SF Mono" | What ships; the canvas used Geist Mono as a stand-in |
 | README scope | No AI mentions, including the product's AI features | The user's rule; the README only showcases shipped work |
 | App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717` |
+| Schedule calendar | Custom Monday-first month grid | `Schedule.png` wins on pixels; the native graphical `DatePicker` was small and followed the locale's first weekday |
+| Schedule time field | Native stepper field with a clear button | "Native first"; the canvas's clock icon and "+ ADD" are listed in §5 |
+| Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
 ---
@@ -187,6 +209,11 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     1440x820 -ApplePersistenceIgnoreState YES`
   - Gallery: `--args -design-gallery -galleryScrollTo <section>`, where section is one of principles,
     neutrals, accents, temperature, type, spotlight, motion, controls, cards, components.
+  - Surfaces: add `-openSchedule <task id>`, `-openInspector <task id>` or `-openQuickAdd YES`. Sample ids:
+    `roadmap` (unscheduled, opens step 1), `weekly` (repeating, opens step 2), `mcp` (subtasks).
+  - **The maintainer uses the Mac while you work.** Launch with `open -g` so Komodo stays in the background,
+    capture with `screencapture -x -o -l <window id>`, and type with `CGEvent.postToPid`, which reaches Komodo
+    without bringing it forward. Never click or record the screen without asking first.
 
 ---
 
