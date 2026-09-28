@@ -208,12 +208,20 @@ struct BoardHeader: View {
             set: { $0 ? store.showList(nil) : store.showBoard() })
     }
 
-    /// "Saturday, Sep 26 · 6hr 30min planned today".
+    /// "Saturday, Sep 26 · 6hr 30min planned today · fits your day with 1hr 10min to spare" (Main.png), measured
+    /// from when the queue should end to the workday's end.
     private var subtitle: String {
         let layout = store.layout
         let planned = (layout.openToday + layout.doneToday).reduce(0) { $0 + ($1.estimate ?? 0) }
         let date = store.now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
-        return "\(date) · \(DurationFormat.short(planned)) planned today"
+        let summary = "\(date) · \(DurationFormat.short(planned)) planned today"
+        guard !layout.openToday.isEmpty else { return summary }
+        let workdayEnd = store.today.startOfDay(in: store.calendar).addingTimeInterval(
+            TimeInterval(store.workdayEnd * 60))
+        let spare = workdayEnd.timeIntervalSince(store.dayPlan().endsAround)
+        return spare >= 0
+            ? "\(summary) · fits your day with \(DurationFormat.short(spare)) to spare"
+            : "\(summary) · runs \(DurationFormat.short(-spare)) past your workday"
     }
 }
 

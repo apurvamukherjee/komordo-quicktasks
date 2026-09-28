@@ -59,6 +59,13 @@ struct QuickSettingsView: View {
             .disabled(!store.isPomodoroOn)
             Divider().overlay(Palette.border)
             row(
+                symbol: "moon.stars", tint: Palette.violet, glyph: Palette.violetText, title: "Workday ends",
+                detail: "The Board says how the plan fits"
+            ) {
+                TimeField(date: workdayEnd, calendar: store.calendar)
+            }
+            Divider().overlay(Palette.border)
+            row(
                 symbol: store.panelSide == .right ? "sidebar.right" : "sidebar.left", tint: Palette.teal,
                 glyph: Palette.tealText, title: "Panel side", detail: nil
             ) {
@@ -104,6 +111,17 @@ struct QuickSettingsView: View {
     }
 
     private func minutes(_ length: TimeInterval) -> Int { Int(length / 60) }
+
+    /// The workday's end as today's date and time, for the time field.
+    private var workdayEnd: Binding<Date> {
+        let day = store.today.startOfDay(in: store.calendar)
+        return Binding(
+            get: { day.addingTimeInterval(TimeInterval(store.workdayEnd * 60)) },
+            set: {
+                let parts = store.calendar.dateComponents([.hour, .minute], from: $0)
+                store.workdayEnd = (parts.hour ?? 18) * 60 + (parts.minute ?? 0)
+            })
+    }
 
     private func row<Control: View>(
         symbol: String, tint: Color, glyph: Color, title: String, detail: String?,

@@ -66,6 +66,8 @@ import SwiftUI
     /// Also the length of a break started by hand (FEATURES §4.11).
     var breakLength: TimeInterval = 5 * 60
     var panelSide = PanelSide.right
+    /// When the workday ends, in minutes after midnight; the header measures the plan against it.
+    var workdayEnd = 18 * 60
     var playsSounds = true
     /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
     var focusSurface: FocusSurface?

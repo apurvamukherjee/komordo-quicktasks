@@ -363,6 +363,7 @@ Global shortcuts can be changed in Settings. A shortcut already taken by another
 | General | Quick task presets | 15m, 30m, 1h |
 | Focus | Panel screen · Panel side | Main display · Right |
 | Focus | Float above full-screen apps | On |
+| Focus | Workday ends (the Board says how the plan fits) | 6:00 PM |
 | Focus | Pomodoros | On |
 | Focus | Work sprint · break · default break | 25 · 5 · 5 min |
 | Focus | Scrolling title | On |
