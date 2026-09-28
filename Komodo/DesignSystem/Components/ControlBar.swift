@@ -53,7 +53,7 @@ struct ControlBar: View {
                 tile("+5 min", nil, kind: .danger, help: "Add 5 minutes", action: actions.addFive)
                 tile("+15 min", nil, kind: .danger, help: "Add 15 minutes", action: actions.addFifteen)
                 tile("Done", "checkmark", kind: .primary, help: "Done ⌘⌥F", action: actions.done)
-                tile("Next", nil, help: "Next task", action: actions.next)
+                tile("Next", "arrow.right", help: "Next task", action: actions.next)
             }
         }
     }
