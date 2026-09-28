@@ -25,6 +25,11 @@ struct FocusDialMetrics: Sendable {
         size: 236, ringRadius: 92, ringWidth: 10, majorTick: 12, minorTick: 7, comet: 14, haloInset: 26, haloBlur: 18,
         haloOpacity: 0.62
     )
+    /// The floating timer's 18 pt mini ring (DESIGN_SYSTEM §10.5): elapsed ÷ EST, nothing else.
+    static let pill = FocusDialMetrics(
+        size: 18, ringRadius: 7.75, ringWidth: 2.5, majorTick: 0, minorTick: 0, comet: 0, haloInset: 0, haloBlur: 0,
+        haloOpacity: 0
+    )
     /// The inspector's live header (Inspector.dc.html): the ring alone, no ticks, comet or halo.
     static let inspector = FocusDialMetrics(
         size: 46, ringRadius: 18, ringWidth: 5, majorTick: 0, minorTick: 0, comet: 0, haloInset: 0, haloBlur: 0,
