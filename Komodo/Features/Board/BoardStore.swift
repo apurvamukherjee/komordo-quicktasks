@@ -16,6 +16,9 @@ import SwiftUI
         var isDayWon = false
         /// Done was just pressed: the celebration plays before the next task starts (FEATURES §4.13).
         var celebration: Celebration?
+        var pomodoro = PomodoroCycle()
+        /// When the current stretch of work began, for the sprint; nil while nothing runs.
+        var sprintSince: Date?
     }
 
     /// What the celebration says: the result against the estimate and what comes next.
@@ -31,6 +34,13 @@ import SwiftUI
         case floatingTimer
     }
 
+    /// What the live card's big number counts with Pomodoros on: the task's estimate with the sprint as a chip,
+    /// or the sprint itself in pink (DESIGN_SYSTEM §10.2).
+    enum SprintDisplay: String, CaseIterable, Sendable {
+        case task
+        case sprint
+    }
+
     /// The screen edge the Focus Panel docks to.
     enum PanelSide: String, CaseIterable, Sendable {
         case left
@@ -42,9 +52,14 @@ import SwiftUI
     /// nil shows All lists.
     var selectedListID: String?
     private(set) var focus = Focus()
-    var isPomodoroOn = true
+    var isPomodoroOn = true {
+        didSet { syncSprint() }
+    }
     // Quick Settings (DESIGN_SYSTEM §13.8), in memory until Settings persist them.
-    var sprintLength: TimeInterval = 25 * 60
+    var sprintLength: TimeInterval = 25 * 60 {
+        didSet { syncSprint() }
+    }
+    var sprintDisplay = SprintDisplay.task
     /// Also the length of a break started by hand (FEATURES §4.11).
     var breakLength: TimeInterval = 5 * 60
     var panelSide = PanelSide.right
@@ -71,6 +86,8 @@ import SwiftUI
     let calendar: Calendar
     private let clock: () -> Date
     private let openURL: (URL) -> Void
+    /// Ends the running sprint on time and starts its break (FEATURES §4.10).
+    private var sprintEnd: Task<Void, Never>?
 
     init(
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
@@ -87,8 +104,10 @@ import SwiftUI
         if let live = tasks.first(where: { task in task.sessions.contains { $0.end == nil } }) {
             focus.taskID = live.id
             focus.flowStartedAt = max(0, live.timeTaken(at: clock()) - 25 * 60)
+            focus.sprintSince = clock()
         }
         expandRecurrences()
+        syncSprint()
     }
 
     // MARK: Derived
@@ -142,6 +161,11 @@ import SwiftUI
         let closed = task.sessions.filter { $0.end != nil }.reduce(0) { $0 + $1.duration(until: now) }
         let running = task.sessions.first { $0.end == nil }?.start.addingTimeInterval(-clockOffset)
         return FocusClock(accumulated: closed, runningSince: running)
+    }
+
+    /// The current sprint's clock on the wall clock, like `focusClock(for:)`.
+    var sprintClock: FocusClock {
+        focus.pomodoro.clock(runningSince: focus.sprintSince?.addingTimeInterval(-clockOffset))
     }
 
     /// The break's end on the wall clock, for the countdown's `TimelineView`.
@@ -552,6 +576,8 @@ import SwiftUI
             tasks[index].sessions.allSatisfy({ $0.end != nil })
         else { return }
         tasks[index].sessions.append(WorkSession(start: now))
+        focus.sprintSince = now
+        syncSprint()
     }
 
     private func closeSession(_ id: String) {
@@ -559,6 +585,33 @@ import SwiftUI
             let open = tasks[index].sessions.lastIndex(where: { $0.end == nil })
         else { return }
         tasks[index].sessions[open].end = now
+        if let since = focus.sprintSince {
+            focus.pomodoro.record(now.timeIntervalSince(since))
+            focus.sprintSince = nil
+        }
+        syncSprint()
+    }
+
+    /// Schedules the end of the running sprint, or cancels it when nothing runs or Pomodoros are off.
+    private func syncSprint() {
+        sprintEnd?.cancel()
+        sprintEnd = nil
+        guard isPomodoroOn, focus.taskID != nil, focus.breakEndsAt == nil, let since = focus.sprintSince else { return }
+        let remaining = focus.pomodoro.remaining(of: sprintLength, at: now, runningSince: since)
+        sprintEnd = Task { [weak self] in
+            guard (try? await Task.sleep(for: .seconds(remaining))) != nil else { return }
+            self?.endSprint()
+        }
+    }
+
+    /// The sprint ran its length: the task pauses and keeps its time, and a break starts. Nothing resumes on its
+    /// own afterwards (FEATURES §4.11).
+    private func endSprint() {
+        guard let id = focus.taskID, focus.sprintSince != nil else { return }
+        closeSession(id)
+        focus.pomodoro.finishSprint()
+        focus.breakEndsAt = now.addingTimeInterval(breakLength)
+        focus.breakLength = breakLength
     }
 
     private func column(_ bucket: Bucket) -> [TaskItem] {
