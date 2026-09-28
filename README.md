@@ -57,7 +57,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 
 - **Time has temperature.** Backlog is cold violet, This week is warm blue with a seven-day strip, and Today is hot, on its own stage.
 - **Plan in seconds.** Type `Write spec 45m` and the estimate is filled in. Drag cards between columns, or use Space, ⌥↑ and ⌥↓.
-- **Know when you'll be done.** Every queued task shows when it should start, and the day meter shows when the day ends.
+- **Know when you'll be done.** Every queued task shows when it should start, the day meter shows when the day ends, and the header tells you whether it all fits before your workday is over.
 - **One live task.** Start, pause, skip, take a break, or use the bolt on any card to switch. The dial and digits never drift, because time comes from the clock, not from counting ticks.
 
 ## The inspector
