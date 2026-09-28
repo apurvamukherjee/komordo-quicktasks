@@ -15,6 +15,9 @@ Nothing is released yet. Everything below is on `main`, grouped by milestone in 
   break starts when it reaches its length. The task keeps its time, and nothing resumes on its own.
 - **Sprint display** in Quick Settings: **Task** (default) keeps the estimate on the dial with a "Sprint 2 of 4"
   chip or bars; **Sprint** turns the live card pink and counts the sprint down, on the Board and in the panel.
+- **Alerts:** a sprint ending plays a sound and posts "Sprint 2 of 4 done" as its break starts; a break running
+  out posts "Break's over" · "Back to …?" with Resume. Sounds follow the Quick Settings switch.
+- The floating timer counts the sprint in pink in Sprint display.
 - `PomodoroCycle` in KomodoCore; Debug flags `-sprintDisplay sprint` and `-sprintSeconds`.
 
 ### Floating timer, celebrations, day summary and command palette — 2026-09-28
