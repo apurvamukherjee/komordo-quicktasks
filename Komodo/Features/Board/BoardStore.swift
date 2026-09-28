@@ -32,6 +32,8 @@ import SwiftUI
     var breakLength: TimeInterval = 5 * 60
     var panelSide = PanelSide.right
     var playsSounds = true
+    /// The Focus Panel is docked and the Home window is hidden (FEATURES §4.8).
+    var isFocusPanelOpen = false
     /// Filters cards by title, notes and subtasks until the command palette takes over search.
     var searchText = ""
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
@@ -396,10 +398,25 @@ import SwiftUI
 
     // MARK: Focus (FEATURES §4.8)
 
-    /// Makes the first eligible Today task live.
+    /// Makes the first eligible Today task live and docks the Focus Panel.
     func start() {
         guard focus.taskID == nil, let first = layout.upNext.first else { return }
         begin(first.id)
+        isFocusPanelOpen = true
+    }
+
+    /// Home: back to the Board, where Focus mode carries on in the Today stage.
+    func exitFocusPanel() { isFocusPanelOpen = false }
+
+    /// Done on the day summary: nothing is left to focus on, so Focus mode ends and Home comes back.
+    func closeDaySummary() {
+        focus.isDayWon = false
+        isFocusPanelOpen = false
+    }
+
+    /// The next task with a time today, once nothing else is left to run.
+    var nextScheduled: TaskItem? {
+        layout.upNext.isEmpty && focus.taskID == nil && !focus.isDayWon ? layout.scheduledToday.first : nil
     }
 
     /// The bolt: the current task pauses, keeps its time and goes back to the top of the queue.
@@ -435,7 +452,8 @@ import SwiftUI
         if let next = layout.upNext.first(where: { $0.id != id }) { begin(next.id) } else { begin(id) }
     }
 
-    /// Done: completes the live task and starts the next eligible one, or wins the day.
+    /// Done: completes the live task and starts the next eligible one. With only timed tasks left the panel
+    /// waits for them; with nothing left the day is won.
     func completeLive() {
         guard let id = focus.taskID, let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         closeSession(id)
@@ -444,7 +462,7 @@ import SwiftUI
         if let next = layout.upNext.first {
             begin(next.id)
         } else {
-            focus.isDayWon = true
+            focus.isDayWon = layout.scheduledToday.isEmpty
         }
     }
 
