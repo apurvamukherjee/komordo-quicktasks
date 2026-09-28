@@ -8,6 +8,44 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Quick add, Schedule popover and Repeat — 2026-09-28
+
+#### Added
+- **Schedule popover** from the card's hover row, ⋯ menu and right-click, and from the inspector's Schedule and
+  Repeat rows.
+  - **Step 1:** Today, Later today, Tomorrow and Next week above a Monday-first month. Today has a lime
+    ring, the pick is filled lime, days that already have something scheduled get a blue dot, and past days
+    can't be picked.
+  - **Step 2:** time, Repeat, a line saying what happens on the day, "Reminder at start time", Remove schedule
+    and Save, with an "In 5 days" or "Was: …" badge.
+  - Changing a repeat offers **Replace existing tasks**, and ending one offers **Delete existing tasks**.
+- **Repeat:** Every day, Every weekday, Weekly on …, Monthly on the …, and a **Custom repeat** sheet (every N
+  days, weeks, months or years, weekdays, and an end date), worded as on the canvas: "Every 2 weeks on Tue and
+  Thu, no end date."
+- **Card ⋯ menu:** Schedule · Subtasks · Notes · Duplicate · Move to list · Archive · Delete, on the hover row
+  and on right-click. Backlog cards get Schedule on hover.
+- **Card chips:** date, repeat, estimate and "Reminder on" together.
+- **Quick add panel (⌘⌥T):**
+  - a parsed-estimate chip, 15m / 30m / 1h presets, list and column pickers, and a "Creates …" footer;
+  - Return adds, ⌘Return adds and starts, Esc closes.
+- **⌘Z and Edit ▸ Undo** now reach the same restore as the Undo toast.
+- KomodoCore: `RepeatRule` (kinds, occurrences, summaries), `Recurrence` (this week's copies with fixed IDs
+  such as `review@2026-10-02`, never duplicated, and deleted copies stay gone), with 15 tests.
+- Debug launch flags `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES`, so these
+  surfaces can be captured without driving the pointer.
+
+#### Changed
+- `TaskItem` stores a real repeat rule and start day in place of the free-text repeat summary, plus
+  `remindsAtStart`.
+- **Performance:** the beam, halo, aurora, sheen and ping loop as Core Animation layer animations
+  (`LayerEffect`). With `TimelineView` they re-ran the view graph and the Board's layout 60 times a second.
+
+#### Not yet
+- Reminders are stored but don't fire until the notifications milestone.
+- Archive stays disabled until Trash lands.
+- This week's copies of a repeating task are made at launch and after schedule changes. Midnight and wake from
+  sleep come later.
+
 ### Task inspector — 2026-09-27
 
 #### Added
