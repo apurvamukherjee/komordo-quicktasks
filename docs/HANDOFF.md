@@ -17,7 +17,8 @@ Follow every rule in them. The most important ones:
   commits per task, each one building on its own. No co-author or tool trailers. Never push, I push.
 - Before rewriting any commit, run git fetch and make sure it isn't already on origin/main.
 - When a feature lands, update README.md in the same task with fresh screenshots and a recording captured
-  from the running app (steps in CONTRIBUTING.md). The README never mentions AI.
+  from the running app (steps in CONTRIBUTING.md). The README never mentions AI tools used to build Komodo;
+  Komodo's own AI features are showcased once they ship.
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
@@ -212,7 +213,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Start shortcut | Return (`.defaultAction`) | ⌘⇧B is "Open Komodo" (§14.1); FEATURES §4.8 says "⌘⇧B then Return" |
 | Violet, green, red badge glyphs | Nearest defined dark glyph | DESIGN_SYSTEM §2.4 only defines five |
 | Key cap label in the gallery | "SF Mono" | What ships; the canvas used Geist Mono as a stand-in |
-| README scope | No AI mentions, including the product's AI features | The user's rule; the README only showcases shipped work |
+| README scope | No mention of AI tools used to build Komodo; Komodo's own AI features are showcased once they ship | The maintainer's rule, narrowed on 2026-09-28; the README only showcases shipped work |
 | App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717` |
 | Schedule calendar | Custom Monday-first month grid | `Schedule.png` wins on pixels; the native graphical `DatePicker` was small and followed the locale's first weekday |
 | Schedule time field | `TimeField`: clock icon, digits and stepper in a 116 pt Komodo field, plus ✕ to remove the time | Matches `Schedule.png`. It wraps an unbezeled `NSDatePicker` to keep typing and arrow keys. The ✕ stays because a time must be removable (FEATURES §4.6) |
@@ -326,6 +327,4 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **README and AI features:** the maintainer answered "keep the AI features", which conflicts with CLAUDE.md
-   ("The README never mentions AI features"). Confirm whether shipped AI features (Claude mode, Assistant, Local
-   MCP) go in the README, and update CLAUDE.md to match. Nothing to add until they're built.
+None right now.
