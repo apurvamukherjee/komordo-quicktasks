@@ -24,10 +24,11 @@ Follow every rule in them. The most important ones:
 
 Then continue from docs/HANDOFF.md §4 "Next task": Settings and the system surfaces (menu bar extra, global
 shortcuts, notifications) to match design/previews/Settings.png and System.png and their design/screens/*.dc.html
-(DESIGN_SYSTEM §14), with the behavior from FEATURES §4.12, §4.17 and §4.18. Keep using the in-memory BoardStore
-and sample data. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
+(DESIGN_SYSTEM §14), with the behavior from FEATURES §4.12, §4.17 and §4.18. Settings persist through the
+store's preferences (AppDatabase); captures use the in-memory sample day. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
-PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask before adding any dependency (bundle cost plus one alternative).
+PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
+before adding any dependency (bundle cost plus one alternative).
 ```
 
 ---
@@ -48,7 +49,7 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5d | Focus Panel + FocusStates | ✅ | Checked against `FocusPanel.png` and `FocusStates.png`; see §5 for what's left |
 | 5e | Floating timer, Celebration, Day summary, Command palette | ✅ | Checked against `FloatingTimer.png`, `Celebration.png` and `CommandPalette.png`; see §5 |
 | 5f | **Settings, System surfaces**, then Gmail → Calendar, Data & backup, Onboarding | ⏭ **Next** | See §4. ARCHITECTURE puts Settings and Gmail in Phase 0a |
-| — | Persistence (SQLite with GRDB) | ⬜ | GRDB approved (§6: bundle cost and the alternative). Not started |
+| — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 The remaining screen prompts from DESIGN_HANDOFF §6 step 5, in order: Inspector → Quick add → Schedule → Focus
 Panel (plus FocusStates) → Floating timer → Celebration → Palette → Settings → Gmail → the rest.
@@ -82,6 +83,7 @@ scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar tem
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
   Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory, TaskSearch, CelebrationCopy
+  Storage/            AppDatabase (GRDB: v1 migration, load, write-through, preferences), BoardChange (the diff)
   Timer/              FocusClock, TimerFormat
   Formatting/         DurationFormat
   Parsing/            EstimateParser
@@ -98,6 +100,9 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   `BoardStore` only stores lists, tasks, the selected list and the Focus state.
 - **Live clock:** it comes from the live task's sessions (an open session means running). `FocusClock` is
   rebuilt from them on every read, so nothing counts ticks.
+- **Persistence:** `BoardStore.persistent()` opens `Application Support/Komodo/Komodo.sqlite`. `tasks` and
+  `lists` write through in their `didSet` via `BoardChange`, and the settings save as preferences. Only the
+  launch path touches the file; previews and the Debug sample flags pass no database.
 - **Sample clock:** `BoardStore` takes a `clock`. With `-sampleTime artboard` the store's day is anchored
   to Sat Sep 26, 2:14 PM and keeps moving. `clockOffset` converts back to wall-clock time for any
   `TimelineView`. When the database lands, the clock becomes `Date.init` and the offset becomes zero.
@@ -138,7 +143,13 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ## 5. Known gaps and placeholders
 
-- **No persistence:** everything is in memory (`BoardSamples`). Nothing survives a relaunch.
+- **Persistence:**
+  - The live Focus state (the running task, the Pomodoro cycle, a break in progress) isn't restored after a
+    relaunch; quitting pauses the running task instead. The heartbeat and crash recovery in ARCHITECTURE §4.3
+    aren't built, so a crash leaves the session open until the next launch counts it.
+  - No `ValueObservation`: nothing else writes the file yet. Add it when the MCP helper or backup restore lands.
+  - The selected list and panel positions aren't saved; Trash (`deleted_at`) isn't in the schema yet.
+  - Backups (`VACUUM INTO`) come with Data & backup.
 - **Disabled until their milestones:**
   - Reports, Trash and Settings (sidebar)
   - Create list (sidebar **+**)
@@ -199,6 +210,9 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
 | Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
+| Schema v1 | Mirrors the models: a repeat rule is a JSON column, ranks are REAL, estimates are seconds, instants are seconds since 1970 | Keeps the mapping lossless; ARCHITECTURE §5's `recurrences` table and text ranks can come with a later migration if needed |
+| First launch | One list, "Personal" | Something to add tasks to until onboarding asks for lists |
+| Storage errors | Logged, plus a toast: "Couldn't save your changes" / "Couldn't open your tasks" | Never lose work silently; no spec copy for it |
 | Persistence | GRDB approved by the maintainer | Adds roughly 2–4 MB to the app (to be measured when it lands). Alternative: the system SQLite C API through `import SQLite3`, which costs nothing but needs hand-written statements, migrations and observation |
 | Pomodoros default | On | The maintainer's call, matching `Main.png` and `FocusPanel.png`; FEATURES §4.18 now says On |
 | Sprint-end notification | "Sprint 2 of 4 done" · "Take 5min. Design review is paused." | DESIGN_SYSTEM §14.2 has no sprint-end row; FEATURES §4.10 asks for one |
