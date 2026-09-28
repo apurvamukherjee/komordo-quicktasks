@@ -58,16 +58,18 @@ struct BoardToolbar: View {
             .frame(maxWidth: 440)
             Spacer(minLength: Space.s3)
             if store.isPomodoroOn {
-                Label("Pomodoro 25 / 5", systemImage: "timer")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Palette.pinkText)
-                    .padding(.horizontal, Space.s3)
-                    .frame(height: 34)
-                    .background(Palette.pink.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.control))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.control).strokeBorder(Palette.pink.opacity(0.22))
-                    )
-                    .fixedSize()
+                Label(
+                    "Pomodoro \(Int(store.sprintLength / 60)) / \(Int(store.breakLength / 60))", systemImage: "timer"
+                )
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Palette.pinkText)
+                .padding(.horizontal, Space.s3)
+                .frame(height: 34)
+                .background(Palette.pink.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.control))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.control).strokeBorder(Palette.pink.opacity(0.22))
+                )
+                .fixedSize()
             }
             Button {
             } label: {

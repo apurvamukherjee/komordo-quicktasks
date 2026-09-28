@@ -14,7 +14,11 @@ import SwiftUI
         var isDayWon = false
     }
 
-    static let breakLength: TimeInterval = 5 * 60
+    /// The screen edge the Focus Panel docks to.
+    enum PanelSide: String, CaseIterable, Sendable {
+        case left
+        case right
+    }
 
     var lists: [TaskList]
     private(set) var tasks: [TaskItem]
@@ -22,6 +26,12 @@ import SwiftUI
     var selectedListID: String?
     private(set) var focus = Focus()
     var isPomodoroOn = true
+    // Quick Settings (DESIGN_SYSTEM §13.8), in memory until Settings persist them.
+    var sprintLength: TimeInterval = 25 * 60
+    /// Also the length of a break started by hand (FEATURES §4.11).
+    var breakLength: TimeInterval = 5 * 60
+    var panelSide = PanelSide.right
+    var playsSounds = true
     /// Filters cards by title, notes and subtasks until the command palette takes over search.
     var searchText = ""
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
@@ -447,7 +457,7 @@ import SwiftUI
     func takeBreak() {
         guard let id = focus.taskID else { return }
         closeSession(id)
-        focus.breakEndsAt = now.addingTimeInterval(Self.breakLength)
+        focus.breakEndsAt = now.addingTimeInterval(breakLength)
     }
 
     func extendBreak(by seconds: TimeInterval) {
