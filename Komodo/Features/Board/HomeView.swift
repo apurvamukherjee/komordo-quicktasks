@@ -32,7 +32,7 @@ struct HomeView: View {
     }
 
     /// Keys with no visible button: ⌘↑ / ⌘↓ step through tasks in the inspector (DESIGN_SYSTEM §13.5), ⌘⌥N opens
-    /// the live task's notes (FEATURES §4.5), and ⌘⌥T opens quick add (§13.4).
+    /// the live task's notes (FEATURES §4.5), ⌘⌥T opens quick add (§13.4), and ⌘F opens the palette (§13.7).
     private var shortcuts: some View {
         Group {
             Button("Previous task") { store.inspectAdjacent(-1) }
@@ -46,6 +46,8 @@ struct HomeView: View {
                 .disabled(store.liveTask == nil)
             Button("Quick add") { store.isQuickAddOpen = true }
                 .keyboardShortcut("t", modifiers: [.command, .option])
+            Button("Search") { store.isPaletteOpen = true }
+                .keyboardShortcut("f", modifiers: .command)
         }
         .hidden()
     }

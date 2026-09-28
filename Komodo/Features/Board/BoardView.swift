@@ -38,7 +38,22 @@ struct BoardView: View {
                     .transition(.opacity.combined(with: .offset(y: -8)))
             }
         }
+        .overlay(alignment: .top) {
+            if store.isPaletteOpen {
+                ZStack(alignment: .top) {
+                    // The canvas dims the window behind the sheet; a click there closes it.
+                    Color.black.opacity(0.45)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                        .onTapGesture { store.isPaletteOpen = false }
+                    CommandPalette(store: store) { store.isPaletteOpen = false }
+                        .padding(.top, 36)
+                }
+                .transition(.opacity)
+            }
+        }
         .animation(Motion.base, value: store.isQuickAddOpen)
+        .animation(Motion.base, value: store.isPaletteOpen)
         .toastOverlay(store.toasts)
     }
 }
@@ -49,13 +64,8 @@ struct BoardToolbar: View {
     var body: some View {
         HStack(spacing: Space.s3) {
             listPicker
-            KomodoTextField(
-                placeholder: "Search tasks, notes, subtasks…", text: $store.searchText, variant: .search,
-                density: .toolbar
-            ) {
-                KeyCap("⌘F")
-            }
-            .frame(maxWidth: 440)
+            searchButton
+                .frame(maxWidth: 440)
             Spacer(minLength: Space.s3)
             if store.isPomodoroOn {
                 Label(
@@ -97,6 +107,33 @@ struct BoardToolbar: View {
     private var startHelp: String {
         if store.isFocusing { return "Focus mode is on" }
         return store.layout.upNext.isEmpty ? "Add a task to Today" : "Start ↵"
+    }
+
+    /// Looks like the search field it replaced, and opens the palette (DESIGN_SYSTEM §13.7).
+    private var searchButton: some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
+        return Button {
+            store.isPaletteOpen = true
+        } label: {
+            HStack(spacing: 9) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Palette.textMuted)
+                Text("Search tasks, notes, subtasks…")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.textMuted)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                KeyCap("⌘F")
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            .background(Color.white.opacity(0.04), in: shape)
+            .overlay(shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+        .help("Search ⌘F")
     }
 
     private var listPicker: some View {

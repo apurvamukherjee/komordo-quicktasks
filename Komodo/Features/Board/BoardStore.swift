@@ -53,8 +53,8 @@ import SwiftUI
     var focusSurface: FocusSurface?
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
     private(set) var locatorPings = 0
-    /// Filters cards by title, notes and subtasks until the command palette takes over search.
-    var searchText = ""
+    /// ⌘F's search and command palette (DESIGN_SYSTEM §13.7).
+    var isPaletteOpen = false
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
     var inspectedTaskID: String?
     /// The card showing the Schedule popover, whether it was opened from the hover row, ⋯ or right-click.
@@ -97,16 +97,7 @@ import SwiftUI
     var today: LocalDate { LocalDate(now, calendar: calendar) }
     var week: WeekRange { WeekRange(containing: today, calendar: calendar) }
     var layout: BoardLayout {
-        BoardLayout(tasks: visibleTasks, listID: selectedListID, week: week, calendar: calendar)
-    }
-
-    private var visibleTasks: [TaskItem] {
-        let query = searchText.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return tasks }
-        return tasks.filter { task in
-            task.title.localizedStandardContains(query) || (task.notes ?? "").localizedStandardContains(query)
-                || task.subtasks.contains { $0.title.localizedStandardContains(query) }
-        }
+        BoardLayout(tasks: tasks, listID: selectedListID, week: week, calendar: calendar)
     }
 
     func showList(_ id: String?) {
@@ -422,6 +413,12 @@ import SwiftUI
         guard focus.taskID == nil, let first = layout.upNext.first else { return }
         begin(first.id)
         focusSurface = .panel
+    }
+
+    /// The palette's ⌘↵: this task goes live now, and Focus mode opens if it wasn't already on.
+    func startNow(_ id: String) {
+        makeLive(id)
+        if focusSurface == nil { focusSurface = .panel }
     }
 
     /// Home: back to the Board, where Focus mode carries on in the Today stage.

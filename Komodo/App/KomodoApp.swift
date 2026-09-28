@@ -41,6 +41,7 @@ struct KomodoApp: App {
 /// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
 ///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
 ///   Custom repeat sheet.
+/// - `-openPalette "design rev"` opens the command palette with a query.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
 enum LaunchOptions {
@@ -50,6 +51,7 @@ enum LaunchOptions {
             store.schedulingTaskID = defaults.string(forKey: "openSchedule")
             store.inspectedTaskID = defaults.string(forKey: "openInspector")
             store.isQuickAddOpen = defaults.bool(forKey: "openQuickAdd")
+            store.isPaletteOpen = paletteQuery != nil
             if let state = defaults.string(forKey: "focusState") { apply(state, to: store) }
             // The sample day already has a live task, so the panel opens on it rather than through Start.
             if defaults.bool(forKey: "openFocusPanel") { store.focusSurface = .panel }
@@ -94,6 +96,15 @@ enum LaunchOptions {
             UserDefaults.standard.bool(forKey: "quietCapture")
         #else
             false
+        #endif
+    }
+
+    /// `-openPalette <query>`: the command palette opens with this typed, `>` for commands.
+    static var paletteQuery: String? {
+        #if DEBUG
+            UserDefaults.standard.string(forKey: "openPalette")
+        #else
+            nil
         #endif
     }
 
