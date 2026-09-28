@@ -42,7 +42,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
 | 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
-| ⏱️ | **Focus mode** | Work top-down through Today with a live focus dial, Pomodoro sprints, breaks and a docked Focus Panel | 🚧 In development |
+| ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available · Pomodoro sprint timing is next |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, and expands on hover | 🚧 In development |
 | 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | 🚧 In development |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
@@ -83,6 +83,21 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Two steps to schedule.** Pick a day, then add a time and a repeat. Komodo tells you exactly what will happen on that day.
 - **Repeats that behave.** Every day, weekdays, weekly, monthly, or a custom rule like "Every 2 weeks on Tue and Thu". Change a rule and choose whether this week's copies are replaced.
 - **Quick add with ⌘⌥T.** Type `Write launch email 45m`, pick the list and column, and press Return, or ⌘Return to start it straight away.
+
+## Focus mode
+
+<table>
+  <tr>
+    <td width="30%"><img src="docs/media/focus-panel.png" alt="The Focus Panel: day progress, the live task on a large glowing dial with Break, Notes, Pause, Skip and Done, then Up next, Scheduled today and Done"></td>
+    <td width="70%"><img src="docs/media/focus-states.png" alt="Focus Panel states: paused in grey, Time's Up in red with +5 and +15 min, a green breathing break, a calm card when only timed tasks are left, and You won the day"></td>
+  </tr>
+</table>
+
+- **One press to focus.** Start docks the Focus Panel to the edge of your screen and steps the Board aside. Home brings it back, with the task still running.
+- **Every state at a glance.** The dial glows lime while you work, turns grey when paused and red with a shake when the estimate runs out, with +5 and +15 min one click away.
+- **Breaks that breathe.** A green circle breathes four seconds in and four out while the break counts down. Nothing restarts until you say so.
+- **The queue stays yours.** Add a task, finish one, or bolt any task live from the panel. When only timed tasks are left it waits calmly, and when the queue is clear you've won the day.
+- **Quick Settings.** Sprint and break lengths, the panel's side and sounds, from the gear.
 
 ## The design system
 
@@ -154,7 +169,8 @@ open Komodo.app --args -sampleTime artboard
 - [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue (in-memory for now)
 - [x] Inspector, scheduling and repeats, and the Quick add panel
 - [ ] Saving to SQLite
-- [ ] Focus Panel, floating timer, celebrations, day summary, command palette
+- [x] Focus Panel and its states
+- [ ] Floating timer, celebrations, day summary, command palette
 - [ ] Reports and Trash
 
 ## Contributing
