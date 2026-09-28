@@ -170,13 +170,15 @@ struct FocusScheduledCard: View {
     }
 }
 
-/// The end of the queue (FocusStates ⑦): "You won the day." with tasks done, time focused and how the estimates
-/// held up. The streak and the unfinished tasks are P1 and arrive with the Day summary (DESIGN_SYSTEM §13.11).
+/// The end of the queue (FocusStates ⑦, DESIGN_SYSTEM §13.11): "You won the day." with tasks done, time focused,
+/// how the estimates held up and the streak. Moving unfinished tasks is the P1 end-of-day review (FEATURES §6.4).
 struct FocusWonCard: View {
     var date: Date
     var done: Int
     var focused: TimeInterval
     var summary: DaySummary
+    /// Consecutive days with a task done, today included.
+    var streak: Int
     var onDone: () -> Void
 
     var body: some View {
@@ -210,6 +212,14 @@ struct FocusWonCard: View {
                     tint: SpotlightTint.today, isHighlighted: true)
             }
             if summary.measured > 0 { accuracy }
+            if streak > 0 {
+                HStack(spacing: 7) {
+                    Image(systemName: "flame.fill").font(.system(size: 13)).foregroundStyle(Palette.amber)
+                    Text("\(streak)-day").bold().foregroundStyle(Palette.textPrimary) + Text(" streak")
+                }
+                .font(.system(size: 12.5))
+                .foregroundStyle(Palette.textTertiary)
+            }
             HStack(spacing: Space.s2) {
                 Button {
                 } label: {
@@ -517,7 +527,7 @@ private final class OrbitLayerView: EffectLayerView {
                 endsAt: .now.addingTimeInterval(252), length: 300, upNext: "Design review prep with Apurva",
                 onSkip: {}, onAddTwoMinutes: {})
             FocusScheduledCard(title: "Wireframes", time: "11:00 AM", onStartEarly: {})
-            FocusWonCard(date: .now, done: 7, focused: 20_400, summary: sampleSummary, onDone: {})
+            FocusWonCard(date: .now, done: 7, focused: 20_400, summary: sampleSummary, streak: 4, onDone: {})
         }
         .frame(width: 3 * 312 + 2 * Space.s5)
         .padding(Space.s6)
