@@ -38,7 +38,9 @@ private struct FocusHeroContent: View {
                 .lineLimit(1)
                 .padding(.top, Space.s3)
             chips.padding(.top, 9)
+            // WeightedHStack fills a concrete height, and outside a scroll view the panel offers one.
             ControlBar(mode: ControlBar.Mode(tone: tone), actions: actions, tileHeight: 54)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 14)
         }
         .padding(.horizontal, 14)

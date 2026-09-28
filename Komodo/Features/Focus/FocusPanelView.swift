@@ -51,22 +51,26 @@ struct FocusPanelView: View {
                 .font(.system(size: 17, weight: .heavy))
                 .tracking(-0.34)
                 .foregroundStyle(Palette.textPrimary)
+                .fixedSize()
                 .padding(.leading, 2)
             FocusModeChip(store: store)
             Spacer(minLength: 0)
-            Button("Quick Settings", systemImage: "gearshape") { isShowingSettings.toggle() }
-                .buttonStyle(.icon(isToggled: isShowingSettings))
-                .help("Quick Settings")
-                .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
-                    QuickSettingsView(store: store)
-                }
-            Button("Exit Focus mode", systemImage: "house", action: store.exitFocusPanel)
-                .buttonStyle(.icon())
-                .help("Exit Focus mode (Home)")
-            Button("Collapse to floating timer", systemImage: "pip.enter") {}
-                .buttonStyle(.icon())
-                .disabled(true)
-                .help("The floating timer arrives in the next milestone")
+            // The icons touch, as their 30 pt hit areas already space them; the list name gets the room.
+            HStack(spacing: 0) {
+                Button("Quick Settings", systemImage: "gearshape") { isShowingSettings.toggle() }
+                    .buttonStyle(.icon(isToggled: isShowingSettings))
+                    .help("Quick Settings")
+                    .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
+                        QuickSettingsView(store: store)
+                    }
+                Button("Exit Focus mode", systemImage: "house", action: store.exitFocusPanel)
+                    .buttonStyle(.icon())
+                    .help("Exit Focus mode (Home)")
+                Button("Collapse to floating timer", systemImage: "pip.enter") {}
+                    .buttonStyle(.icon())
+                    .disabled(true)
+                    .help("The floating timer arrives in the next milestone")
+            }
         }
         .padding(.leading, 14)
         .padding(.trailing, Space.s3)
