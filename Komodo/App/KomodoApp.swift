@@ -10,6 +10,7 @@ struct KomodoApp: App {
         Window("Komodo", id: "home") {
             HomeView(store: store)
                 .frame(minWidth: Layout.homeMin.width, minHeight: Layout.homeMin.height)
+                .onAppear { appDelegate.focusPanel.attach(store) }
                 #if DEBUG
                     .openGalleryOnLaunchIfRequested()
                 #endif
@@ -39,14 +40,54 @@ struct KomodoApp: App {
 /// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
 ///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
 ///   Custom repeat sheet.
+/// - `-openFocusPanel YES` docks the Focus Panel, and `-focusState paused|timesUp|break|scheduled|won` puts it
+///   in one of its states (FocusStates.png).
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG
-            store.schedulingTaskID = UserDefaults.standard.string(forKey: "openSchedule")
-            store.inspectedTaskID = UserDefaults.standard.string(forKey: "openInspector")
-            store.isQuickAddOpen = UserDefaults.standard.bool(forKey: "openQuickAdd")
+            let defaults = UserDefaults.standard
+            store.schedulingTaskID = defaults.string(forKey: "openSchedule")
+            store.inspectedTaskID = defaults.string(forKey: "openInspector")
+            store.isQuickAddOpen = defaults.bool(forKey: "openQuickAdd")
+            if let state = defaults.string(forKey: "focusState") { apply(state, to: store) }
+            // The sample day already has a live task, so the panel opens on it rather than through Start.
+            store.isFocusPanelOpen = defaults.bool(forKey: "openFocusPanel")
         #endif
         return store
+    }
+
+    #if DEBUG
+        /// Drives the sample day into a Focus state through the same intents the controls use.
+        @MainActor private static func apply(_ state: String, to store: BoardStore) {
+            switch state {
+            case "paused":
+                store.togglePause()
+            case "timesUp":
+                // Straight to the task, since the inspector's setter locks a running estimate.
+                if let live = store.liveTask {
+                    store.update(live.id) { $0.estimate = max(60, live.timeTaken(at: store.now) - 134) }
+                }
+            case "break":
+                store.takeBreak()
+            case "scheduled", "won":
+                if state == "won" {
+                    for task in store.layout.scheduledToday { store.toggleDone(task.id) }
+                }
+                while store.focus.taskID != nil { store.completeLive() }
+            default:
+                break
+            }
+        }
+    #endif
+
+    /// `-quietCapture YES`: the Focus Panel opens behind other apps at normal level, so a background capture
+    /// doesn't cover the screen of whoever is using the Mac.
+    static var capturesQuietly: Bool {
+        #if DEBUG
+            UserDefaults.standard.bool(forKey: "quietCapture")
+        #else
+            false
+        #endif
     }
 
     static var opensCustomRepeat: Bool {
