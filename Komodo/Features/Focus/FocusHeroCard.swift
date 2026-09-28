@@ -2,8 +2,8 @@ import KomodoCore
 import SwiftUI
 
 /// The Focus Panel's live task (DESIGN_SYSTEM §13.8, FocusPanel.dc.html): the 236 pt dial with the countdown on
-/// its face, the title, Flow and links chips, and the control bar. Paused and Time's Up come from the clock, as
-/// on the Board's live card.
+/// its face, the title, Flow, sprint and links chips, and the control bar. Paused and Time's Up come from the
+/// clock, as on the Board's live card; in Sprint display the dial counts the sprint in pink (FocusStates ④).
 struct FocusHeroCard: View {
     var model: LiveTaskModel
     var clock: FocusClock
@@ -12,7 +12,7 @@ struct FocusHeroCard: View {
     var body: some View {
         // A paused clock doesn't change, so there's nothing to redraw each second.
         TimelineView(.periodic(from: clock.runningSince ?? .now, by: clock.isRunning ? 1 : 3600)) { context in
-            FocusHeroContent(model: model, clock: clock, elapsed: clock.elapsed(at: context.date), actions: actions)
+            FocusHeroContent(model: model, clock: clock, date: context.date, actions: actions)
         }
     }
 }
@@ -20,8 +20,11 @@ struct FocusHeroCard: View {
 private struct FocusHeroContent: View {
     var model: LiveTaskModel
     var clock: FocusClock
-    var elapsed: TimeInterval
+    var date: Date
     var actions: ControlBarActions
+
+    private var elapsed: TimeInterval { clock.elapsed(at: date) }
+    private var heroSprint: LiveTaskModel.Sprint? { model.sprint.flatMap { $0.isHero ? $0 : nil } }
 
     private var tone: TimerTone {
         TimerTone(
@@ -31,14 +34,20 @@ private struct FocusHeroContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            FocusDial(clock: clock, estimate: model.estimate, tone: tone, metrics: .panel) { _ in face }
+            FocusDial(
+                clock: heroSprint?.clock ?? clock, estimate: heroSprint?.length ?? model.estimate, tone: tone,
+                metrics: .panel
+            ) { _ in face }
             Text(model.title)
                 .font(.system(size: 17, weight: .bold))
                 .tracking(-0.26)
                 .foregroundStyle(Palette.textPrimary)
                 .lineLimit(1)
                 .padding(.top, Space.s3)
-            chips.padding(.top, 9)
+            Group {
+                if let sprint = heroSprint, tone == .sprint { sprintBars(sprint) } else { chips }
+            }
+            .padding(.top, 9)
             // WeightedHStack fills a concrete height, and outside a scroll view the panel offers one.
             ControlBar(mode: ControlBar.Mode(tone: tone), actions: actions, tileHeight: 54)
                 .fixedSize(horizontal: false, vertical: true)
@@ -57,7 +66,11 @@ private struct FocusHeroContent: View {
     private var face: some View {
         VStack(spacing: 6) {
             StatusPill(tone: tone, sprint: model.sprint, height: 22)
-            let text = TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed)
+            // Past the estimate, Time's Up counts the task's overtime even in Sprint display.
+            let sprint = tone == .timesUp ? nil : heroSprint
+            let text =
+                sprint.map { TimerFormat.remaining(estimate: $0.length, elapsed: $0.elapsed(at: date)) }
+                ?? TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed)
             // Hours don't fit the face at full size, so the canvas drops to 38 pt past an hour.
             LiveDigits(
                 tone: tone, text: text,
@@ -67,7 +80,7 @@ private struct FocusHeroContent: View {
                 Text(caption)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(tone == .timesUp ? Palette.redText : Palette.textTertiary)
-                Text("\(TimerFormat.clock(Int(elapsed))) elapsed")
+                Text("\(TimerFormat.clock(Int(elapsed))) \(heroSprint == nil ? "elapsed" : "on task")")
                     .font(.system(size: 10.5, design: .monospaced))
                     .foregroundStyle(Palette.textMuted)
             }
@@ -87,7 +100,58 @@ private struct FocusHeroContent: View {
 
     private var caption: String {
         let estimate = DurationFormat.short(model.estimate)
-        return tone == .timesUp ? "over the \(estimate) estimate" : "left of \(estimate)"
+        if tone == .timesUp { return "over the \(estimate) estimate" }
+        if let sprint = heroSprint { return "left of \(sprint.lengthLabel) sprint" }
+        return "left of \(estimate)"
+    }
+
+    /// Sprint display: four pink capsules filling with the sprints, and "Sprint 2 of 4 · 25:00 sprint".
+    private func sprintBars(_ sprint: LiveTaskModel.Sprint) -> some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 5) {
+                ForEach(1...sprint.count, id: \.self) { index in
+                    let fill = index < sprint.number ? 1 : index == sprint.number ? sprint.progress(at: date) : 0
+                    Capsule()
+                        .fill(Color.white.opacity(0.1))
+                        .overlay(alignment: .leading) {
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Palette.pink, Palette.pinkText], startPoint: .leading,
+                                        endPoint: .trailing)
+                                )
+                                .frame(width: 34 * fill)
+                                .shadow(color: Palette.pink.opacity(0.8), radius: 5)
+                        }
+                        .frame(width: 34, height: 8)
+                }
+            }
+            Text("Sprint \(sprint.number) of \(sprint.count) · \(sprint.lengthLabel) sprint")
+                .font(.system(size: 11.5, weight: .semibold))
+                .foregroundStyle(Palette.pinkText)
+                .lineLimit(1)
+        }
+        .frame(height: 22)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Task display with Pomodoros on (FocusPanel.png): four dots, done ones lime, and "Sprint 2 of 4".
+    private func sprintChip(_ sprint: LiveTaskModel.Sprint) -> some View {
+        HStack(spacing: 4) {
+            HStack(spacing: 3) {
+                ForEach(1...sprint.count, id: \.self) { index in
+                    Circle()
+                        .fill(index <= sprint.number ? Palette.lime : Color.white.opacity(0.18))
+                        .opacity(index == sprint.number ? 0.7 : 1)
+                        .frame(width: 6, height: 6)
+                        .shadow(color: index < sprint.number ? Palette.lime.opacity(0.8) : .clear, radius: 3)
+                }
+            }
+            Text("Sprint \(sprint.number) of \(sprint.count)")
+        }
+        .foregroundStyle(Palette.textTertiary)
+        .panelChip(tint: nil)
+        .help("Pomodoro sprint \(sprint.number) of \(sprint.count)")
     }
 
     private var chips: some View {
@@ -100,6 +164,7 @@ private struct FocusHeroContent: View {
                 .foregroundStyle(Palette.amberText)
                 .panelChip(tint: Palette.amber)
             }
+            if let sprint = model.sprint, !sprint.isHero { sprintChip(sprint) }
             if model.linksOpened > 0 {
                 Label(
                     model.linksOpened == 1 ? "1 link opened" : "\(model.linksOpened) links opened",
