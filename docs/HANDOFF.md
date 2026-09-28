@@ -26,8 +26,7 @@ shortcuts, notifications) to match design/previews/Settings.png and System.png a
 (DESIGN_SYSTEM §14), with the behavior from FEATURES §4.12, §4.17 and §4.18. Keep using the in-memory BoardStore
 and sample data. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
-PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions before
-building Pomodoro sprints, and ask before adding any dependency (bundle cost plus one alternative).
+PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask before adding any dependency (bundle cost plus one alternative).
 ```
 
 ---
@@ -164,9 +163,9 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Command palette:** the dim covers the Board, not the sidebar. Backup, Gmail and Settings show dimmed.
   Keyboard navigation and ⌘F weren't tried with real keystrokes; each state was opened with `-openPalette`.
 - **Day summary:** unfinished tasks with Tomorrow / This week are the P1 end-of-day review (FEATURES §6.4).
-- **Pomodoro sprints:** the Quick Settings switch and lengths are stored, and the break length drives hand
-  breaks, but no sprint counts down and no break starts on its own. The pink Sprint state and the sprint chip
-  wait for §9's first question.
+- **Pomodoro sprints:** no sound or notification when a sprint ends (notifications milestone). The floating timer
+  always shows the task's time, whatever the Sprint display. Pomodoros default to On, where FEATURES §4.18 says
+  Off (§9).
 - **Sounds:** the Quick Settings switch is stored; nothing plays yet.
 - **Focus Panel:**
   - The Scheduled today **+** is disabled with a `.help` note.
@@ -197,7 +196,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | --- | --- | --- |
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
-| Sprint state | Pink "SPRINT 2 OF 4" pill and beam | DESIGN_SYSTEM §10.2. `Main.png` shows sprint dots under a lime LIVE pill; the Board passes no sprint, so it stays lime. **Ask the user** |
+| Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
+| Sprint timing | Work across tasks counts toward one sprint; only a full sprint moves the count; a hand break resumes it | FEATURES §4.10–4.11 leave it open; this matches a classic Pomodoro |
 | Single-list badges | Every card in "Work" shows W | `Main.png` mixes S/P/L badges into the Work list; the spec filters to one list |
 | Dated tasks in This week | At the bottom | FEATURES §4.2 |
 | "fits your day with … to spare" | Omitted | Needs a workday-end setting that no spec defines. **Ask the user** |
@@ -223,7 +223,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Won tiles | `5h 40m` (`DurationFormat.compact`) | The canvas's copy; `5hr 40min` overflows the tile |
 | Panel Done row | The shared `DoneSectionButton` (44 pt, expands) | Same component as the Board; the canvas draws 40 pt with a right chevron |
 | Break buttons | 40 pt large buttons | The house button heights; the canvas draws 42 pt |
-| Panel sprint chip | Not shown | Same open question as the Board (§9) |
+| Panel sprint chip | Shown in Task display; the links chip gives way at 340 pt | FocusPanel.png at 380 pt fits all three |
 | Floating timer window | Fixed transparent frame, pill at the leading edge; a separate window for the celebration | Hover controls grow right without resizing; the card goes above the pill, or below near the top of the screen |
 | Floating timer drag | A drag gesture on the pill | "Movable by background" would turn its buttons into drag handles |
 | Floating timer glass | `.ultraThinMaterial` under white 10% at 84% | DESIGN_SYSTEM §10.5; the canvas uses 62% with a heavier blur |
@@ -320,8 +320,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **Sprint tone on the Board:** pink sprint pill and beam (DESIGN_SYSTEM §10.2), or lime LIVE with sprint dots
-   (`Main.png`)?
+1. **Pomodoro default:** FEATURES §4.18 says Pomodoros start Off; the app starts them On (the Board shows the
+   "Pomodoro 25 / 5" pill). Which? (The sprint tone is answered: a Sprint display choice, Task by default.)
 2. **Workday end:** should Komodo have a workday-end setting, so the header can say "fits your day with …
    to spare"?
 3. **Persistence:** OK to add GRDB (ARCHITECTURE §2)? Its bundle cost and one alternative need recording before
