@@ -71,16 +71,15 @@ struct BoardToolbar: View {
                 )
                 .fixedSize()
             }
-            Button {
-            } label: {
+            Button(action: store.toggleFloatingTimer) {
                 HStack(spacing: 7) {
                     Image(systemName: "pip.enter")
                     Text("⌘⇧T").font(.system(size: 10.5, design: .monospaced)).foregroundStyle(Palette.textMuted)
                 }
             }
             .buttonStyle(.komodo(.secondary))
-            .disabled(true)
-            .help("The floating timer arrives in the next milestone")
+            .disabled(!store.isFocusing)
+            .help(store.isFocusing ? "Floating timer ⌘⇧T" : "Start Focus mode to use the floating timer")
             Button("Start", systemImage: "play.fill", action: store.start)
                 .buttonStyle(.komodo(.primary))
                 .disabled(!canStart)

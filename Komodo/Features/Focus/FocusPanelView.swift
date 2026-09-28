@@ -66,10 +66,9 @@ struct FocusPanelView: View {
                 Button("Exit Focus mode", systemImage: "house", action: store.exitFocusMode)
                     .buttonStyle(.icon())
                     .help("Exit Focus mode (Home)")
-                Button("Collapse to floating timer", systemImage: "pip.enter") {}
+                Button("Collapse to floating timer", systemImage: "pip.enter", action: store.toggleFloatingTimer)
                     .buttonStyle(.icon())
-                    .disabled(true)
-                    .help("The floating timer arrives in the next milestone")
+                    .help("Floating timer ⌘⇧T")
             }
         }
         .padding(.leading, 14)
