@@ -8,6 +8,15 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Workday end — 2026-09-28
+
+#### Added
+- The Board's header says whether the plan "fits your day with 1hr 10min to spare" or "runs 40min past your
+  workday", against a workday end (6:00 PM by default, in Quick Settings).
+
+#### Changed
+- Pomodoros start on; FEATURES §4.18 now says so.
+
 ### Pomodoro sprints — 2026-09-28
 
 #### Added
