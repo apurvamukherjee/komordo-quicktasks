@@ -37,7 +37,8 @@ struct KomodoApp: App {
 /// - `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon.
 /// - `-homeWindowSize 1440x900` sets the Home window's first size (pair with `-ApplePersistenceIgnoreState YES`).
 /// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
-///   so they can be captured without driving the pointer.
+///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
+///   Custom repeat sheet.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG
@@ -46,6 +47,14 @@ enum LaunchOptions {
             store.isQuickAddOpen = UserDefaults.standard.bool(forKey: "openQuickAdd")
         #endif
         return store
+    }
+
+    static var opensCustomRepeat: Bool {
+        #if DEBUG
+            UserDefaults.standard.bool(forKey: "openCustomRepeat")
+        #else
+            false
+        #endif
     }
 
     static var sampleTime: Date? {

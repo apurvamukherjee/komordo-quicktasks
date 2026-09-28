@@ -27,6 +27,7 @@ struct SchedulePopover: View {
         _draft = State(initialValue: schedule)
         // A task that already has a day opens on its details, as the canvas's "editing a repeat" does.
         _step = State(initialValue: task.scheduledDate == nil && schedule.rule == nil ? .date : .details)
+        _isCustomizing = State(initialValue: LaunchOptions.opensCustomRepeat)
     }
 
     var body: some View {
