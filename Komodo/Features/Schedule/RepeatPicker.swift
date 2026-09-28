@@ -2,7 +2,7 @@ import KomodoCore
 import SwiftUI
 
 /// The Repeat menu (DESIGN_SYSTEM §13.6): Doesn't repeat · Every day · Every weekday · Weekly on *day* ·
-/// Monthly on the *n*th · Custom…, as a native menu with a checkmark on the current rule.
+/// Monthly on the *n*th · Custom…, as a native menu with a checkmark on the current rule behind the canvas's field.
 struct RepeatPicker: View {
     @Binding var rule: RepeatRule?
     var start: LocalDate
@@ -18,7 +18,50 @@ struct RepeatPicker: View {
         case custom
     }
 
+    @State private var isHovered = false
+
     var body: some View {
+        Menu {
+            picker
+        } label: {
+            label
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .onHover { isHovered = $0 }
+        .animation(Motion.fast, value: isHovered)
+        .accessibilityLabel("Repeat")
+        .accessibilityValue(summary)
+    }
+
+    private var summary: String { rule?.summary(from: start, calendar: calendar) ?? "Doesn't repeat" }
+
+    /// `.sh-popup`: the repeat glyph, the rule and an up-down chevron in a 32 pt field that fills the row.
+    private var label: some View {
+        let shape = RoundedRectangle(cornerRadius: 9, style: .continuous)
+        return HStack(spacing: Space.s2) {
+            Image(systemName: "repeat")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Palette.violetText)
+            Text(summary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(Palette.textMuted)
+        }
+        .font(.system(size: 13, weight: .medium))
+        .foregroundStyle(Palette.textPrimary)
+        .padding(.leading, 10)
+        .padding(.trailing, Space.s2)
+        .frame(height: 32)
+        .background(Color.white.opacity(isHovered ? 0.09 : 0.05), in: shape)
+        .overlay(shape.strokeBorder(Color.white.opacity(isHovered ? 0.16 : 0.09), lineWidth: 1))
+        .contentShape(shape)
+    }
+
+    private var picker: some View {
         Picker("Repeat", selection: Binding(get: { choice }, set: choose)) {
             Text("Doesn't repeat").tag(Choice.never)
             Divider()
@@ -28,12 +71,10 @@ struct RepeatPicker: View {
                 .tag(Choice.weekly)
             Text(RepeatRule.monthly.summary(from: start, calendar: calendar)).tag(Choice.monthly)
             Divider()
-            Text(choice == .custom ? rule.map { $0.summary(from: start, calendar: calendar) } ?? "Custom…" : "Custom…")
-                .tag(Choice.custom)
+            Text(choice == .custom ? summary : "Custom…").tag(Choice.custom)
         }
-        .pickerStyle(.menu)
+        .pickerStyle(.inline)
         .labelsHidden()
-        .fixedSize()
     }
 
     private var choice: Choice {
