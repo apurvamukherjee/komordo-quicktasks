@@ -4,7 +4,7 @@ import SwiftUI
 struct KomodoApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     // In-memory sample data until the database lands (ARCHITECTURE §16).
-    @State private var store = BoardSamples.store(anchoredAt: LaunchOptions.sampleTime)
+    @State private var store = LaunchOptions.opening(BoardSamples.store(anchoredAt: LaunchOptions.sampleTime))
 
     var body: some Scene {
         Window("Komodo", id: "home") {
@@ -34,9 +34,20 @@ struct KomodoApp: App {
 }
 
 /// Debug launch arguments for design reviews and screenshots:
-/// `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon, and
-/// `-homeWindowSize 1440x900` sets the Home window's first size (pair with `-ApplePersistenceIgnoreState YES`).
+/// - `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon.
+/// - `-homeWindowSize 1440x900` sets the Home window's first size (pair with `-ApplePersistenceIgnoreState YES`).
+/// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
+///   so they can be captured without driving the pointer.
 enum LaunchOptions {
+    @MainActor static func opening(_ store: BoardStore) -> BoardStore {
+        #if DEBUG
+            store.schedulingTaskID = UserDefaults.standard.string(forKey: "openSchedule")
+            store.inspectedTaskID = UserDefaults.standard.string(forKey: "openInspector")
+            store.isQuickAddOpen = UserDefaults.standard.bool(forKey: "openQuickAdd")
+        #endif
+        return store
+    }
+
     static var sampleTime: Date? {
         #if DEBUG
             UserDefaults.standard.string(forKey: "sampleTime") == "artboard" ? BoardSamples.artboardMoment : nil
