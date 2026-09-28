@@ -2,11 +2,12 @@ import AppKit
 import SwiftUI
 
 /// Shows Focus mode's surfaces (ARCHITECTURE §4.1) as the store asks: the docked Focus Panel, 340 pt wide and
-/// as tall as the screen's visible frame on the edge Quick Settings picks. While any surface is up the Home
-/// window steps aside, and it comes back when Focus mode returns Home (FEATURES §4.8).
+/// as tall as the screen's visible frame on the edge Quick Settings picks, or the floating timer. While either
+/// is up the Home window steps aside, and it comes back when Focus mode returns Home (FEATURES §4.8).
 @MainActor final class FocusSurfaceController {
     private var store: BoardStore?
     private var panel: NSPanel?
+    private var timer: FloatingTimerPanel?
     private var setAside: [NSWindow] = []
 
     func attach(_ store: BoardStore) {
@@ -17,7 +18,10 @@ import SwiftUI
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.dock() }
+            MainActor.assumeIsolated {
+                self?.dock()
+                self?.timer?.place()
+            }
         }
     }
 
@@ -39,6 +43,15 @@ import SwiftUI
         guard let store else { return }
         setHomeAside(store.focusSurface != nil)
         if store.focusSurface == .panel { showPanel(store) } else { panel?.orderOut(nil) }
+        if store.focusSurface == .floatingTimer { showTimer(store) } else { timer?.window.orderOut(nil) }
+    }
+
+    private func showTimer(_ store: BoardStore) {
+        let timer = self.timer ?? FloatingTimerPanel(store: store)
+        self.timer = timer
+        guard !timer.window.isVisible else { return }
+        timer.place()
+        Self.present(timer.window)
     }
 
     private func setHomeAside(_ aside: Bool) {
