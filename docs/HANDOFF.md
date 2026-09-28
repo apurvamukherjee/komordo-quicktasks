@@ -163,7 +163,6 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Command palette:** the dim covers the Board, not the sidebar. Backup, Gmail and Settings show dimmed.
   Keyboard navigation and ⌘F weren't tried with real keystrokes; each state was opened with `-openPalette`.
 - **Day summary:** unfinished tasks with Tomorrow / This week are the P1 end-of-day review (FEATURES §6.4).
-- **Pomodoro sprints:** Pomodoros default to On, where FEATURES §4.18 says Off (§9).
 - **Alerts** (`FocusAlerts`): sprint end and break over sound and notify, but neither has been triggered on the
   maintainer's Mac, since the first one asks for notification permission with a system dialog. The macOS
   "Glass" sound stands in for Komodo's own sounds. Scheduled reminders and Time's Up notifications (§14.2) come
@@ -199,6 +198,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
 | Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
+| Pomodoros default | On | The maintainer's call, matching `Main.png` and `FocusPanel.png`; FEATURES §4.18 now says On |
 | Sprint-end notification | "Sprint 2 of 4 done" · "Take 5min. Design review is paused." | DESIGN_SYSTEM §14.2 has no sprint-end row; FEATURES §4.10 asks for one |
 | Alert sound | macOS "Glass" | No bundled sounds yet (`success.caf` is named on the canvas) |
 | Sprint timing | Work across tasks counts toward one sprint; only a full sprint moves the count; a hand break resumes it | FEATURES §4.10–4.11 leave it open; this matches a classic Pomodoro |
@@ -324,11 +324,9 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **Pomodoro default:** FEATURES §4.18 says Pomodoros start Off; the app starts them On (the Board shows the
-   "Pomodoro 25 / 5" pill). Which? (The sprint tone is answered: a Sprint display choice, Task by default.)
-2. **Workday end:** should Komodo have a workday-end setting, so the header can say "fits your day with …
+1. **Workday end:** should Komodo have a workday-end setting, so the header can say "fits your day with …
    to spare"?
-3. **Persistence:** OK to add GRDB (ARCHITECTURE §2)? Its bundle cost and one alternative need recording before
+2. **Persistence:** OK to add GRDB (ARCHITECTURE §2)? Its bundle cost and one alternative need recording before
    adding it.
-4. **README and AI features:** the product's own AI features (Claude mode, Assistant, Local MCP) are left out
+3. **README and AI features:** the product's own AI features (Claude mode, Assistant, Local MCP) are left out
    of the README. Keep it that way?
