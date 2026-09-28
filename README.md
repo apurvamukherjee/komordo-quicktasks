@@ -41,11 +41,12 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🎨 | **Obsidian Spectrum design system** | True-black canvas, cursor spotlight on every surface, border beam, focus dial and odometer digits, all honoring Reduce Motion | ✅ Available |
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
 | 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
+| 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today with a live focus dial, Pomodoro sprints, breaks and a docked Focus Panel | 🚧 In development |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, and expands on hover | 🚧 In development |
 | 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | 🚧 In development |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
-| 📅 | **Scheduling and repeats** | Schedules, due dates and recurring tasks with deterministic IDs, so nothing duplicates | 🚧 In development |
+| 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available · reminders arrive with notifications |
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action | 🚧 In development |
 | 💾 | **Backup and restore** | One-click zip export and a verified restore, all on your Mac | 🚧 In development |
@@ -58,6 +59,30 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Plan in seconds.** Type `Write spec 45m` and the estimate is filled in. Drag cards between columns, or use Space, ⌥↑ and ⌥↓.
 - **Know when you'll be done.** Every queued task shows when it should start, and the day meter shows when the day ends.
 - **One live task.** Start, pause, skip, take a break, or use the bolt on any card to switch. The dial and digits never drift, because time comes from the clock, not from counting ticks.
+
+## The inspector
+
+<p align="center"><img src="docs/media/inspector.png" alt="The Board with the inspector open on the right: list, estimate, time taken, schedule and repeat, a subtask checklist, the notes editor and the session history" width="100%"></p>
+
+- **Click any card** to see and edit everything about it. ⌘↑ and ⌘↓ step through tasks, and Esc closes.
+- **Notes with real formatting.** Bold, lists and links, and the links open by themselves when the task goes live.
+- **Honest time.** Every focus session is recorded, and time taken stays locked while the timer runs.
+
+## Scheduling and quick add
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/schedule-date.png" alt="Schedule popover, step one: Today, Later today, Tomorrow and Next week, above a Monday-first month calendar"></td>
+    <td width="50%"><img src="docs/media/schedule-details.png" alt="Schedule popover, step two: time, repeat rule, what will happen on the day, and the reminder switch"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/media/quick-add.png" alt="Quick add panel reading an estimate out of Write launch email 45m, with list and column pickers"></td>
+  </tr>
+</table>
+
+- **Two steps to schedule.** Pick a day, then add a time and a repeat. Komodo tells you exactly what will happen on that day.
+- **Repeats that behave.** Every day, weekdays, weekly, monthly, or a custom rule like "Every 2 weeks on Tue and Thu". Change a rule and choose whether this week's copies are replaced.
+- **Quick add with ⌘⌥T.** Type `Write launch email 45m`, pick the list and column, and press Return, or ⌘Return to start it straight away.
 
 ## The design system
 
@@ -127,9 +152,10 @@ open Komodo.app --args -sampleTime artboard
 - [x] Components: buttons, chips, fields, task card, live task card, control bar, day meter, toasts, banners
 - [ ] Menu bar app, Settings, Gmail → Calendar, backup
 - [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue (in-memory for now)
-- [ ] Inspector, scheduling, and saving to SQLite
+- [x] Inspector, scheduling and repeats, and the Quick add panel
+- [ ] Saving to SQLite
 - [ ] Focus Panel, floating timer, celebrations, day summary, command palette
-- [ ] Reports, Trash, recurring tasks
+- [ ] Reports and Trash
 
 ## Contributing
 
