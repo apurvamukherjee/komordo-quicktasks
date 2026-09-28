@@ -43,12 +43,12 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available · Pomodoro sprint timing is next |
-| 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, and expands on hover | 🚧 In development |
-| 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | 🚧 In development |
+| 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
+| 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | ✅ Available · fun GIFs and sounds are next |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
 | 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available · reminders arrive with notifications |
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
-| ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action | 🚧 In development |
+| ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action | ✅ Available · global shortcuts arrive with the menu bar |
 | 💾 | **Backup and restore** | One-click zip export and a verified restore, all on your Mac | 🚧 In development |
 
 ## The Board
@@ -98,6 +98,27 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Breaks that breathe.** A green circle breathes four seconds in and four out while the break counts down. Nothing restarts until you say so.
 - **The queue stays yours.** Add a task, finish one, or bolt any task live from the panel. When only timed tasks are left it waits calmly, and when the queue is clear you've won the day.
 - **Quick Settings.** Sprint and break lengths, the panel's side and sounds, from the gear.
+
+## Floating timer and celebrations
+
+<table>
+  <tr>
+    <td width="58%"><img src="docs/media/floating-timer.png" alt="The floating timer pill running with a lime ring, paused in grey, at Time's Up in red with +5 and Done, and on a green break"></td>
+    <td width="42%"><img src="docs/media/celebration.png" alt="The Focus Panel celebrating: a lime check, Nailed it. 9min early., and what's up next"></td>
+  </tr>
+</table>
+
+- **Out of the way, never out of sight.** ⌘⇧T collapses the panel into a 40 pt pill that floats above every app and Space. Drag it anywhere; it remembers its spot on each display.
+- **Hover for controls.** Pause, Done, Skip, Break, Notes and back to the panel slide in on a spring. At Time's Up it turns red with +5 and Done inline, and ⌘⇧P ripples it so you can find it.
+- **A moment for every Done.** A confetti burst and a word on how you did against the estimate: "Nailed it. 12min early." The next task starts when it's over, never mid-celebration.
+
+## Command palette
+
+<p align="center"><img src="docs/media/palette.png" alt="The command palette over the Board, searching design rev with the match highlighted in lime" width="100%"></p>
+
+- **⌘F finds anything.** Titles, notes and subtasks across every list, Done included, grouped by list with the match highlighted.
+- **Return opens, ⌘Return starts.** No match? Create the task right there.
+- **Type > for commands.** New Task, Start and more, from the keyboard.
 
 ## The design system
 
@@ -170,7 +191,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Inspector, scheduling and repeats, and the Quick add panel
 - [ ] Saving to SQLite
 - [x] Focus Panel and its states
-- [ ] Floating timer, celebrations, day summary, command palette
+- [x] Floating timer, celebrations, day summary, command palette
 - [ ] Reports and Trash
 
 ## Contributing
