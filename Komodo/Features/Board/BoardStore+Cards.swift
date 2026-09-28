@@ -67,10 +67,10 @@ extension BoardStore {
     func timeParts(for task: TaskItem) -> (time: String, period: String) {
         guard let minute = task.scheduledMinute else { return ("All", "day") }
         let date = (task.scheduledDate ?? today).startOfDay(in: calendar).addingTimeInterval(TimeInterval(minute * 60))
-        let time = date.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute())
-        let period = date.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated))).components(separatedBy: " ")
-            .last
-        return (time, period ?? "")
+        // Split the locale's own short time, since formatters put a narrow no-break space before "PM" and
+        // formatting the hour without it zero-pads in some locales. 24-hour locales have no period.
+        let parts = date.formatted(date: .omitted, time: .shortened).split(whereSeparator: \.isWhitespace)
+        return (parts.first.map(String.init) ?? "", parts.dropFirst().joined(separator: " "))
     }
 
     func startLabel(_ date: Date) -> String {
