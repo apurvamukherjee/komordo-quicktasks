@@ -5,7 +5,14 @@ import SwiftUI
 /// and time, and a progress line along its bottom edge. Hovering slides in the controls; Time's Up puts +5 and
 /// Done inline, a break counts down in green, and ⌘⇧P ripples it.
 struct FloatingTimerView: View {
+    enum DragPhase {
+        case changed
+        case ended
+    }
+
     var store: BoardStore
+    /// The window moves itself from the mouse's screen position, so the pill only reports the drag.
+    var onDrag: (DragPhase) -> Void = { _ in }
 
     @State private var isHovered = false
     @State private var isShowingNotes = false
@@ -48,6 +55,11 @@ struct FloatingTimerView: View {
         .overlay { LocatorRipple(trigger: store.locatorPings) }
         .background { PillGlow(color: state.glow, breathes: state.breathes) }
         .contentShape(shape)
+        .gesture(
+            DragGesture(minimumDistance: 3)
+                .onChanged { _ in onDrag(.changed) }
+                .onEnded { _ in onDrag(.ended) }
+        )
         .onHover { hovering in withAnimation(Motion.spring) { isHovered = hovering } }
         .popover(isPresented: $isShowingNotes, arrowEdge: .bottom) {
             if let live = store.liveTask {
@@ -277,7 +289,7 @@ private struct ProgressLine: View {
         }
         .frame(height: 2)
         .padding(.horizontal, 14)
-        .offset(y: 1)
+        .offset(y: -1)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
