@@ -47,7 +47,7 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5d | Focus Panel + FocusStates | ✅ | Checked against `FocusPanel.png` and `FocusStates.png`; see §5 for what's left |
 | 5e | Floating timer, Celebration, Day summary, Command palette | ✅ | Checked against `FloatingTimer.png`, `Celebration.png` and `CommandPalette.png`; see §5 |
 | 5f | **Settings, System surfaces**, then Gmail → Calendar, Data & backup, Onboarding | ⏭ **Next** | See §4. ARCHITECTURE puts Settings and Gmail in Phase 0a |
-| — | Persistence (SQLite with GRDB) | ⬜ | Not started. A new dependency needs the user's OK first (bundle cost plus one alternative) |
+| — | Persistence (SQLite with GRDB) | ⬜ | GRDB approved (§6: bundle cost and the alternative). Not started |
 
 The remaining screen prompts from DESIGN_HANDOFF §6 step 5, in order: Inspector → Quick add → Schedule → Focus
 Panel (plus FocusStates) → Floating timer → Celebration → Palette → Settings → Gmail → the rest.
@@ -198,13 +198,15 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
 | Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
+| Persistence | GRDB approved by the maintainer | Adds roughly 2–4 MB to the app (to be measured when it lands). Alternative: the system SQLite C API through `import SQLite3`, which costs nothing but needs hand-written statements, migrations and observation |
 | Pomodoros default | On | The maintainer's call, matching `Main.png` and `FocusPanel.png`; FEATURES §4.18 now says On |
 | Sprint-end notification | "Sprint 2 of 4 done" · "Take 5min. Design review is paused." | DESIGN_SYSTEM §14.2 has no sprint-end row; FEATURES §4.10 asks for one |
 | Alert sound | macOS "Glass" | No bundled sounds yet (`success.caf` is named on the canvas) |
 | Sprint timing | Work across tasks counts toward one sprint; only a full sprint moves the count; a hand break resumes it | FEATURES §4.10–4.11 leave it open; this matches a classic Pomodoro |
 | Single-list badges | Every card in "Work" shows W | `Main.png` mixes S/P/L badges into the Work list; the spec filters to one list |
 | Dated tasks in This week | At the bottom | FEATURES §4.2 |
-| "fits your day with … to spare" | Omitted | Needs a workday-end setting that no spec defines. **Ask the user** |
+| Workday end | 6:00 PM by default, in Quick Settings until Settings lands | The maintainer asked for it; no spec gives a default |
+| Running past the workday | "runs 40min past your workday" | Main.png only shows the "to spare" case |
 | Ends around | Computed: now + queue + scheduled remaining | `Main.png` shows a static 6:40 PM |
 | Home window | `HStack` with a fixed 248 pt sidebar, hidden title bar | macOS 26 draws the `NavigationSplitView` sidebar as a floating inset panel. ⌃⌘S is recreated by `SidebarCommand` |
 | Start shortcut | Return (`.defaultAction`) | ⌘⇧B is "Open Komodo" (§14.1); FEATURES §4.8 says "⌘⇧B then Return" |
@@ -324,9 +326,6 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **Workday end:** should Komodo have a workday-end setting, so the header can say "fits your day with …
-   to spare"?
-2. **Persistence:** OK to add GRDB (ARCHITECTURE §2)? Its bundle cost and one alternative need recording before
-   adding it.
-3. **README and AI features:** the product's own AI features (Claude mode, Assistant, Local MCP) are left out
-   of the README. Keep it that way?
+1. **README and AI features:** the maintainer answered "keep the AI features", which conflicts with CLAUDE.md
+   ("The README never mentions AI features"). Confirm whether shipped AI features (Claude mode, Assistant, Local
+   MCP) go in the README, and update CLAUDE.md to match. Nothing to add until they're built.
