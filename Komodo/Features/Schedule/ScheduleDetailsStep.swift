@@ -20,7 +20,7 @@ struct ScheduleDetailsStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             header
-            VStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 10) {
                 InspectorRow("Time") { time }
                 InspectorRow("Repeat") {
                     RepeatPicker(
@@ -37,12 +37,15 @@ struct ScheduleDetailsStep: View {
             }
             if repeatChanged { existingTasksChoice }
             if draft.minute != nil {
-                Toggle(isOn: $draft.remindsAtStart) {
+                HStack {
                     Label("Reminder at start time", systemImage: "bell")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Palette.textPrimary)
+                    Spacer()
+                    Toggle("Reminder at start time", isOn: $draft.remindsAtStart)
+                        .labelsHidden()
+                        .komodoSwitch()
                 }
-                .komodoSwitch()
                 .padding(.horizontal, Space.s3)
                 .frame(height: 40)
                 .spotlight(SpotlightTint.success, radius: Radius.tile, lifts: false) {
@@ -69,9 +72,11 @@ struct ScheduleDetailsStep: View {
                 .buttonStyle(.plain)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Palette.textSecondary)
-            Text(draft.date.startOfDay(in: calendar).formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(Palette.textPrimary)
+            Text(
+                draft.date.startOfDay(in: calendar).formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+            )
+            .font(.system(size: 15, weight: .bold))
+            .foregroundStyle(Palette.textPrimary)
             Spacer()
             if let previous = original.rule, repeatChanged {
                 Chip("Was: \(previous.summary(from: original.date, calendar: calendar))", tint: .violet, size: .compact)
