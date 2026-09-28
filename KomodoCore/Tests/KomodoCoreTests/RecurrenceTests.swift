@@ -28,7 +28,8 @@ struct RecurrenceTests {
     }
 
     @Test func everyDayLandsOnEachDayFromTheStart() {
-        let hits = RepeatRule.everyDay.occurrences(in: days(from: date(9, 28), count: 7), from: thursday, calendar: calendar)
+        let hits = RepeatRule.everyDay.occurrences(
+            in: days(from: date(9, 28), count: 7), from: thursday, calendar: calendar)
         #expect(hits == [thursday, date(10, 2), date(10, 3), date(10, 4)])
     }
 
@@ -94,9 +95,10 @@ struct RecurrenceTests {
     }
 
     @Test func ordinals() {
-        #expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 31].map(RepeatRule.ordinal) == [
-            "1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "23rd", "31st",
-        ])
+        #expect(
+            [1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 31].map(RepeatRule.ordinal) == [
+                "1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "23rd", "31st",
+            ])
     }
 
     // MARK: Children
