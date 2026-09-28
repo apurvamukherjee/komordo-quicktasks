@@ -8,6 +8,19 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Saving to disk — 2026-09-28
+
+#### Added
+- **Everything is saved:** lists, tasks, subtasks, work sessions and Quick Settings live in a SQLite database in
+  Application Support and load at launch. Each change is written as it happens, in one transaction.
+- The first launch starts with one list, Personal.
+- Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
+- A failed write or an unreadable database shows an error toast instead of losing work silently.
+- `AppDatabase` and `BoardChange` in KomodoCore, with round-trip tests; GRDB 7.11.
+
+#### Changed
+- The Debug sample day (`-sampleTime artboard`, `-sampleData YES`) stays in memory and never touches the database.
+
 ### Workday end — 2026-09-28
 
 #### Added
