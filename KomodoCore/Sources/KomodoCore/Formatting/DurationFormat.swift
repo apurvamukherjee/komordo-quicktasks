@@ -14,6 +14,18 @@ public enum DurationFormat {
         }
     }
 
+    /// `5h 40m`, for stat tiles too narrow for `5hr 40min` (the day summary on FocusPanel.dc.html).
+    public static func compact(_ interval: TimeInterval) -> String {
+        let totalMinutes = max(0, Int((interval / 60).rounded()))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        switch (hours, minutes) {
+        case (0, let minutes): return "\(minutes)m"
+        case (let hours, 0): return "\(hours)h"
+        default: return "\(hours)h \(minutes)m"
+        }
+    }
+
     /// The duration field shows `HH:MM` (DESIGN_SYSTEM §10.6).
     public static func hoursMinutes(_ interval: TimeInterval) -> String {
         let totalMinutes = max(0, Int((interval / 60).rounded()))

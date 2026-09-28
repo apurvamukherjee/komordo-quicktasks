@@ -20,6 +20,11 @@ struct DurationFormatTests {
         #expect(DurationFormat.short(seconds) == expected)
     }
 
+    @Test(arguments: [(2_700, "45m"), (7_200, "2h"), (20_400, "5h 40m")] as [(TimeInterval, String)])
+    func compact(seconds: TimeInterval, expected: String) {
+        #expect(DurationFormat.compact(seconds) == expected)
+    }
+
     @Test func hoursMinutesPadsBothFields() {
         #expect(DurationFormat.hoursMinutes(0) == "00:00")
         #expect(DurationFormat.hoursMinutes(5_400) == "01:30")
