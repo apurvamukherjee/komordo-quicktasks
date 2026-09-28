@@ -23,6 +23,8 @@ struct ControlBar: View {
 
     var mode: Mode
     var actions: ControlBarActions
+    /// 56 pt on the Board, 54 pt in the Focus Panel.
+    var tileHeight: CGFloat = 56
 
     var body: some View {
         switch mode {
@@ -60,7 +62,7 @@ struct ControlBar: View {
                 Text(title)
             }
         }
-        .buttonStyle(ControlTileStyle(kind: kind))
+        .buttonStyle(ControlTileStyle(kind: kind, height: tileHeight))
         .help(help)
     }
 }
@@ -75,15 +77,17 @@ struct ControlTileStyle: ButtonStyle {
     }
 
     var kind: Kind
+    var height: CGFloat = 56
 
     func makeBody(configuration: Configuration) -> some View {
-        ControlTileBody(configuration: configuration, kind: kind)
+        ControlTileBody(configuration: configuration, kind: kind, height: height)
     }
 }
 
 private struct ControlTileBody: View {
     var configuration: ButtonStyleConfiguration
     var kind: ControlTileStyle.Kind
+    var height: CGFloat
 
     @State private var isHovered = false
 
@@ -93,7 +97,7 @@ private struct ControlTileBody: View {
             .font(.system(size: 11, weight: kind == .primary ? .bold : .semibold))
             .foregroundStyle(foreground)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: height)
             .background { fill(shape) }
             .overlay(shape.strokeBorder(border, lineWidth: 1))
             .overlay { if kind == .primary { Color.clear.sheen(cornerRadius: Radius.tile) } }
