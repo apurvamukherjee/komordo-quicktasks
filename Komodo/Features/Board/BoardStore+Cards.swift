@@ -85,7 +85,8 @@ extension BoardStore {
         let day = date.startOfDay(in: calendar)
         let dayText = date == today ? "Today" : day.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
         guard let minute else { return "\(dayText) · all day" }
-        return "\(dayText) · \(day.addingTimeInterval(TimeInterval(minute * 60)).formatted(date: .omitted, time: .shortened))"
+        let time = day.addingTimeInterval(TimeInterval(minute * 60)).formatted(date: .omitted, time: .shortened)
+        return "\(dayText) · \(time)"
     }
 
     /// "Sun 10:00 AM" within the week, "Oct 12" beyond it, the time alone for today.
