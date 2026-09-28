@@ -9,6 +9,17 @@ enum TimerTone: CaseIterable, Sendable {
     case timesUp
     case onBreak
 
+    /// The live task's tone from its clock: over the estimate wins, then paused, then sprint or plain live.
+    init(elapsed: TimeInterval, estimate: TimeInterval, isRunning: Bool, inSprint: Bool) {
+        if elapsed > estimate {
+            self = .timesUp
+        } else if !isRunning {
+            self = .paused
+        } else {
+            self = inSprint ? .sprint : .live
+        }
+    }
+
     var isMoving: Bool { self != .paused }
 
     /// Dark base, then the two lit stops of the conic beam.

@@ -47,17 +47,8 @@ private struct LiveTaskContent: View {
     var actions: ControlBarActions
 
     private var tone: TimerTone {
-        if elapsed > model.estimate { return .timesUp }
-        if !clock.isRunning { return .paused }
-        return model.sprint == nil ? .live : .sprint
-    }
-
-    private var controlMode: ControlBar.Mode {
-        switch tone {
-        case .timesUp: .timesUp
-        case .paused: .paused
-        case .live, .sprint, .onBreak: .running
-        }
+        TimerTone(
+            elapsed: elapsed, estimate: model.estimate, isRunning: clock.isRunning, inSprint: model.sprint != nil)
     }
 
     var body: some View {
@@ -69,7 +60,7 @@ private struct LiveTaskContent: View {
                 .foregroundStyle(Palette.textPrimary)
             dialPanel
             footer
-            ControlBar(mode: controlMode, actions: actions)
+            ControlBar(mode: ControlBar.Mode(tone: tone), actions: actions)
         }
         .padding(.horizontal, Space.s4)
         .padding(.top, Space.s4)
@@ -188,9 +179,11 @@ private struct LiveTaskContent: View {
 }
 
 /// `LIVE`, `PAUSED`, `TIME'S UP` or `SPRINT 2 OF 4`, with a pinging dot while the clock moves.
-private struct StatusPill: View {
+struct StatusPill: View {
     var tone: TimerTone
     var sprint: LiveTaskModel.Sprint?
+    /// 24 pt on the Board, 22 pt on the Focus Panel's dial face.
+    var height: CGFloat = 24
 
     private var text: String {
         switch tone {
@@ -219,29 +212,32 @@ private struct StatusPill: View {
             }
             Text(text)
         }
-        .font(.system(size: 10.5, weight: .heavy))
+        .font(.system(size: height < 24 ? 10 : 10.5, weight: .heavy))
         .tracking(0.84)
         .foregroundStyle(colors.text)
         .padding(.horizontal, 9)
-        .frame(height: 24)
+        .frame(height: height)
         .background(colors.fill, in: Capsule())
         .fixedSize()
     }
 }
 
 /// The hero countdown. Overtime shows a smaller `+`, turns danger red and shakes on entering Time's Up.
-private struct LiveDigits: View {
+struct LiveDigits: View {
     var tone: TimerTone
     var text: String
+    var font = Typography.timerHero
+    /// The overtime `+`, about 0.72 of the digits.
+    var plusSize: CGFloat = 35
 
     var body: some View {
         let isOvertime = text.hasPrefix("+")
         HStack(alignment: .center, spacing: 2) {
             if isOvertime {
-                Text("+").font(.system(size: 35, weight: .bold))
+                Text("+").font(.system(size: plusSize, weight: .bold))
             }
             OdometerText(isOvertime ? String(text.dropFirst()) : text, colon: tone == .paused ? .blink : .beat)
-                .font(Typography.timerHero)
+                .font(font)
                 .tracking(Typography.Tracking.timerHero)
         }
         .foregroundStyle(color)

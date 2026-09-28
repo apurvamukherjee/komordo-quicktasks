@@ -19,6 +19,14 @@ struct ControlBar: View {
         case running
         case paused
         case timesUp
+
+        init(tone: TimerTone) {
+            switch tone {
+            case .timesUp: self = .timesUp
+            case .paused: self = .paused
+            case .live, .sprint, .onBreak: self = .running
+            }
+        }
     }
 
     var mode: Mode
