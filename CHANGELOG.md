@@ -8,6 +8,33 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Floating timer, celebrations, day summary and command palette — 2026-09-28
+
+#### Added
+- **Floating timer:** ⌘⇧T collapses the panel into a 40 pt glass pill above every app and Space, with the
+  mini ring, title, time and a progress line. It glows lime while running, greys out paused, turns red with
+  inline +5 and Done at Time's Up, and counts a break down in green. Hovering slides in pause, done, skip,
+  break, notes and expand; ⌘⇧P ripples it. It drags anywhere and remembers its spot per display.
+- **Celebrations:** Done plays a confetti burst with the result against the estimate ("Nailed it. 12min
+  early.") and what's next, then starts the next task after 2.5 s, a click or Esc. It fills the live card's
+  place in the panel and on the Board, and floats above the pill in timer mode. Reduce Motion shows a still card.
+- **Day summary:** the won card adds the streak.
+- **Command palette (⌘F):** searches titles, notes and subtasks in every list, grouped by list with the
+  match highlighted. Return opens, ⌘Return starts now, no match offers Create task, and `>` lists commands.
+- **Focus menu:** ⌘⇧T, ⌘⇧P, ⌘⌥P, ⌘⌥B, ⌘⌥S and ⌘⌥F.
+- `TaskSearch` and `CelebrationCopy` in KomodoCore; Debug flags `-openFloatingTimer`, `-openPalette` and
+  `-focusState celebrating`.
+
+#### Changed
+- The toolbar search opens the palette instead of filtering the Board in place.
+- Done waits for the celebration before the next task starts.
+
+#### Not yet
+- Fun GIFs and the success sound need their bundled assets; the "in a row" chip needs streak rules (P1).
+- ⌘⇧T and ⌘⇧P are app shortcuts until the menu bar app makes them global.
+- The title doesn't scroll; Scrolling title arrives with Settings.
+- Unfinished tasks in the day summary are the P1 end-of-day review.
+
 ### Focus Panel — 2026-09-28
 
 #### Added
