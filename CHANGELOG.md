@@ -45,6 +45,9 @@ Nothing is released yet. Everything below is on `main`, grouped by milestone in 
 - Step 2's time field matches the canvas: a clock icon, monospaced digits and a stepper in a Komodo field.
 - The Custom repeat sheet's tiles span its width, Ends uses the blue tint, and the labels, spacing and summary
   border follow the canvas.
+- The Repeat button in step 2 shows the repeat glyph, the rule and an up-down chevron, and fills its row.
+- The card menu shows ⌘D beside Duplicate and ⌘⌫ beside Delete, and both keys work on a focused card. Move
+  to list shows each list's letter.
 
 #### Not yet
 - Reminders are stored but don't fire until the notifications milestone.
