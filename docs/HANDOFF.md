@@ -163,9 +163,11 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Command palette:** the dim covers the Board, not the sidebar. Backup, Gmail and Settings show dimmed.
   Keyboard navigation and ⌘F weren't tried with real keystrokes; each state was opened with `-openPalette`.
 - **Day summary:** unfinished tasks with Tomorrow / This week are the P1 end-of-day review (FEATURES §6.4).
-- **Pomodoro sprints:** no sound or notification when a sprint ends (notifications milestone). The floating timer
-  always shows the task's time, whatever the Sprint display. Pomodoros default to On, where FEATURES §4.18 says
-  Off (§9).
+- **Pomodoro sprints:** Pomodoros default to On, where FEATURES §4.18 says Off (§9).
+- **Alerts** (`FocusAlerts`): sprint end and break over sound and notify, but neither has been triggered on the
+  maintainer's Mac, since the first one asks for notification permission with a system dialog. The macOS
+  "Glass" sound stands in for Komodo's own sounds. Scheduled reminders and Time's Up notifications (§14.2) come
+  with the notifications milestone; they can reuse `FocusAlerts`.
 - **Sounds:** the Quick Settings switch is stored; nothing plays yet.
 - **Focus Panel:**
   - The Scheduled today **+** is disabled with a `.help` note.
@@ -197,6 +199,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
 | Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
+| Sprint-end notification | "Sprint 2 of 4 done" · "Take 5min. Design review is paused." | DESIGN_SYSTEM §14.2 has no sprint-end row; FEATURES §4.10 asks for one |
+| Alert sound | macOS "Glass" | No bundled sounds yet (`success.caf` is named on the canvas) |
 | Sprint timing | Work across tasks counts toward one sprint; only a full sprint moves the count; a hand break resumes it | FEATURES §4.10–4.11 leave it open; this matches a classic Pomodoro |
 | Single-list badges | Every card in "Work" shows W | `Main.png` mixes S/P/L badges into the Work list; the spec filters to one list |
 | Dated tasks in This week | At the bottom | FEATURES §4.2 |
