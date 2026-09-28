@@ -18,5 +18,10 @@ enum Motion {
         static let ping: TimeInterval = 1.6
         static let colonBeat: TimeInterval = 1
         static let shake: TimeInterval = 0.3
+        /// The break's breathing circle: 4 s in, 4 s out (FocusPanel.dc.html).
+        static let breath: TimeInterval = 8
+        /// The calm card's glow and its orbiting dot, when only timed tasks are left.
+        static let calmGlow: TimeInterval = 5.5
+        static let orbit: TimeInterval = 16
     }
 }
