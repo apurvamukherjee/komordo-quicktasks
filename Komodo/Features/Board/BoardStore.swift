@@ -10,6 +10,8 @@ import SwiftUI
         /// Time taken when the task last resumed; the Flow chip counts from here.
         var flowStartedAt: TimeInterval = 0
         var breakEndsAt: Date?
+        /// The break's full length including any +2 min, for its ring and "of 05:00 break".
+        var breakLength: TimeInterval = 0
         /// The queue ran out: show the day summary until something new starts.
         var isDayWon = false
     }
@@ -476,10 +478,14 @@ import SwiftUI
         guard let id = focus.taskID else { return }
         closeSession(id)
         focus.breakEndsAt = now.addingTimeInterval(breakLength)
+        focus.breakLength = breakLength
     }
 
     func extendBreak(by seconds: TimeInterval) {
-        focus.breakEndsAt = focus.breakEndsAt?.addingTimeInterval(seconds)
+        guard let endsAt = focus.breakEndsAt else { return }
+        // Once the break has run out, +2 min counts from now rather than from when it ended.
+        focus.breakEndsAt = max(endsAt, now).addingTimeInterval(seconds)
+        focus.breakLength += max(0, now.timeIntervalSince(endsAt)) + seconds
     }
 
     func endBreak() {
