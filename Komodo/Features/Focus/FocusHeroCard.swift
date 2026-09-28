@@ -126,10 +126,14 @@ private struct FocusHeroContent: View {
                         .frame(width: 34, height: 8)
                 }
             }
-            Text("Sprint \(sprint.number) of \(sprint.count) · \(sprint.lengthLabel) sprint")
-                .font(.system(size: 11.5, weight: .semibold))
-                .foregroundStyle(Palette.pinkText)
-                .lineLimit(1)
+            // The sprint length drops before the text truncates, at 340 pt rather than the artboard's 380.
+            ViewThatFits(in: .horizontal) {
+                Text("Sprint \(sprint.number) of \(sprint.count) · \(sprint.lengthLabel) sprint")
+                Text("Sprint \(sprint.number) of \(sprint.count)")
+            }
+            .font(.system(size: 11.5, weight: .semibold))
+            .foregroundStyle(Palette.pinkText)
+            .lineLimit(1)
         }
         .frame(height: 22)
         .accessibilityElement(children: .combine)
@@ -154,7 +158,17 @@ private struct FocusHeroContent: View {
         .help("Pomodoro sprint \(sprint.number) of \(sprint.count)")
     }
 
+    /// Flow, the sprint and the links, as FocusPanel.png lines them up. The 380 pt artboard fits all three; at
+    /// 340 pt the links chip gives way first.
     private var chips: some View {
+        ViewThatFits(in: .horizontal) {
+            chipRow(showsLinks: true)
+            chipRow(showsLinks: false)
+        }
+        .frame(height: 22)
+    }
+
+    private func chipRow(showsLinks: Bool) -> some View {
         HStack(spacing: 5) {
             if tone == .live {
                 HStack(spacing: 4) {
@@ -165,7 +179,7 @@ private struct FocusHeroContent: View {
                 .panelChip(tint: Palette.amber)
             }
             if let sprint = model.sprint, !sprint.isHero { sprintChip(sprint) }
-            if model.linksOpened > 0 {
+            if showsLinks, model.linksOpened > 0 {
                 Label(
                     model.linksOpened == 1 ? "1 link opened" : "\(model.linksOpened) links opened",
                     systemImage: "arrow.up.right.square"
@@ -175,7 +189,7 @@ private struct FocusHeroContent: View {
                 .panelChip(tint: nil)
             }
         }
-        .frame(height: 22)
+        .fixedSize()
     }
 }
 
