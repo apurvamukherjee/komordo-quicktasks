@@ -215,12 +215,14 @@ struct ColumnHeader: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: Space.s2) {
                     Text(title).font(Typography.heading).tracking(-0.16).foregroundStyle(Palette.textPrimary)
+                        .fixedSize()
                     CountBadge(
                         count: count, tint: tone.accent,
                         textColor: tone == .week ? Palette.blueText : Palette.violetText)
                 }
                 Text(subtitle).font(.system(size: 12)).foregroundStyle(Palette.textMuted).lineLimit(1)
             }
+            .layoutPriority(1)
             Spacer(minLength: 0)
             Button("Add task to the top of \(title)", systemImage: "plus", action: onAdd)
                 .buttonStyle(.cardAction)

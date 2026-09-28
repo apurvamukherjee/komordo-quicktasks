@@ -106,6 +106,7 @@ struct TodayStageView: View {
                         .font(.system(size: 18, weight: .heavy))
                         .tracking(-0.36)
                         .foregroundStyle(Palette.textPrimary)
+                        .fixedSize()
                     CountBadge(count: openCount, tint: Palette.lime, textColor: Palette.limeText)
                     if store.isFocusing {
                         HStack(spacing: 5) {
@@ -118,12 +119,15 @@ struct TodayStageView: View {
                         .padding(.horizontal, 7)
                         .frame(height: 20)
                         .background(Palette.lime.opacity(0.1), in: Capsule())
+                        .fixedSize()
                     }
                 }
                 Text("Focus queue · runs top to bottom")
                     .font(.system(size: 12))
                     .foregroundStyle(Palette.textMuted)
+                    .lineLimit(1)
             }
+            .layoutPriority(1)
             Spacer(minLength: 0)
             KeyCap("⌘⇧B")
         }
