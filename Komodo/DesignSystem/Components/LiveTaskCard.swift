@@ -6,8 +6,15 @@ struct LiveTaskModel: Sendable {
     struct Sprint: Sendable {
         var number: Int
         var count: Int
-        /// How far through the current sprint, 0…1.
-        var progress: Double
+        var length: TimeInterval
+        /// The sprint's own clock: work since its start, across tasks.
+        var clock: FocusClock
+        /// Sprint display is set to Sprint: the card counts the sprint down in pink instead of the estimate.
+        var isHero = false
+
+        func elapsed(at date: Date) -> TimeInterval { min(length, clock.elapsed(at: date)) }
+        func progress(at date: Date) -> Double { length > 0 ? elapsed(at: date) / length : 0 }
+        var lengthLabel: String { TimerFormat.clock(Int(length)) }
     }
 
     var title: String
@@ -35,7 +42,7 @@ struct LiveTaskCard: View {
         // A paused clock doesn't change, so there's nothing to redraw each second.
         TimelineView(.periodic(from: clock.runningSince ?? .now, by: clock.isRunning ? 1 : 3600)) { context in
             LiveTaskContent(
-                model: model, clock: clock, elapsed: clock.elapsed(at: context.date), actions: actions)
+                model: model, clock: clock, date: context.date, actions: actions)
         }
     }
 }
@@ -43,12 +50,16 @@ struct LiveTaskCard: View {
 private struct LiveTaskContent: View {
     var model: LiveTaskModel
     var clock: FocusClock
-    var elapsed: TimeInterval
+    var date: Date
     var actions: ControlBarActions
+
+    private var elapsed: TimeInterval { clock.elapsed(at: date) }
+    /// The sprint when it's the hero; the digits and dial count it instead of the estimate.
+    private var heroSprint: LiveTaskModel.Sprint? { model.sprint.flatMap { $0.isHero ? $0 : nil } }
 
     private var tone: TimerTone {
         TimerTone(
-            elapsed: elapsed, estimate: model.estimate, isRunning: clock.isRunning, inSprint: model.sprint != nil)
+            elapsed: elapsed, estimate: model.estimate, isRunning: clock.isRunning, inSprint: heroSprint != nil)
     }
 
     var body: some View {
@@ -123,8 +134,11 @@ private struct LiveTaskContent: View {
     }
 
     private var dial: some View {
-        let progress = model.estimate > 0 ? min(1, elapsed / model.estimate) : 0
-        return FocusDial(clock: clock, estimate: model.estimate, tone: tone, metrics: .board) { _ in
+        let progress = heroSprint?.progress(at: date) ?? (model.estimate > 0 ? min(1, elapsed / model.estimate) : 0)
+        return FocusDial(
+            clock: heroSprint?.clock ?? clock, estimate: heroSprint?.length ?? model.estimate, tone: tone,
+            metrics: .board
+        ) { _ in
             VStack(spacing: 1) {
                 Text("\(Int(progress * 100))%")
                     .font(.system(size: 20, weight: .heavy).monospacedDigit())
@@ -140,12 +154,12 @@ private struct LiveTaskContent: View {
 
     private var readout: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            LiveDigits(tone: tone, text: TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed))
+            LiveDigits(tone: tone, text: digits)
             Text(caption)
                 .font(.system(size: 12).monospacedDigit())
                 .foregroundStyle(Palette.textSecondary)
             if let sprint = model.sprint {
-                SprintDots(sprint: sprint)
+                SprintDots(sprint: sprint, progress: sprint.progress(at: date))
             }
         }
     }
@@ -153,7 +167,17 @@ private struct LiveTaskContent: View {
     private var caption: String {
         let estimate = DurationFormat.short(model.estimate)
         if tone == .timesUp { return "over the \(estimate) estimate" }
+        if let sprint = heroSprint {
+            return "left of \(sprint.lengthLabel) sprint · \(TimerFormat.clock(Int(elapsed))) on task"
+        }
         return "left of \(estimate) · \(TimerFormat.clock(Int(elapsed))) elapsed"
+    }
+
+    private var digits: String {
+        if let sprint = heroSprint, tone != .timesUp {
+            return TimerFormat.remaining(estimate: sprint.length, elapsed: sprint.elapsed(at: date))
+        }
+        return TimerFormat.remaining(estimate: model.estimate, elapsed: elapsed)
     }
 
     private var footer: some View {
@@ -266,6 +290,7 @@ struct LiveDigits: View {
 /// Four 18 pt sprint bars: finished ones lime and glowing, the current one filling.
 private struct SprintDots: View {
     var sprint: LiveTaskModel.Sprint
+    var progress: Double
 
     var body: some View {
         HStack(spacing: Space.s2) {
@@ -292,7 +317,7 @@ private struct SprintDots: View {
 
     private func fill(for index: Int) -> Double {
         if index < sprint.number { return 1 }
-        if index == sprint.number { return min(1, max(0, sprint.progress)) }
+        if index == sprint.number { return min(1, max(0, progress)) }
         return 0
     }
 }
@@ -339,7 +364,8 @@ enum LiveTaskSamples {
 
     static var sprint: LiveTaskModel {
         var model = designReview
-        model.sprint = .init(number: 2, count: 4, progress: 0.6)
+        model.sprint = .init(
+            number: 2, count: 4, length: 1_500, clock: FocusClock(accumulated: 900, runningSince: .now), isHero: true)
         return model
     }
 }

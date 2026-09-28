@@ -25,7 +25,8 @@ private struct FocusHeroContent: View {
 
     private var tone: TimerTone {
         TimerTone(
-            elapsed: elapsed, estimate: model.estimate, isRunning: clock.isRunning, inSprint: model.sprint != nil)
+            elapsed: elapsed, estimate: model.estimate, isRunning: clock.isRunning,
+            inSprint: model.sprint?.isHero == true)
     }
 
     var body: some View {
