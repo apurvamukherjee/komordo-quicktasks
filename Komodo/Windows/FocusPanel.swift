@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// Docks the Focus Panel (ARCHITECTURE §4.1): a non-activating panel 340 pt wide and as tall as the screen's
-/// visible frame, on the edge Quick Settings picks. While it's up the Home window steps aside, and it comes
-/// back when the panel closes (FEATURES §4.8).
-@MainActor final class FocusPanelController {
+/// Shows Focus mode's surfaces (ARCHITECTURE §4.1) as the store asks: the docked Focus Panel, 340 pt wide and
+/// as tall as the screen's visible frame on the edge Quick Settings picks. While any surface is up the Home
+/// window steps aside, and it comes back when Focus mode returns Home (FEATURES §4.8).
+@MainActor final class FocusSurfaceController {
     private var store: BoardStore?
     private var panel: NSPanel?
     private var setAside: [NSWindow] = []
@@ -25,7 +25,7 @@ import SwiftUI
     private func observe() {
         guard let store else { return }
         withObservationTracking {
-            _ = store.isFocusPanelOpen
+            _ = store.focusSurface
             _ = store.panelSide
         } onChange: { [weak self] in
             Task { @MainActor in
@@ -37,30 +37,37 @@ import SwiftUI
 
     private func sync() {
         guard let store else { return }
-        if store.isFocusPanelOpen { show(store) } else { hide() }
+        setHomeAside(store.focusSurface != nil)
+        if store.focusSurface == .panel { showPanel(store) } else { panel?.orderOut(nil) }
     }
 
-    private func show(_ store: BoardStore) {
+    private func setHomeAside(_ aside: Bool) {
+        if aside, setAside.isEmpty {
+            setAside = NSApp.windows.filter { $0.isVisible && $0.canBecomeMain }
+            for window in setAside { window.orderOut(nil) }
+        } else if !aside, !setAside.isEmpty {
+            for window in setAside { window.makeKeyAndOrderFront(nil) }
+            setAside = []
+            NSApp.activate()
+        }
+    }
+
+    private func showPanel(_ store: BoardStore) {
         let panel = self.panel ?? makePanel(store)
         self.panel = panel
         dock()
         guard !panel.isVisible else { return }
-        setAside = NSApp.windows.filter { $0 !== panel && $0.isVisible && $0.canBecomeMain }
-        for window in setAside { window.orderOut(nil) }
-        if LaunchOptions.capturesQuietly {
-            panel.level = .normal
-            panel.orderBack(nil)
-        } else {
-            panel.orderFrontRegardless()
-        }
+        Self.present(panel)
     }
 
-    private func hide() {
-        guard let panel, panel.isVisible else { return }
-        panel.orderOut(nil)
-        for window in setAside { window.makeKeyAndOrderFront(nil) }
-        setAside = []
-        NSApp.activate()
+    /// Up front for real use; behind other apps at normal level for `-quietCapture`.
+    static func present(_ window: NSWindow) {
+        if LaunchOptions.capturesQuietly {
+            window.level = .normal
+            window.orderBack(nil)
+        } else {
+            window.orderFrontRegardless()
+        }
     }
 
     private func dock() {
@@ -91,6 +98,6 @@ import SwiftUI
 }
 
 /// Borderless panels refuse key status by default, which would leave ADD TASK's field and the notes deaf to typing.
-private final class KeyablePanel: NSPanel {
+final class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
 }

@@ -10,7 +10,7 @@ struct KomodoApp: App {
         Window("Komodo", id: "home") {
             HomeView(store: store)
                 .frame(minWidth: Layout.homeMin.width, minHeight: Layout.homeMin.height)
-                .onAppear { appDelegate.focusPanel.attach(store) }
+                .onAppear { appDelegate.focusSurfaces.attach(store) }
                 #if DEBUG
                     .openGalleryOnLaunchIfRequested()
                 #endif
@@ -51,7 +51,8 @@ enum LaunchOptions {
             store.isQuickAddOpen = defaults.bool(forKey: "openQuickAdd")
             if let state = defaults.string(forKey: "focusState") { apply(state, to: store) }
             // The sample day already has a live task, so the panel opens on it rather than through Start.
-            store.isFocusPanelOpen = defaults.bool(forKey: "openFocusPanel")
+            if defaults.bool(forKey: "openFocusPanel") { store.focusSurface = .panel }
+            if defaults.bool(forKey: "openFloatingTimer") { store.focusSurface = .floatingTimer }
         #endif
         return store
     }
