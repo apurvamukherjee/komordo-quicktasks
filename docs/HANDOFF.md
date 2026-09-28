@@ -141,10 +141,10 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Archive** in the card menu stays disabled until Trash lands.
 - **Repeat copies** are made at launch and after schedule changes only. Midnight rollover and wake from sleep
   need a trigger (FEATURES §4.7).
-- **Schedule step 2:** the time is a native stepper field with a clear button. The canvas draws a clock icon in
-  the field and a "+ ADD" link, and has the repeat icon inside the menu button.
-- **Inspector at 1440 pt:** with the inspector open, the Board's columns get narrow enough that "Backlog" and
-  "This week" wrap. Give the column titles `lineLimit(1)` or hide the inspector below a width.
+- **Schedule step 2:** the Repeat menu button has no repeat icon inside it (the native menu picker shows only
+  the chosen item). The time field keeps an ✕ to remove the time, which the canvas doesn't draw.
+- **Card ⋯ menu:** a native menu, so no launch flag can open it for a background capture. Its items haven't
+  been checked against the canvas on screen.
 - **README recording** has not been re-recorded for 5b or 5c. The screenshots are fresh, but recording needs the
   pointer and the screen. Ask the maintainer for a window when it's time.
 - **Background captures:** switches are drawn grey when Komodo isn't the active app, so the "Reminder at start
@@ -183,7 +183,9 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | README scope | No AI mentions, including the product's AI features | The user's rule; the README only showcases shipped work |
 | App icon | Black body, spectrum ring (violet → lime), white check; no mascot | The user asked for black primary with the accents as secondary. `System.png` shows a teal → lime ring and hand on `#171717` |
 | Schedule calendar | Custom Monday-first month grid | `Schedule.png` wins on pixels; the native graphical `DatePicker` was small and followed the locale's first weekday |
-| Schedule time field | Native stepper field with a clear button | "Native first"; the canvas's clock icon and "+ ADD" are listed in §5 |
+| Schedule time field | `TimeField`: clock icon, digits and stepper in a 116 pt Komodo field, plus ✕ to remove the time | Matches `Schedule.png`. It wraps an unbezeled `NSDatePicker` to keep typing and arrow keys. The ✕ stays because a time must be removable (FEATURES §4.6) |
+| Column titles | Always whole on one line; the subtitle truncates | With the inspector open at 1440 pt, "Backlog", "This week" and "Today" wrapped |
+| Custom repeat controls | Native stepper, unit menu and date field | "Native first"; the canvas draws a − N + stepper and an "Oct 31" field with a calendar icon |
 | Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
@@ -210,7 +212,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - Gallery: `--args -design-gallery -galleryScrollTo <section>`, where section is one of principles,
     neutrals, accents, temperature, type, spotlight, motion, controls, cards, components.
   - Surfaces: add `-openSchedule <task id>`, `-openInspector <task id>` or `-openQuickAdd YES`. Sample ids:
-    `roadmap` (unscheduled, opens step 1), `weekly` (repeating, opens step 2), `mcp` (subtasks).
+    `roadmap` (unscheduled, opens step 1), `weekly` (repeating, opens step 2), `mcp` (subtasks). Add
+    `-openCustomRepeat YES` to `-openSchedule` for the Custom repeat sheet.
   - **The maintainer uses the Mac while you work.** Launch with `open -g` so Komodo stays in the background,
     capture with `screencapture -x -o -l <window id>`, and type with `CGEvent.postToPid`, which reaches Komodo
     without bringing it forward. Never click or record the screen without asking first.
