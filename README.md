@@ -40,7 +40,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | :-: | --- | --- | :-: |
 | 🎨 | **Obsidian Spectrum design system** | True-black canvas, cursor spotlight on every surface, border beam, focus dial and odometer digits, all honoring Reduce Motion | ✅ Available |
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
-| 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
+| 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo. Everything is saved on your Mac | ✅ Available |
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
@@ -190,9 +190,9 @@ open Komodo.app --args -sampleTime artboard
 - [x] Design system gallery
 - [x] Components: buttons, chips, fields, task card, live task card, control bar, day meter, toasts, banners
 - [ ] Menu bar app, Settings, Gmail → Calendar, backup
-- [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue (in-memory for now)
+- [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue
 - [x] Inspector, scheduling and repeats, and the Quick add panel
-- [ ] Saving to SQLite
+- [x] Saving to SQLite, on your Mac
 - [x] Focus Panel and its states
 - [x] Floating timer, celebrations, day summary, command palette
 - [ ] Reports and Trash
