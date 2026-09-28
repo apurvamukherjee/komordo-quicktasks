@@ -31,5 +31,5 @@ If the docs disagree: FEATURES wins on behavior, the canvas PNGs and HTML win on
 - Conventional Commits with a scope (`feat(effects): …`, `fix(core): …`, `docs(readme): …`), a lowercase imperative summary of at most 72 characters, then a wrapped body that explains why.
 - Commit small and often: roughly 20–25 commits per task, each one building on its own. Never push; the maintainer pushes.
 - Whenever a feature lands, update `README.md` in the same task: flip its row from 🚧 to ✅, tick the roadmap, and add fresh screenshots and a demo video captured from the running app into `docs/media/` (steps in CONTRIBUTING.md). Never use the canvas PNGs as screenshots.
-- The README is a product showcase. It never mentions AI, AI tools or AI features.
+- The README is a product showcase. It never mentions AI tools used to build Komodo. Komodo's own AI features (Claude mode, Assistant, Local MCP) get README rows and sections like any other feature once they ship.
 - At the end of every milestone, update `CHANGELOG.md` and `docs/HANDOFF.md` (status, next task, gaps, decisions, and the prompt for the next session).
