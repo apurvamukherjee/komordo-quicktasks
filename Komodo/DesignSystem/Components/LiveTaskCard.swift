@@ -144,7 +144,7 @@ private struct LiveTaskContent: View {
                     .font(.system(size: 20, weight: .heavy).monospacedDigit())
                     .tracking(-0.4)
                     .foregroundStyle(Palette.textPrimary)
-                Text("OF EST")
+                Text(heroSprint == nil ? "OF EST" : "OF SPRINT")
                     .font(.system(size: 9, weight: .heavy))
                     .tracking(0.9)
                     .foregroundStyle(Palette.textMuted)
