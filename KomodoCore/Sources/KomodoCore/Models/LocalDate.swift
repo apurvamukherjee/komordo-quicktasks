@@ -13,6 +13,13 @@ public struct LocalDate: Hashable, Comparable, Sendable, CustomStringConvertible
         self.day = day
     }
 
+    /// Reads the `YYYY-MM-DD` form that `description` writes; nil for anything else.
+    public init?(iso text: String) {
+        let parts = text.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3, (1...12).contains(parts[1]), (1...31).contains(parts[2]) else { return nil }
+        self.init(year: parts[0], month: parts[1], day: parts[2])
+    }
+
     public init(_ date: Date, calendar: Calendar) {
         let parts = calendar.dateComponents([.year, .month, .day], from: date)
         self.init(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
