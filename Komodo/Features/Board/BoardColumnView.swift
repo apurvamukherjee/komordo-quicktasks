@@ -129,7 +129,8 @@ struct BoardCard: View {
 
 extension View {
     /// What every card on the Board does besides looking right: a click opens it in the inspector, it drags,
-    /// accepts drops before itself, takes keyboard focus (Space toggles done, ⌥↑/⌥↓ move, N adds), and has the card menu.
+    /// accepts drops before itself, takes keyboard focus (Space toggles done, ⌥↑/⌥↓ move, N adds, ⌘D duplicates,
+    /// ⌘⌫ deletes), and has the card menu.
     func boardCardBehavior(
         store: BoardStore, task: TaskItem, focusedTask: FocusState<String?>.Binding, onAdd: @escaping () -> Void
     ) -> some View {
@@ -154,6 +155,11 @@ extension View {
             }
             .onKeyPress("n") {
                 onAdd()
+                return .handled
+            }
+            .onKeyPress(keys: ["d", .delete]) { press in
+                guard press.modifiers == .command else { return .ignored }
+                if press.key == .delete { store.delete(task.id) } else { store.duplicate(task.id) }
                 return .handled
             }
             .draggable(task.id) {

@@ -34,7 +34,10 @@ extension BoardStore {
     /// Subtasks and Notes open the inspector, where both live.
     func cardMenu(for task: TaskItem) -> [[CardAction]] {
         let otherLists = lists.filter { $0.id != task.listID }.map { list in
-            CardAction(label: list.name, symbol: "circle.fill") { self.update(task.id) { $0.listID = list.id } }
+            // Letter squares stand in for the canvas's list badges; native menus draw symbols in one color.
+            CardAction(label: list.name, symbol: "\(list.letter.lowercased()).square.fill") {
+                self.update(task.id) { $0.listID = list.id }
+            }
         }
         return [
             [
@@ -43,13 +46,19 @@ extension BoardStore {
                 CardAction(label: "Notes", symbol: "note.text") { self.inspect(task.id) },
             ],
             [
-                CardAction(label: "Duplicate", symbol: "plus.square.on.square") { self.duplicate(task.id) },
+                CardAction(
+                    label: "Duplicate", symbol: "plus.square.on.square",
+                    shortcut: KeyboardShortcut("d", modifiers: .command)
+                ) { self.duplicate(task.id) },
                 CardAction(label: "Move to list", symbol: "folder", menu: [otherLists]),
             ],
             [
                 // Archive lands with Trash (FEATURES §4.20).
                 CardAction(label: "Archive", symbol: "archivebox", isEnabled: false),
-                CardAction(label: "Delete", symbol: "trash", isDestructive: true) { self.delete(task.id) },
+                CardAction(
+                    label: "Delete", symbol: "trash", isDestructive: true,
+                    shortcut: KeyboardShortcut(.delete, modifiers: .command)
+                ) { self.delete(task.id) },
             ],
         ]
     }
