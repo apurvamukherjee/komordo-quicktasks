@@ -14,6 +14,16 @@ import SwiftUI
         var breakLength: TimeInterval = 0
         /// The queue ran out: show the day summary until something new starts.
         var isDayWon = false
+        /// Done was just pressed: the celebration plays before the next task starts (FEATURES §4.13).
+        var celebration: Celebration?
+    }
+
+    /// What the celebration says: the result against the estimate and what comes next.
+    struct Celebration: Equatable {
+        var taskID: String
+        var title: String
+        var message: String
+        var nextTitle: String?
     }
 
     enum FocusSurface: Sendable {
@@ -106,7 +116,7 @@ import SwiftUI
 
     func showBoard() { showList(lastListID ?? lists.first?.id) }
     var selectedList: TaskList? { lists.first { $0.id == selectedListID } }
-    var isFocusing: Bool { focus.taskID != nil || focus.breakEndsAt != nil }
+    var isFocusing: Bool { focus.taskID != nil || focus.breakEndsAt != nil || focus.celebration != nil }
 
     var liveTask: TaskItem? {
         guard let id = focus.taskID, focus.breakEndsAt == nil else { return nil }
@@ -473,13 +483,25 @@ import SwiftUI
         if let next = layout.upNext.first(where: { $0.id != id }) { begin(next.id) } else { begin(id) }
     }
 
-    /// Done: completes the live task and starts the next eligible one. With only timed tasks left the panel
-    /// waits for them; with nothing left the day is won.
+    /// Done: completes the live task and celebrates. The next task starts when the celebration ends, so it
+    /// never plays over running time.
     func completeLive() {
         guard let id = focus.taskID, let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         closeSession(id)
         tasks[index].completedAt = now
         focus.taskID = nil
+        let task = tasks[index]
+        focus.celebration = Celebration(
+            taskID: id, title: task.title,
+            message: CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now)),
+            nextTitle: layout.upNext.first?.title)
+    }
+
+    /// After about 2.5 s, a click or Esc: the next eligible task starts. With only timed tasks left the panel
+    /// waits for them; with nothing left the day is won.
+    func finishCelebration() {
+        guard focus.celebration != nil else { return }
+        focus.celebration = nil
         if let next = layout.upNext.first {
             begin(next.id)
         } else {
@@ -522,6 +544,7 @@ import SwiftUI
     private func begin(_ id: String) {
         focus.taskID = id
         focus.isDayWon = false
+        focus.celebration = nil
         tasks.first { $0.id == id }?.linksToOpen.forEach(openURL)
         openSession(id)
         focus.flowStartedAt = tasks.first { $0.id == id }?.timeTaken(at: now) ?? 0

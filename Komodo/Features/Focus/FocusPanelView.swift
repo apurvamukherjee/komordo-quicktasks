@@ -153,7 +153,13 @@ struct FocusPanelView: View {
     // MARK: Live
 
     @ViewBuilder private var hero: some View {
-        if let endsAt = store.breakEndsAtWallClock {
+        if let celebration = store.focus.celebration {
+            CelebrationCard(
+                message: celebration.message, nextTitle: celebration.nextTitle, onFinish: store.finishCelebration
+            )
+            .id(celebration.taskID)
+            .transition(.rise(reduceMotion: reduceMotion))
+        } else if let endsAt = store.breakEndsAtWallClock {
             FocusBreakCard(
                 endsAt: endsAt, length: store.focus.breakLength,
                 upNext: store.focus.taskID.flatMap { id in store.tasks.first { $0.id == id }?.title }

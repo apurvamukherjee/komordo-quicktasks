@@ -41,8 +41,8 @@ struct KomodoApp: App {
 /// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
 ///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
 ///   Custom repeat sheet.
-/// - `-openFocusPanel YES` docks the Focus Panel, and `-focusState paused|timesUp|break|scheduled|won` puts it
-///   in one of its states (FocusStates.png).
+/// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
+///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG
@@ -75,7 +75,12 @@ enum LaunchOptions {
                 if state == "won" {
                     for task in store.layout.scheduledToday { store.toggleDone(task.id) }
                 }
-                while store.focus.taskID != nil { store.completeLive() }
+                while store.focus.taskID != nil {
+                    store.completeLive()
+                    store.finishCelebration()
+                }
+            case "celebrating":
+                store.completeLive()
             default:
                 break
             }

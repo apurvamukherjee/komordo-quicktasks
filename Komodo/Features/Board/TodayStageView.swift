@@ -138,7 +138,13 @@ struct TodayStageView: View {
     }
 
     @ViewBuilder private var liveSection: some View {
-        if let endsAt = store.breakEndsAtWallClock {
+        if let celebration = store.focus.celebration {
+            CelebrationCard(
+                message: celebration.message, nextTitle: celebration.nextTitle, onFinish: store.finishCelebration
+            )
+            .id(celebration.taskID)
+            .transition(.rise(reduceMotion: reduceMotion))
+        } else if let endsAt = store.breakEndsAtWallClock {
             BreakCard(
                 endsAt: endsAt,
                 upNext: store.focus.taskID.flatMap { id in store.tasks.first { $0.id == id }?.title }
@@ -209,6 +215,7 @@ struct TodayStageView: View {
 
     private func isEmpty(_ layout: BoardLayout) -> Bool {
         layout.openToday.isEmpty && store.liveTask == nil && store.focus.breakEndsAt == nil && !store.focus.isDayWon
+            && store.focus.celebration == nil
     }
 
     private var emptyState: some View {
