@@ -88,7 +88,11 @@ struct FloatingTimerView: View {
                 .font(Typography.timerPill)
                 .tracking(-0.15)
                 .foregroundStyle(tone == .timesUp ? Palette.redText : tone == .paused ? Palette.textMuted : .white)
-                .shadow(color: tone == .live ? Palette.lime.opacity(0.6) : .clear, radius: 7)
+                .shadow(
+                    color: tone == .live
+                        ? Palette.lime.opacity(0.6) : tone == .sprint ? Palette.pink.opacity(0.6) : .clear,
+                    radius: 7
+                )
                 .shake(trigger: tone == .timesUp)
             if tone == .timesUp {
                 Rectangle().fill(Color.white.opacity(0.14)).frame(width: 1, height: 18)
@@ -140,7 +144,11 @@ struct FloatingTimerView: View {
             Image(systemName: "timer").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.redText)
                 .frame(width: 18, height: 18)
         case .live, .sprint, .onBreak:
-            if let clock, let estimate = store.liveTask?.estimate {
+            if tone == .sprint {
+                FocusDial(clock: store.sprintClock, estimate: store.sprintLength, tone: tone, metrics: .pill) { _ in
+                    EmptyView()
+                }
+            } else if let clock, let estimate = store.liveTask?.estimate {
                 FocusDial(clock: clock, estimate: estimate, tone: tone, metrics: .pill) { _ in EmptyView() }
             }
         }
@@ -191,10 +199,21 @@ private struct PillState {
         } else if let live = store.liveTask, let clock {
             let estimate = live.estimate ?? 3_600
             let elapsed = clock.elapsed(at: date)
-            let tone = TimerTone(elapsed: elapsed, estimate: estimate, isRunning: clock.isRunning, inSprint: false)
-            kind = .live(
-                tone: tone, title: live.title, time: TimerFormat.remaining(estimate: estimate, elapsed: elapsed))
-            progress = min(1, elapsed / estimate)
+            // Sprint display counts the sprint here too, until Time's Up takes over with the task's overtime.
+            let countsSprint = store.isPomodoroOn && store.sprintDisplay == .sprint
+            let tone = TimerTone(
+                elapsed: elapsed, estimate: estimate, isRunning: clock.isRunning, inSprint: countsSprint)
+            if tone == .sprint || (countsSprint && tone == .paused) {
+                let length = store.sprintLength
+                let worked = min(length, store.sprintClock.elapsed(at: date))
+                kind = .live(
+                    tone: tone, title: live.title, time: TimerFormat.remaining(estimate: length, elapsed: worked))
+                progress = length > 0 ? worked / length : 0
+            } else {
+                kind = .live(
+                    tone: tone, title: live.title, time: TimerFormat.remaining(estimate: estimate, elapsed: elapsed))
+                progress = min(1, elapsed / estimate)
+            }
         } else if let next = store.nextScheduled {
             let parts = store.timeParts(for: next)
             kind = .waiting(title: next.title, time: "\(parts.time) \(parts.period)")
@@ -243,6 +262,7 @@ private struct PillState {
         case .timesUp: [Palette.danger, Palette.ember]
         case .onBreak: [Palette.green, Palette.mint]
         case .paused: [Palette.textDisabled, Palette.textMuted]
+        case .sprint: [Palette.pink, Palette.lime]
         default: [Palette.teal, Palette.lime]
         }
     }
@@ -250,7 +270,8 @@ private struct PillState {
     var glow: Color? {
         if isDone { return Palette.lime }
         return switch tone {
-        case .live, .sprint: Palette.lime
+        case .live: Palette.lime
+        case .sprint: Palette.pink
         case .timesUp: Palette.danger
         case .onBreak: Palette.green
         case .paused, nil: nil
