@@ -5,13 +5,20 @@ import AppKit
     let focusSurfaces = FocusSurfaceController()
     let alerts = FocusAlerts()
 
+    private var store: BoardStore?
+
     /// Called once Home appears with the app's store.
     func attach(_ store: BoardStore) {
+        self.store = store
         focusSurfaces.attach(store)
         guard store.alerts == nil else { return }
         alerts.install()
         alerts.onResume = { store.endBreak() }
         store.alerts = alerts
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        store?.pauseForQuit()
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {

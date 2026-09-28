@@ -3,8 +3,7 @@ import SwiftUI
 @main
 struct KomodoApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    // In-memory sample data until the database lands (ARCHITECTURE §16).
-    @State private var store = LaunchOptions.opening(BoardSamples.store(anchoredAt: LaunchOptions.sampleTime))
+    @State private var store = LaunchOptions.opening(LaunchOptions.makeStore())
 
     var body: some Scene {
         Window("Komodo", id: "home") {
@@ -36,7 +35,8 @@ struct KomodoApp: App {
 }
 
 /// Debug launch arguments for design reviews and screenshots:
-/// - `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon.
+/// - `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon, and `-sampleData YES` shows it
+///   around the real time. Both keep the board in memory; without them the app opens the saved database.
 /// - `-homeWindowSize 1440x900` sets the Home window's first size (pair with `-ApplePersistenceIgnoreState YES`).
 /// - `-openSchedule <task id>`, `-openInspector <task id>` and `-openQuickAdd YES` open those surfaces at launch,
 ///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
@@ -120,6 +120,17 @@ enum LaunchOptions {
         #else
             false
         #endif
+    }
+
+    /// The saved board, or in Debug the in-memory sample day for captures and previews (`-sampleTime artboard`,
+    /// or `-sampleData YES` placed around the real time), which never touches the database.
+    @MainActor static func makeStore() -> BoardStore {
+        #if DEBUG
+            if sampleTime != nil || UserDefaults.standard.bool(forKey: "sampleData") {
+                return BoardSamples.store(anchoredAt: sampleTime)
+            }
+        #endif
+        return BoardStore.persistent()
     }
 
     static var sampleTime: Date? {
