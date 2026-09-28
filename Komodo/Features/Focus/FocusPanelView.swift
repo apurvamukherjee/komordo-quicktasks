@@ -63,7 +63,7 @@ struct FocusPanelView: View {
                     .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
                         QuickSettingsView(store: store)
                     }
-                Button("Exit Focus mode", systemImage: "house", action: store.exitFocusPanel)
+                Button("Exit Focus mode", systemImage: "house", action: store.exitFocusMode)
                     .buttonStyle(.icon())
                     .help("Exit Focus mode (Home)")
                 Button("Collapse to floating timer", systemImage: "pip.enter") {}

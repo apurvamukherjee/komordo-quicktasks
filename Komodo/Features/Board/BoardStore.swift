@@ -16,6 +16,11 @@ import SwiftUI
         var isDayWon = false
     }
 
+    enum FocusSurface: Sendable {
+        case panel
+        case floatingTimer
+    }
+
     /// The screen edge the Focus Panel docks to.
     enum PanelSide: String, CaseIterable, Sendable {
         case left
@@ -34,8 +39,10 @@ import SwiftUI
     var breakLength: TimeInterval = 5 * 60
     var panelSide = PanelSide.right
     var playsSounds = true
-    /// The Focus Panel is docked and the Home window is hidden (FEATURES §4.8).
-    var isFocusPanelOpen = false
+    /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
+    var focusSurface: FocusSurface?
+    /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
+    private(set) var locatorPings = 0
     /// Filters cards by title, notes and subtasks until the command palette takes over search.
     var searchText = ""
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
@@ -404,16 +411,28 @@ import SwiftUI
     func start() {
         guard focus.taskID == nil, let first = layout.upNext.first else { return }
         begin(first.id)
-        isFocusPanelOpen = true
+        focusSurface = .panel
     }
 
     /// Home: back to the Board, where Focus mode carries on in the Today stage.
-    func exitFocusPanel() { isFocusPanelOpen = false }
+    func exitFocusMode() { focusSurface = nil }
+
+    /// ⌘⇧T: the panel and the floating timer swap. From Home it collapses straight to the timer.
+    func toggleFloatingTimer() {
+        guard isFocusing || focusSurface != nil else { return }
+        focusSurface = focusSurface == .floatingTimer ? .panel : .floatingTimer
+    }
+
+    /// ⌘⇧P: the floating timer ripples so it can be found on a busy screen.
+    func locateFloatingTimer() {
+        guard focusSurface == .floatingTimer else { return }
+        locatorPings += 1
+    }
 
     /// Done on the day summary: nothing is left to focus on, so Focus mode ends and Home comes back.
     func closeDaySummary() {
         focus.isDayWon = false
-        isFocusPanelOpen = false
+        focusSurface = nil
     }
 
     /// The next task with a time today, once nothing else is left to run.
@@ -465,6 +484,8 @@ import SwiftUI
             begin(next.id)
         } else {
             focus.isDayWon = layout.scheduledToday.isEmpty
+            // The summary and the calm card need the panel's room, so the floating timer opens back into it.
+            if focusSurface == .floatingTimer { focusSurface = .panel }
         }
     }
 
