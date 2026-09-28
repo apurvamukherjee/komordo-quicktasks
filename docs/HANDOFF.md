@@ -1,8 +1,8 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-28. Milestones 5b (Inspector) and 5c (Quick add, Schedule popover and Repeat) are on
-`main`. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build
-new commits on top. `CHANGELOG.md` has the full list of what landed.
+Last updated: 2026-09-28. Milestones through 5d (Focus Panel and its states) are on `main`. The maintainer
+committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
+`CHANGELOG.md` has the full list of what landed.
 
 ---
 
@@ -21,12 +21,13 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": build the Focus Panel and its states to match
-design/previews/FocusPanel.png and FocusStates.png and design/screens/FocusPanel.dc.html and FocusStates.dc.html
-(DESIGN_SYSTEM §13.8), with the behavior from FEATURES §4.8 and §6.3. Keep using the in-memory BoardStore and
-sample data. I use this Mac while you work: capture Komodo's own windows (screencapture -l) and use the Debug
-launch flags instead of moving my pointer. Show me a screenshot of the running app next to FocusPanel.png, and
-list every place where you followed one spec over another.
+Then continue from docs/HANDOFF.md §4 "Next task": build the floating timer and the celebration to match
+design/previews/FloatingTimer.png and Celebration.png and their design/screens/*.dc.html (DESIGN_SYSTEM §10.5,
+§13.9, §13.10), with the behavior from FEATURES §4.9 and §4.13. Keep using the in-memory BoardStore and sample
+data. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug launch flags
+and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each PNG, and
+list every place where you followed one spec over another. Ask me HANDOFF §9's questions before building
+Pomodoro sprints.
 ```
 
 ---
@@ -44,8 +45,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5a | Board, single list (`Main.png`) | ✅ | In-memory sample data; checked side by side with `Main.png` |
 | 5b | Inspector (`Inspector.png`) | ✅ | Notes are RTF in an `NSTextView` |
 | 5c | Quick add panel (⌘⌥T), Schedule popover + Repeat | ✅ | Checked against `Schedule.png` and `BoardStates.png`; see §5 for what's left |
-| 5d | **Focus Panel + FocusStates** | ⏭ **Next** | See §4. The Board already runs Focus mode in its Today stage |
-| 5e | Floating timer, Celebration, Day summary, Command palette | ⬜ | |
+| 5d | Focus Panel + FocusStates | ✅ | Checked against `FocusPanel.png` and `FocusStates.png`; see §5 for what's left |
+| 5e | **Floating timer, Celebration, Day summary, Command palette** | ⏭ **Next** | See §4 |
 | 5f | Settings, Gmail → Calendar, Data & backup, Onboarding, System surfaces | ⬜ | ARCHITECTURE puts Settings and Gmail in Phase 0a |
 | — | Persistence (SQLite with GRDB) | ⬜ | Not started. A new dependency needs the user's OK first (bundle cost plus one alternative) |
 
@@ -71,11 +72,14 @@ Komodo/
   Features/Inspector/ InspectorView, InspectorDetails (+ InspectorRow/InspectorValue), Subtasks, Notes, Activity
   Features/Schedule/  SchedulePopover (steps, month grid), ScheduleDetailsStep, RepeatPicker (+ CustomRepeatSheet)
   Features/QuickAdd/  QuickAddPanel (⌘⌥T, overlaid on the Board)
+  Features/Focus/     FocusPanelView (header, day tile, lists), FocusHeroCard (236 pt dial), FocusStateCards
+                      (break, timed tasks only, won day), FocusPanelRows, QuickSettingsView
+  Windows/            FocusPanel (FocusPanelController: the docked NSPanel, owned by AppDelegate)
   Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons)
 scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
-  Board/              WeekRange, BoardLayout, DayPlan, FocusHistory
+  Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory
   Timer/              FocusClock, TimerFormat
   Formatting/         DurationFormat
   Parsing/            EstimateParser
@@ -104,24 +108,30 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   remembered and stay gone.
 - **Undo:** `offerUndo` registers with the window's `UndoManager` and shows the toast, so ⌘Z and the toast's
   button do the same restore.
+- **Focus Panel:** `store.isFocusPanelOpen` drives it. `FocusPanelController` observes the store, docks an
+  `NSPanel` to `panelSide` and sets the Home window aside while it's up. Both surfaces read one store, so
+  there's one timer. Live-task tone and control mode come from `TimerTone(elapsed:…)` and
+  `ControlBar.Mode(tone:)`, shared with the Board's live card.
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
 ---
 
-## 4. Next task: Focus Panel and FocusStates
+## 4. Next task: Floating timer and Celebration
 
-- **Spec:** DESIGN_SYSTEM §13.8; FEATURES §4.8 (Focus mode) and §6.3 (focus session). Pixels:
-  `design/previews/FocusPanel.png` and `FocusStates.png`; values: `design/screens/FocusPanel.dc.html` and
-  `FocusStates.dc.html`.
+- **Spec:** DESIGN_SYSTEM §10.5, §13.9 and §13.10; FEATURES §4.9 (floating timer) and §4.13 (celebrations).
+  Pixels: `design/previews/FloatingTimer.png` and `Celebration.png`; values: their `design/screens/*.dc.html`.
+  The Day summary (§13.11) and the command palette (§13.7) follow in the same milestone.
 - **Hooks already in place:**
-  - The Board runs Focus mode in its Today stage (`TodayStageView`), and `BoardStore.focus` holds the live
-    task, sprints and breaks. Build the panel on the same store; don't add a second timer.
-  - `FocusClock` rebuilds the countdown from sessions on every read, and `LiveTaskCard` / `ControlBar` /
-    `BreakCard` already exist.
-  - The docked panel width is `Layout.focusPanelWidth` (340 pt).
-- **Capturing:** add a Debug flag like `-openFocusPanel YES` to `LaunchOptions` so the panel can be captured with
-  `screencapture -l` without touching the pointer (see §7).
+  - `FocusPanelController` shows how a panel follows the store. The floating timer is a second `NSPanel`
+    (ARCHITECTURE §4.1: borderless, `.floating`, all Spaces, movable by background). Put it beside the Focus
+    Panel in `Windows/` and let the panel's collapse button and the Board's floating-timer button toggle it
+    (⌘⇧T).
+  - `FocusHeroCard`'s `TimerTone`, `StatusPill` and `LiveDigits` are shared; the pill needs the same tones.
+  - The canvas's celebration takes the live card's place for 2.6 s (`heroHeight` in `FocusStateCards`), then
+    starts the next task. `completeLive()` starts the next one at once today.
+  - `FocusWonCard` is the panel's end of the queue. The Day summary adds the streak and Not finished (P1).
+- **Capturing:** add flags like `-openFloatingTimer YES`, and keep `-quietCapture` so nothing covers the screen.
 
 ---
 
@@ -143,10 +153,23 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   need a trigger (FEATURES §4.7).
 - **Card ⋯ menu:** its items, groups and shortcuts were checked against `BoardStates.dc.html` in code. It's a
   native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
-- **README recording** has not been re-recorded for 5b or 5c. The screenshots are fresh, but recording needs the
+- **README recording** has not been re-recorded for 5b, 5c or 5d. The screenshots are fresh, but recording needs the
   pointer and the screen. Ask the maintainer for a window when it's time.
 - **Celebration:** Done completes the task and starts the next one, but there is no confetti or celebration
   card yet (Celebration milestone).
+- **Pomodoro sprints:** the Quick Settings switch and lengths are stored, and the break length drives hand
+  breaks, but no sprint counts down and no break starts on its own. The pink Sprint state and the sprint chip
+  wait for §9's first question.
+- **Sounds:** the Quick Settings switch is stored; nothing plays yet.
+- **Focus Panel:**
+  - The collapse button and the Scheduled today **+** are disabled with `.help` notes.
+  - Rows have Make live, Done, Duplicate and Delete. Schedule, Subtasks, Notes and Move to list open the Home
+    window, so they're left out of the panel's menu, and rows can't be dragged to reorder yet.
+  - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
+  - If the Home window was closed before Start, Home has no window to bring back.
+  - It docks to `NSScreen.main`.
+  - The won card's twinkling sparks are left out, and See reports is disabled until Reports.
+- **Timed tasks** don't join the queue when their time passes (FEATURES §4.6); the calm card waits for them.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, command palette
   row, page dots, code block, folder picker, stat tile, celebration and day-summary cards. Build each with the
@@ -157,7 +180,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
-  EstimateParser, BoardLayout, DayPlan and FocusHistory.
+  EstimateParser, BoardLayout, DayPlan, DaySummary and FocusHistory.
 
 ---
 
@@ -183,6 +206,17 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Column titles | Always whole on one line; the subtitle truncates | With the inspector open at 1440 pt, "Backlog", "This week" and "Today" wrapped |
 | Custom repeat controls | Native stepper, unit menu and date field | "Native first"; the canvas draws a − N + stepper and an "Oct 31" field with a calendar icon |
 | Repeat menu button | The canvas's field (glyph, rule, up-down chevron) over a native menu with an inline picker | Keeps the native checkmark on the current rule |
+| Focus Panel width | 340 pt (`Layout.focusPanelWidth`) | DESIGN_SYSTEM §13.8 and FocusStates say 340; the FocusPanel artboard is 380 wide. The header icons sit edge to edge to fit |
+| Focus Panel level | `.floating`, non-activating, can become key | Docked beside other apps it should stay visible; key status lets ADD TASK and Notes take typing |
+| Panel list picker | The Board's list filter | One filter for both surfaces, so the queue matches what Home shows |
+| Panel Notes | A popover with the inspector's notes | The inspector lives in the hidden Home window |
+| Timed tasks left | The calm card, not the won day | FocusStates ⑥; `completeLive()` wins only when nothing timed is left |
+| Won card Done | Ends Focus mode and brings Home back | The canvas says "Close the summary"; nothing is left to focus on |
+| On est. | Share finished early or within ±10% | FEATURES §4.14's on-time tolerance; the canvas's 82% is illustrative |
+| Won tiles | `5h 40m` (`DurationFormat.compact`) | The canvas's copy; `5hr 40min` overflows the tile |
+| Panel Done row | The shared `DoneSectionButton` (44 pt, expands) | Same component as the Board; the canvas draws 40 pt with a right chevron |
+| Break buttons | 40 pt large buttons | The house button heights; the canvas draws 42 pt |
+| Panel sprint chip | Not shown | Same open question as the Board (§9) |
 | Move to list items | Letter-square symbols (`w.square.fill`) | Native menus draw symbols in one color, so the canvas's colored list badges can't be matched exactly |
 | Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
@@ -212,6 +246,10 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - Surfaces: add `-openSchedule <task id>`, `-openInspector <task id>` or `-openQuickAdd YES`. Sample ids:
     `roadmap` (unscheduled, opens step 1), `weekly` (repeating, opens step 2), `mcp` (subtasks). Add
     `-openCustomRepeat YES` to `-openSchedule` for the Custom repeat sheet.
+  - Focus Panel: `--args -sampleTime artboard -ApplePersistenceIgnoreState YES -openFocusPanel YES -quietCapture
+    YES`, plus `-focusState paused|timesUp|break|scheduled|won` for the other states. `-quietCapture` keeps the
+    panel at normal level behind other apps, so it doesn't cover the screen; `screencapture -l` still gets it.
+    The window is named "Focus Panel" in `CGWindowListCopyWindowInfo` (use `.optionAll`, it isn't on top).
   - **The maintainer uses the Mac while you work.** Launch with `open -g` so Komodo stays in the background,
     capture with `screencapture -x -o -l <window id>`, and type with `CGEvent.postToPid`, which reaches Komodo
     without bringing it forward. Never click or record the screen without asking first.
@@ -252,6 +290,10 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     --platform macOS --rendition Default --width 512 --height 512 --scale 1`. Renditions: `Default`, `Dark`,
     `TintedDark`, `ClearDark`. `ictool` is in `Icon Composer.app/Contents/Executables/`.
   - `ImageRenderer` output differs by 1/255 between runs. Commit re-rendered PNGs only when the drawing changed.
+- **Times:** formatters put a narrow no-break space (U+202F) before "PM". Split on `\.isWhitespace`, never on
+  `" "`.
+- **WeightedHStack** fills a concrete proposed height. Outside a scroll view give it
+  `.fixedSize(horizontal: false, vertical: true)`, or it stretches its row.
 - **Parallel sessions:** two sessions editing the same folder overwrote each other once. Run only one working
   session per checkout.
 
