@@ -42,7 +42,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
 | 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo | ✅ Available · saving to disk is next |
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
-| ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available · Pomodoro sprint timing is next |
+| ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
 | 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | ✅ Available · fun GIFs and sounds are next |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
@@ -97,7 +97,10 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Every state at a glance.** The dial glows lime while you work, turns grey when paused and red with a shake when the estimate runs out, with +5 and +15 min one click away.
 - **Breaks that breathe.** A green circle breathes four seconds in and four out while the break counts down. Nothing restarts until you say so.
 - **The queue stays yours.** Add a task, finish one, or bolt any task live from the panel. When only timed tasks are left it waits calmly, and when the queue is clear you've won the day.
-- **Quick Settings.** Sprint and break lengths, the panel's side and sounds, from the gear.
+- **Pomodoro sprints, your way.** Work counts toward 25-minute sprints and a break starts when one ends. Keep the task's estimate as the big number with the sprint beside it, or switch Sprint display to count the sprint itself in pink.
+- **Quick Settings.** Sprint and break lengths, sprint display, the panel's side and sounds, from the gear.
+
+<p align="center"><img src="docs/media/focus-sprints.png" alt="The Focus Panel in Task display, counting the estimate with a Sprint 1 of 4 chip, and in Sprint display, counting the sprint down in pink" width="70%"></p>
 
 ## Floating timer and celebrations
 
