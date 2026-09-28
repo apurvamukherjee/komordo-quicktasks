@@ -8,6 +8,15 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Pomodoro sprints — 2026-09-28
+
+#### Added
+- **Pomodoro sprints:** with Pomodoros on, focused work counts toward the current sprint across tasks, and a
+  break starts when it reaches its length. The task keeps its time, and nothing resumes on its own.
+- **Sprint display** in Quick Settings: **Task** (default) keeps the estimate on the dial with a "Sprint 2 of 4"
+  chip or bars; **Sprint** turns the live card pink and counts the sprint down, on the Board and in the panel.
+- `PomodoroCycle` in KomodoCore; Debug flags `-sprintDisplay sprint` and `-sprintSeconds`.
+
 ### Floating timer, celebrations, day summary and command palette — 2026-09-28
 
 #### Added
