@@ -141,14 +141,10 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Archive** in the card menu stays disabled until Trash lands.
 - **Repeat copies** are made at launch and after schedule changes only. Midnight rollover and wake from sleep
   need a trigger (FEATURES §4.7).
-- **Schedule step 2:** the Repeat menu button has no repeat icon inside it (the native menu picker shows only
-  the chosen item). The time field keeps an ✕ to remove the time, which the canvas doesn't draw.
-- **Card ⋯ menu:** a native menu, so no launch flag can open it for a background capture. Its items haven't
-  been checked against the canvas on screen.
+- **Card ⋯ menu:** its items, groups and shortcuts were checked against `BoardStates.dc.html` in code. It's a
+  native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
 - **README recording** has not been re-recorded for 5b or 5c. The screenshots are fresh, but recording needs the
   pointer and the screen. Ask the maintainer for a window when it's time.
-- **Background captures:** switches are drawn grey when Komodo isn't the active app, so the "Reminder at start
-  time" switch looks off in `docs/media/schedule-details.png` even though it's on.
 - **Celebration:** Done completes the task and starts the next one, but there is no confetti or celebration
   card yet (Celebration milestone).
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
@@ -186,6 +182,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Schedule time field | `TimeField`: clock icon, digits and stepper in a 116 pt Komodo field, plus ✕ to remove the time | Matches `Schedule.png`. It wraps an unbezeled `NSDatePicker` to keep typing and arrow keys. The ✕ stays because a time must be removable (FEATURES §4.6) |
 | Column titles | Always whole on one line; the subtitle truncates | With the inspector open at 1440 pt, "Backlog", "This week" and "Today" wrapped |
 | Custom repeat controls | Native stepper, unit menu and date field | "Native first"; the canvas draws a − N + stepper and an "Oct 31" field with a calendar icon |
+| Repeat menu button | The canvas's field (glyph, rule, up-down chevron) over a native menu with an inline picker | Keeps the native checkmark on the current rule |
+| Move to list items | Letter-square symbols (`w.square.fill`) | Native menus draw symbols in one color, so the canvas's colored list badges can't be matched exactly |
 | Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
@@ -217,6 +215,9 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - **The maintainer uses the Mac while you work.** Launch with `open -g` so Komodo stays in the background,
     capture with `screencapture -x -o -l <window id>`, and type with `CGEvent.postToPid`, which reaches Komodo
     without bringing it forward. Never click or record the screen without asking first.
+  - Switches draw grey while Komodo isn't the active app. For a shot with a switch on, ask first, then launch
+    without `-g`, capture, and reactivate the app that was in front. Activating an already running Komodo closes
+    its popovers. Captures fail while the screen is locked or Komodo is on another Space.
 
 ---
 
