@@ -33,6 +33,18 @@ struct WeightedHStack: SwiftUI.Layout {
         }
     }
 
+    // Neither layout defines guides. The default merges the children's, which costs a full placement pass,
+    // and the window's min-size query asks for them on every frame while an effect animates.
+    func explicitAlignment(
+        of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+        cache: inout ()
+    ) -> CGFloat? { nil }
+
+    func explicitAlignment(
+        of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+        cache: inout ()
+    ) -> CGFloat? { nil }
+
     private func weight(at index: Int) -> CGFloat {
         weights.indices.contains(index) ? weights[index] : 1
     }

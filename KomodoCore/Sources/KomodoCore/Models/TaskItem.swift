@@ -57,8 +57,13 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     /// Minutes after local midnight; nil means all day.
     public var scheduledMinute: Int?
     public var dueDate: LocalDate?
-    /// A readable rule until recurrences land, e.g. "Every Friday".
-    public var repeatSummary: String?
+    /// Set on a recurring parent (FEATURES §4.7), with the day the rule counts from.
+    public var repeatRule: RepeatRule?
+    public var repeatStart: LocalDate?
+    /// Set on the children a parent makes.
+    public var repeatParentID: String?
+    /// Remind at the scheduled time (DESIGN_SYSTEM §13.6). Only meaningful with a time.
+    public var remindsAtStart: Bool
     public var completedAt: Date?
     public var subtasks: [Subtask]
     public var source: TaskSource?
@@ -73,8 +78,9 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     public init(
         id: String, listID: String, title: String, bucket: Bucket, rank: Double, estimate: TimeInterval? = nil,
         notes: String? = nil, notesRTF: Data? = nil, opensLinks: Bool = true, scheduledDate: LocalDate? = nil,
-        scheduledMinute: Int? = nil, dueDate: LocalDate? = nil,
-        repeatSummary: String? = nil, completedAt: Date? = nil, subtasks: [Subtask] = [],
+        scheduledMinute: Int? = nil, dueDate: LocalDate? = nil, repeatRule: RepeatRule? = nil,
+        repeatStart: LocalDate? = nil, repeatParentID: String? = nil, remindsAtStart: Bool = true,
+        completedAt: Date? = nil, subtasks: [Subtask] = [],
         source: TaskSource? = nil, sourceTitle: String? = nil, sourceURL: URL? = nil, sessions: [WorkSession] = [],
         createdAt: Date? = nil, editedAt: Date? = nil
     ) {
@@ -90,7 +96,10 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         self.scheduledDate = scheduledDate
         self.scheduledMinute = scheduledMinute
         self.dueDate = dueDate
-        self.repeatSummary = repeatSummary
+        self.repeatRule = repeatRule
+        self.repeatStart = repeatStart
+        self.repeatParentID = repeatParentID
+        self.remindsAtStart = remindsAtStart
         self.completedAt = completedAt
         self.subtasks = subtasks
         self.source = source

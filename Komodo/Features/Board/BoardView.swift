@@ -31,6 +31,14 @@ struct BoardView: View {
             }
             .ignoresSafeArea()
         }
+        .overlay(alignment: .top) {
+            if store.isQuickAddOpen {
+                QuickAddPanel(store: store) { store.isQuickAddOpen = false }
+                    .padding(.top, 8)
+                    .transition(.opacity.combined(with: .offset(y: -8)))
+            }
+        }
+        .animation(Motion.base, value: store.isQuickAddOpen)
         .toastOverlay(store.toasts)
     }
 }

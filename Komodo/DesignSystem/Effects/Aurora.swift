@@ -1,43 +1,90 @@
+import CoreImage
 import SwiftUI
 
 /// Two soft blobs, teal and lime, drifting ±6% and swelling to 1.08 over 9 s behind the Today stage
 /// (DESIGN_SYSTEM §5.1). Still under Reduce Motion.
 struct Aurora: View {
-    private static let period: TimeInterval = 9
-
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(paused: reduceMotion)) { context in
-            let phase = reduceMotion ? 0.5 : Self.phase(at: context.date)
-            GeometryReader { geo in
-                let width = geo.size.width
-                let height = geo.size.height
-                ZStack {
-                    EllipticalGradient(
-                        colors: [Palette.teal.opacity(0.22), .clear], startRadiusFraction: 0, endRadiusFraction: 0.7
-                    )
-                    .frame(width: width, height: height * 1.2)
-                    .position(x: width * 0.3, y: height * 0.5)
-                    EllipticalGradient(
-                        colors: [Palette.lime.opacity(0.16), .clear], startRadiusFraction: 0, endRadiusFraction: 0.7
-                    )
-                    .frame(width: width * 0.9, height: height * 1.1)
-                    .position(x: width * 0.72, y: height * 0.4)
-                }
-                .offset(x: width * (-0.06 + 0.12 * phase))
-                .scaleEffect(1 + 0.08 * phase)
-            }
-            .blur(radius: 10)
+        LayerEffect<AuroraLayerView> { $0.configure(moving: !reduceMotion) }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
+/// The blobs are blurred once and rasterized; only the container's transform animates.
+private final class AuroraLayerView: EffectLayerView {
+    private static let period: TimeInterval = 9
+    private static let drift: CGFloat = 0.06
+    private static let swell: CGFloat = 1.08
+    private static let driftKey = "drift"
+
+    private let container = CALayer()
+    private let teal = CAGradientLayer()
+    private let lime = CAGradientLayer()
+    private var moving = false
+    private var animatedWidth: CGFloat = 0
+
+    required init(frame: NSRect) {
+        super.init(frame: frame)
+        for blob in [teal, lime] {
+            blob.type = .radial
+            blob.startPoint = CGPoint(x: 0.5, y: 0.5)
+            // SwiftUI's `endRadiusFraction: 0.7` is 70% of the frame's size out from the centre.
+            blob.endPoint = CGPoint(x: 1.2, y: 1.2)
+            container.addSublayer(blob)
         }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        container.filters = CIFilter(name: "CIGaussianBlur", parameters: [kCIInputRadiusKey: 10]).map { [$0] }
+        container.shouldRasterize = true
+        layer?.addSublayer(container)
     }
 
-    /// 0 → 1 → 0 with easing at both ends, like the canvas's `alternate ease-in-out` loop.
-    private static func phase(at date: Date) -> Double {
-        let t = date.timeIntervalSinceReferenceDate / (period * 2)
-        return (1 - cos(2 * .pi * t)) / 2
+    required init?(coder: NSCoder) { nil }
+
+    func configure(moving: Bool) {
+        withoutActions {
+            teal.colors = [Palette.teal.opacity(0.22), .clear].map(cgColor)
+            lime.colors = [Palette.lime.opacity(0.16), .clear].map(cgColor)
+        }
+        if moving != self.moving {
+            self.moving = moving
+            animatedWidth = 0
+            needsLayout = true
+        }
+    }
+
+    override func layout() {
+        super.layout()
+        let width = bounds.width
+        let height = bounds.height
+        withoutActions {
+            container.frame = bounds
+            teal.bounds = CGRect(x: 0, y: 0, width: width, height: height * 1.2)
+            teal.position = CGPoint(x: width * 0.3, y: height * 0.5)
+            lime.bounds = CGRect(x: 0, y: 0, width: width * 0.9, height: height * 1.1)
+            lime.position = CGPoint(x: width * 0.72, y: height * 0.4)
+            // Reduce Motion holds the midpoint of the drift.
+            container.transform = moving ? CATransform3DIdentity : CATransform3DMakeScale(1.04, 1.04, 1)
+        }
+        guard moving, width != animatedWidth else {
+            if !moving { container.removeAnimation(forKey: Self.driftKey) }
+            return
+        }
+        // The drift is in points, so it's rebuilt when the width changes.
+        animatedWidth = width
+        let shift = CABasicAnimation(keyPath: "transform.translation.x")
+        shift.fromValue = -width * Self.drift
+        shift.toValue = width * Self.drift
+        let scale = CABasicAnimation(keyPath: "transform.scale")
+        scale.fromValue = 1
+        scale.toValue = Self.swell
+        let drift = CAAnimationGroup()
+        drift.animations = [shift, scale]
+        drift.duration = Self.period
+        drift.autoreverses = true
+        drift.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        container.add(drift.loopingForever(period: Self.period * 2), forKey: Self.driftKey)
     }
 }
 

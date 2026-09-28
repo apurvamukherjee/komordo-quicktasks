@@ -6,44 +6,64 @@ private struct Sheen: ViewModifier {
     var cornerRadius: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let idleShare = 0.62
-    private static let travel = 1.3
-    private static let curve = UnitCurve.bezier(
-        startControlPoint: UnitPoint(x: 0.2, y: 0.8),
-        endControlPoint: UnitPoint(x: 0.2, y: 1)
-    )
-
     func body(content: Content) -> some View {
         content.overlay {
             if !reduceMotion {
-                TimelineView(.animation) { context in
-                    GeometryReader { geo in
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0.3),
-                                .init(color: .white.opacity(0.55), location: 0.5),
-                                .init(color: .clear, location: 0.7),
-                            ],
-                            // CSS 110°: mostly left to right, tipping downward.
-                            startPoint: UnitPoint(x: 0.03, y: 0.33),
-                            endPoint: UnitPoint(x: 0.97, y: 0.67)
-                        )
-                        .offset(x: Self.position(at: context.date) * geo.size.width)
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                .allowsHitTesting(false)
+                LayerEffect<SheenLayerView> { $0.configure(cornerRadius: cornerRadius) }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
         }
     }
+}
 
-    /// Horizontal offset as a fraction of the width, from −1.3 (off the leading edge) to +1.3.
-    private static func position(at date: Date) -> CGFloat {
-        let loop = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: Motion.Period.sheen)
-        let progress = loop / Motion.Period.sheen
-        guard progress > idleShare else { return -travel }
-        let sweep = curve.value(at: (progress - idleShare) / (1 - idleShare))
-        return -travel + 2 * travel * sweep
+private final class SheenLayerView: EffectLayerView {
+    private static let idleShare = 0.62
+    /// How far past each edge the light starts and ends, as a fraction of the width.
+    private static let travel: CGFloat = 1.3
+    private static let sweepKey = "sweep"
+
+    private let clip = CALayer()
+    private let light = CAGradientLayer()
+    private var animatedWidth: CGFloat = 0
+
+    required init(frame: NSRect) {
+        super.init(frame: frame)
+        light.colors = [NSColor.clear.cgColor, NSColor.white.withAlphaComponent(0.55).cgColor, NSColor.clear.cgColor]
+        light.locations = [0.3, 0.5, 0.7]
+        // CSS 110°: mostly left to right, tipping downward.
+        light.startPoint = CGPoint(x: 0.03, y: 0.33)
+        light.endPoint = CGPoint(x: 0.97, y: 0.67)
+        clip.masksToBounds = true
+        clip.cornerCurve = .continuous
+        clip.addSublayer(light)
+        layer?.addSublayer(clip)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func configure(cornerRadius: CGFloat) {
+        withoutActions { clip.cornerRadius = cornerRadius }
+    }
+
+    override func layout() {
+        super.layout()
+        let width = bounds.width
+        withoutActions {
+            clip.frame = bounds
+            light.bounds = bounds
+            light.position = CGPoint(x: bounds.midX - width * Self.travel, y: bounds.midY)
+        }
+        guard width != animatedWidth else { return }
+        // The sweep is in points, so it's rebuilt when the width changes.
+        animatedWidth = width
+        let offstage = bounds.midX - width * Self.travel
+        let sweep = CAKeyframeAnimation(keyPath: "position.x")
+        sweep.values = [offstage, offstage, bounds.midX + width * Self.travel]
+        sweep.keyTimes = [0, NSNumber(value: Self.idleShare), 1]
+        sweep.timingFunctions = [CAMediaTimingFunction(name: .linear), .house]
+        sweep.duration = Motion.Period.sheen
+        light.add(sweep.loopingForever(period: Motion.Period.sheen), forKey: Self.sweepKey)
     }
 }
 

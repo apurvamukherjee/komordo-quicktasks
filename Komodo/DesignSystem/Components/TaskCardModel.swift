@@ -32,6 +32,10 @@ struct TaskCardModel: Identifiable, Sendable {
     var hasNotes = false
     var linkCount = 0
     var timing: Timing?
+    /// A scheduled copy of a recurring task shows its rule beside the date ("Weekly on Thu").
+    var repeatText: String?
+    /// A timed task that reminds at its start (DESIGN_SYSTEM §13.6, "Reminder on").
+    var hasReminder = false
     var source: SourceBadge.Source?
     /// Set once the task is done; drives the check disc and the result chip.
     var outcome: Outcome?
@@ -71,9 +75,11 @@ extension TaskCardModel {
         case .overdue(let text): chips.append(TaskChip(text: text, tint: .red, icon: "clock"))
         case nil: break
         }
+        if let repeatText { chips.append(TaskChip(text: repeatText, tint: .violet, icon: "repeat")) }
         if let estimate {
             chips.append(TaskChip(text: DurationFormat.short(estimate), tint: .neutral, icon: "clock"))
         }
+        if hasReminder { chips.append(TaskChip(text: "Reminder on", tint: .green, icon: "bell")) }
         if includingSubtasks, let subtasks {
             chips.append(TaskChip(text: "\(subtasks.done)/\(subtasks.total)", tint: .neutral, icon: "checklist"))
         }
@@ -117,6 +123,9 @@ enum TaskCardSamples {
     static let overdue = TaskCardModel(
         id: "bank", title: "Call the bank", listLetter: "P", listColor: .teal, timing: .overdue("9:00 AM"),
         showsProgress: false)
+    static let designReview = TaskCardModel(
+        id: "design-review", title: "Design review with Apurva", listLetter: "W", listColor: .lime, estimate: 3_600,
+        timing: .scheduled("Thu 2:30 PM"), repeatText: "Weekly on Thu", hasReminder: true, showsProgress: false)
     static let dataDetector = TaskCardModel(
         id: "detector", title: "Wire NSDataDetector date parsing", listLetter: "W", listColor: .lime,
         estimate: 5_400, timeTaken: 1_800, subtasks: .init(done: 3, total: 4))

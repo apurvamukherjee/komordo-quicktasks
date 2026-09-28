@@ -6,6 +6,7 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var store: BoardStore
     @AppStorage(SidebarVisibility.key) private var isSidebarVisible = true
+    @Environment(\.undoManager) private var undoManager
 
     var body: some View {
         HStack(spacing: 0) {
@@ -25,12 +26,13 @@ struct HomeView: View {
         // Esc closes the inspector from anywhere in the window; fields that use Esc themselves handle it first.
         .onExitCommand { store.inspect(nil) }
         .background { shortcuts }
+        .onChange(of: undoManager, initial: true) { store.undoManager = undoManager }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
     }
 
-    /// Keys with no visible button: ⌘↑ / ⌘↓ step through tasks in the inspector (DESIGN_SYSTEM §13.5), and ⌘⌥N opens
-    /// the live task's notes (FEATURES §4.5).
+    /// Keys with no visible button: ⌘↑ / ⌘↓ step through tasks in the inspector (DESIGN_SYSTEM §13.5), ⌘⌥N opens
+    /// the live task's notes (FEATURES §4.5), and ⌘⌥T opens quick add (§13.4).
     private var shortcuts: some View {
         Group {
             Button("Previous task") { store.inspectAdjacent(-1) }
@@ -42,6 +44,8 @@ struct HomeView: View {
             Button("Notes") { store.inspect(store.liveTask?.id) }
                 .keyboardShortcut("n", modifiers: [.command, .option])
                 .disabled(store.liveTask == nil)
+            Button("Quick add") { store.isQuickAddOpen = true }
+                .keyboardShortcut("t", modifiers: [.command, .option])
         }
         .hidden()
     }

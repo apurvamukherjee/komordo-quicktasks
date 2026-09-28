@@ -8,6 +8,7 @@ struct InspectorDetails: View {
     var task: TaskItem
 
     @State private var isEditingTaken = false
+    @State private var isScheduling = false
 
     private var isRunning: Bool { store.isRunning(task) }
 
@@ -22,15 +23,30 @@ struct InspectorDetails: View {
             }
             InspectorRow("Schedule") { schedule }
             InspectorRow("Repeat") {
-                InspectorValue {
-                    Text(task.repeatSummary ?? "Doesn't repeat")
-                    Chevron()
+                Button {
+                    isScheduling = true
+                } label: {
+                    InspectorValue(
+                        tint: store.repeatSummary(for: task) == nil ? nil : Palette.violet,
+                        textTint: Palette.violetText
+                    ) {
+                        Image(systemName: "repeat").font(.system(size: 11, weight: .semibold))
+                        Text(store.repeatSummary(for: task) ?? "Doesn't repeat")
+                        Chevron()
+                    }
                 }
-                .help("Repeat arrives with the Schedule popover")
+                .buttonStyle(.plain)
+                .help("Change how this task repeats")
             }
         }
         .inspectorSection(SpotlightTint.today)
-        .onChange(of: task.id) { isEditingTaken = false }
+        .onChange(of: task.id) {
+            isEditingTaken = false
+            isScheduling = false
+        }
+        .popover(isPresented: $isScheduling, arrowEdge: .leading) {
+            SchedulePopover(store: store, task: task) { isScheduling = false }
+        }
     }
 
     private var listMenu: some View {
@@ -108,38 +124,30 @@ struct InspectorDetails: View {
     }
 
     @ViewBuilder private var schedule: some View {
-        if let date = task.scheduledDate {
-            InspectorValue(tint: Palette.blue) {
-                Image(systemName: "calendar").font(.system(size: 11, weight: .semibold))
-                Text(scheduleText(date))
-            }
-            .help("The Schedule popover arrives next")
-            Button("Clear schedule", systemImage: "xmark") {
-                store.update(task.id) {
-                    $0.scheduledDate = nil
-                    $0.scheduledMinute = nil
+        Button {
+            isScheduling = true
+        } label: {
+            if let date = task.scheduledDate {
+                InspectorValue(tint: Palette.blue) {
+                    Image(systemName: "calendar").font(.system(size: 11, weight: .semibold))
+                    Text(store.scheduleText(date: date, minute: task.scheduledMinute))
                 }
+            } else {
+                InspectorValue {
+                    Image(systemName: "calendar").font(.system(size: 11, weight: .semibold))
+                    Text("Not scheduled")
+                }
+                .foregroundStyle(Palette.textMuted)
             }
-            .buttonStyle(.icon(.compact))
-        } else {
-            InspectorValue {
-                Image(systemName: "calendar").font(.system(size: 11, weight: .semibold))
-                Text("Not scheduled")
-            }
-            .foregroundStyle(Palette.textMuted)
-            .help("The Schedule popover arrives next")
+        }
+        .buttonStyle(.plain)
+        .help("Schedule")
+        if task.scheduledDate != nil {
+            Button("Clear schedule", systemImage: "xmark") { store.removeSchedule(task.id) }
+                .buttonStyle(.icon(.compact))
         }
     }
 
-    /// "Thu, Oct 1 · 2:30 PM", "Today · 2:00 PM" or "Sat, Oct 10 · all day".
-    private func scheduleText(_ date: LocalDate) -> String {
-        let day = date.startOfDay(in: store.calendar)
-        let dayText =
-            date == store.today ? "Today" : day.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
-        guard let minute = task.scheduledMinute else { return "\(dayText) · all day" }
-        return
-            "\(dayText) · \(day.addingTimeInterval(TimeInterval(minute * 60)).formatted(date: .omitted, time: .shortened))"
-    }
 }
 
 /// A key on the left (78 pt) and its value, at least 30 pt tall (`.in-row`).
@@ -167,10 +175,13 @@ struct InspectorRow<Content: View>: View {
 /// The 28 pt value pill (`.in-val`): neutral, or tinted like the blue schedule date.
 struct InspectorValue<Content: View>: View {
     var tint: Color?
+    /// The lighter text step that goes with `tint` (DESIGN_SYSTEM §2.2).
+    var textTint: Color
     @ViewBuilder var content: Content
 
-    init(tint: Color? = nil, @ViewBuilder content: () -> Content) {
+    init(tint: Color? = nil, textTint: Color = Palette.blueText, @ViewBuilder content: () -> Content) {
         self.tint = tint
+        self.textTint = textTint
         self.content = content()
     }
 
@@ -178,7 +189,7 @@ struct InspectorValue<Content: View>: View {
         let shape = RoundedRectangle(cornerRadius: 9, style: .continuous)
         HStack(spacing: 6) { content }
             .font(.system(size: 12.5, weight: .semibold))
-            .foregroundStyle(tint == nil ? Palette.textBody : Palette.blueText)
+            .foregroundStyle(tint == nil ? Palette.textBody : textTint)
             .padding(.horizontal, 10)
             .frame(height: 28)
             .background(tint.map { $0.opacity(0.1) } ?? Color.white.opacity(0.05), in: shape)

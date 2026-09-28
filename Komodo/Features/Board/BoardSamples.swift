@@ -55,7 +55,8 @@ enum BoardSamples {
                 sessions: [WorkSession(start: yesterday, end: yesterday.addingTimeInterval(1_200))]),
             TaskItem(
                 id: "weekly", listID: "work", title: "Weekly review", bucket: .backlog, rank: 3, estimate: 2_700,
-                repeatSummary: "Every Friday"),
+                // Starts today, so this week's copies only begin once its Friday is still ahead.
+                scheduledMinute: 16 * 60, repeatRule: .weekly(on: 5), repeatStart: today),
             TaskItem(
                 id: "hire", listID: "work", title: "Hire a product designer", bucket: .backlog, rank: 4,
                 estimate: 3_600),

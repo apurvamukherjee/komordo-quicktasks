@@ -1,3 +1,4 @@
+import CoreImage
 import KomodoCore
 import SwiftUI
 
@@ -110,6 +111,10 @@ struct FocusDial<Center: View>: View {
         return rest
     }
 
+    /// Progress moves a fraction of a degree each second, too little to see, yet animating it kept a SwiftUI
+    /// animation running every frame. Only whole-percent steps animate, which still covers jumps like +5 min.
+    private static func animatedStep(_ progress: Double) -> Double { (progress * 100).rounded() }
+
     private func arc(_ progress: Double) -> some View {
         let (from, to) = tone.ring
         return Circle()
@@ -120,7 +125,7 @@ struct FocusDial<Center: View>: View {
             )
             .rotationEffect(.degrees(-90))
             .frame(width: metrics.ringRadius * 2, height: metrics.ringRadius * 2)
-            .animation(reduceMotion ? nil : Motion.slow, value: progress)
+            .animation(reduceMotion ? nil : Motion.slow, value: Self.animatedStep(progress))
             .accessibilityHidden(true)
     }
 
@@ -133,7 +138,7 @@ struct FocusDial<Center: View>: View {
             .shadow(color: glow, radius: Sweep.cometGlowRadius)
             .offset(y: -metrics.ringRadius)
             .rotationEffect(.degrees(progress * 360))
-            .animation(reduceMotion ? nil : Motion.slow, value: progress)
+            .animation(reduceMotion ? nil : Motion.slow, value: Self.animatedStep(progress))
             .accessibilityHidden(true)
     }
 }
@@ -143,32 +148,65 @@ private struct DialHalo: View {
     var metrics: FocusDialMetrics
 
     var body: some View {
-        let (first, second) = tone.halo
         let diameter = metrics.size + metrics.haloInset * 2
-        TimelineView(.animation) { context in
-            let turns = context.date.timeIntervalSinceReferenceDate / Motion.Period.halo
-            Circle()
-                .fill(
-                    AngularGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: first, location: 0.2),
-                            .init(color: .clear, location: 0.4),
-                            .init(color: second, location: 0.65),
-                            .init(color: .clear, location: 0.85),
-                        ],
-                        center: .center,
-                        startAngle: .degrees(-90),
-                        endAngle: .degrees(270)
-                    )
-                )
-                .rotationEffect(.degrees(turns.truncatingRemainder(dividingBy: 1) * 360))
+        LayerEffect<HaloLayerView> { $0.configure(colors: tone.halo, blur: metrics.haloBlur) }
+            .frame(width: diameter, height: diameter)
+            .opacity(metrics.haloOpacity)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
+/// The blurred conic ring behind the dial. Blur doesn't change under rotation, so the ring is blurred once,
+/// rasterized, and the bitmap spins.
+private final class HaloLayerView: EffectLayerView {
+    private static let spinKey = "spin"
+
+    private let ring = CALayer()
+    private let gradient = CAGradientLayer()
+    private var blur: CGFloat = 0
+
+    required init(frame: NSRect) {
+        super.init(frame: frame)
+        gradient.type = .conic
+        gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
+        gradient.endPoint = CGPoint(x: 0.5, y: 0)
+        gradient.locations = [0, 0.2, 0.4, 0.65, 0.85]
+        gradient.masksToBounds = true
+        ring.addSublayer(gradient)
+        ring.shouldRasterize = true
+        layer?.addSublayer(ring)
+
+        let spin = CABasicAnimation(keyPath: "transform.rotation.z")
+        spin.fromValue = 0
+        spin.toValue = 2 * Double.pi
+        spin.duration = Motion.Period.halo
+        ring.add(spin.loopingForever(period: Motion.Period.halo), forKey: Self.spinKey)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func configure(colors: (Color, Color), blur: CGFloat) {
+        withoutActions {
+            gradient.colors = [.clear, colors.0, .clear, colors.1, .clear].map(cgColor)
+            if blur != self.blur {
+                self.blur = blur
+                ring.filters = CIFilter(name: "CIGaussianBlur", parameters: [kCIInputRadiusKey: blur]).map { [$0] }
+                needsLayout = true
+            }
         }
-        .frame(width: diameter, height: diameter)
-        .blur(radius: metrics.haloBlur)
-        .opacity(metrics.haloOpacity)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+    }
+
+    override func layout() {
+        super.layout()
+        withoutActions {
+            // Room around the ring for the blur to spread into before the layer's edge cuts it off.
+            let margin = blur * 3
+            ring.bounds = CGRect(x: 0, y: 0, width: bounds.width + margin * 2, height: bounds.height + margin * 2)
+            ring.position = CGPoint(x: bounds.midX, y: bounds.midY)
+            gradient.frame = CGRect(x: margin, y: margin, width: bounds.width, height: bounds.height)
+            gradient.cornerRadius = min(bounds.width, bounds.height) / 2
+        }
     }
 }
 

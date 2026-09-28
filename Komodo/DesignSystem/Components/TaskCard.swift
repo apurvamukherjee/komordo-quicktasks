@@ -1,12 +1,17 @@
 import SwiftUI
 
-/// A button that slides in at the top right of a hovered card.
+/// A button that slides in at the top right of a hovered card, or an item in its ⋯ menu.
 struct CardAction: Identifiable {
     var label: String
     var symbol: String
     /// The bolt: lights up lime because it makes the task live.
     var isGo = false
-    var perform: () -> Void
+    var isDestructive = false
+    var isEnabled = true
+    /// Groups separated by dividers. With any, the action opens a menu instead of performing (the ⋯ button,
+    /// Move to list).
+    var menu: [[CardAction]] = []
+    var perform: () -> Void = {}
 
     var id: String { label }
 }
@@ -130,9 +135,22 @@ struct CardActionRow: View {
     var body: some View {
         HStack(spacing: 5) {
             ForEach(actions) { action in
-                Button(action.label, systemImage: action.symbol, action: action.perform)
-                    .buttonStyle(CardActionButtonStyle(isGo: action.isGo))
+                if action.menu.isEmpty {
+                    Button(action.label, systemImage: action.symbol, action: action.perform)
+                        .buttonStyle(CardActionButtonStyle(isGo: action.isGo))
+                        .help(action.label)
+                } else {
+                    Menu {
+                        CardMenuItems(sections: action.menu)
+                    } label: {
+                        Label(action.label, systemImage: action.symbol)
+                    }
+                    .menuStyle(.button)
+                    .menuIndicator(.hidden)
+                    .buttonStyle(CardActionButtonStyle(isGo: false))
+                    .fixedSize()
                     .help(action.label)
+                }
             }
         }
         .padding(.leading, 24)
@@ -141,6 +159,29 @@ struct CardActionRow: View {
                 stops: [.init(color: .clear, location: 0), .init(color: Palette.cardTop, location: 0.35)],
                 startPoint: .leading, endPoint: .trailing)
         )
+    }
+}
+
+/// The card menu's rows (BoardStates artboard, ⑨): groups split by dividers, submenus for nested actions. Used by
+/// the ⋯ button and the right-click menu, so both list the same things.
+struct CardMenuItems: View {
+    var sections: [[CardAction]]
+
+    var body: some View {
+        ForEach(Array(sections.enumerated()), id: \.offset) { index, section in
+            if index > 0 { Divider() }
+            ForEach(section) { action in
+                if action.menu.isEmpty {
+                    Button(
+                        action.label, systemImage: action.symbol, role: action.isDestructive ? .destructive : nil,
+                        action: action.perform
+                    )
+                    .disabled(!action.isEnabled)
+                } else {
+                    Menu(action.label, systemImage: action.symbol) { CardMenuItems(sections: action.menu) }
+                }
+            }
+        }
     }
 }
 

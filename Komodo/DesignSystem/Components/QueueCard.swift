@@ -47,17 +47,13 @@ struct QueueCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     ListBadge(letter: model.listLetter, color: model.listColor, side: 20)
                 }
-                // The start projection stays right-aligned when it fits and wraps with the chips when it doesn't.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 6) {
-                        chips
-                        Spacer(minLength: 6)
-                        startsChip
-                    }
-                    FlowLayout {
-                        chips
-                        startsChip
-                    }
+                // The start projection stays top-right and the chips wrap beside it. A `ViewThatFits` choosing
+                // between an HStack and a FlowLayout of equal ideal width flipped on every pass, rebuilding the
+                // chips and re-laying out the Board each frame.
+                HStack(alignment: .top, spacing: 6) {
+                    FlowLayout { chips }.layoutPriority(1)
+                    Spacer(minLength: 0)
+                    startsChip
                 }
                 HStack(spacing: 10) {
                     ProgressBar(value: model.progress, fill: .live)

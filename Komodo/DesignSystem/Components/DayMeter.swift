@@ -103,15 +103,43 @@ private struct DaySegment: View {
             if reduceMotion {
                 shape.fill(Palette.lime.opacity(0.5)).frame(height: 7)
             } else {
-                shape.fill(Palette.lime.opacity(0.5))
+                // A layer animation: a SwiftUI one would tick the whole Board's view graph every frame.
+                LayerEffect<PulseLayerView> { $0.configure(color: Palette.lime.opacity(0.5), cornerRadius: 4) }
                     .frame(height: 7)
-                    .phaseAnimator([0.5, 1.0]) { view, opacity in
-                        view.opacity(opacity)
-                    } animation: { _ in
-                        .easeInOut(duration: Motion.Period.ping / 2)
-                    }
             }
         }
+    }
+}
+
+/// The current segment, fading between 50% and full over the ping period.
+private final class PulseLayerView: EffectLayerView {
+    private let fill = CALayer()
+
+    required init(frame: NSRect) {
+        super.init(frame: frame)
+        fill.cornerCurve = .continuous
+        layer?.addSublayer(fill)
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 0.5
+        pulse.toValue = 1
+        pulse.duration = Motion.Period.ping / 2
+        pulse.autoreverses = true
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        fill.add(pulse.loopingForever(period: Motion.Period.ping), forKey: "pulse")
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func configure(color: Color, cornerRadius: CGFloat) {
+        withoutActions {
+            fill.backgroundColor = cgColor(color)
+            fill.cornerRadius = cornerRadius
+        }
+    }
+
+    override func layout() {
+        super.layout()
+        withoutActions { fill.frame = bounds }
     }
 }
 

@@ -107,17 +107,21 @@ struct BoardCard: View {
         .boardCardBehavior(store: store, task: task, focusedTask: focusedTask, onAdd: onAdd)
     }
 
+    /// The hover row as on the canvas: Schedule or Done, the move to the next column, then ⋯.
     private var actions: [CardAction] {
+        let more = CardAction(label: "More", symbol: "ellipsis", menu: store.cardMenu(for: task))
         switch bucket {
         case .backlog:
-            [
+            return [
+                CardAction(label: "Schedule", symbol: "calendar.badge.clock") { store.schedulingTaskID = task.id },
                 CardAction(label: "Move to This week", symbol: "arrow.right") { store.move(task.id, to: .week) },
-                CardAction(label: "Mark done", symbol: "checkmark") { store.toggleDone(task.id) },
+                more,
             ]
         case .week, .today:
-            [
+            return [
                 CardAction(label: "Mark done", symbol: "checkmark") { store.toggleDone(task.id) },
                 CardAction(label: "Move to Today", symbol: "arrow.right") { store.move(task.id, to: .today) },
+                more,
             ]
         }
     }
@@ -175,6 +179,16 @@ extension View {
                 ForEach(Bucket.allCases.filter { $0 != column }, id: \.self) { bucket in
                     Button("Move to \(BoardStore.title(for: bucket))") { store.move(task.id, to: bucket) }
                 }
+                Divider()
+                CardMenuItems(sections: store.cardMenu(for: task))
+            }
+            .popover(
+                isPresented: Binding(
+                    get: { store.schedulingTaskID == task.id },
+                    set: { if !$0 { store.schedulingTaskID = nil } }),
+                arrowEdge: .trailing
+            ) {
+                SchedulePopover(store: store, task: task) { store.schedulingTaskID = nil }
             }
     }
 }

@@ -8,6 +8,32 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Task inspector — 2026-09-27
+
+#### Added
+- **Inspector** on the Home window's trailing edge (native `.inspector`, 380 pt ideal, 320–460). Click any card
+  to open it; the live card's Notes tile and ⌘⌥N open the live task. Esc closes it, and ⌘↑ / ⌘↓ step through
+  tasks in Board order.
+- **Header:** done checkbox, the title (click to rename, Return saves, Esc cancels), a More menu with Duplicate,
+  Move to List and Delete (with Undo), and close.
+- **Details:** list picker, EST in the duration field, time taken (click to edit while the task isn't running),
+  the schedule with a clear button, and the repeat rule.
+- **Subtasks** with a progress dial: check, rename on click, delete on hover, and Return keeps adding.
+- **Notes:** a rich-text editor (`NSTextView`, stored as RTF) with Bold, Italic, Underline, Strikethrough, Link,
+  bulleted and numbered lists, Clear, and undo. A per-task switch opens the notes' links when the task starts.
+- **Source** row for tasks from Gmail or a calendar, **Sessions** with count, total and the latest four as
+  bars, and a footer with when the task was made and last edited, or when it went live.
+- **Live task:** the beam, a compact focus dial and the rolling countdown above the title. Title and EST lock
+  with "Pause to edit" while it runs, and time taken counts live.
+- **Auto-open links:** when a task goes live, up to five `http`/`https` links from its notes open in the
+  browser, unless its switch is off.
+- KomodoCore: `NoteLinks`, `TaskItem.links` / `linksToOpen`, `setTimeTaken(_:at:)` (adjusts sessions),
+  `notesRTF`, `opensLinks`, `createdAt`, `editedAt`, `sourceTitle`, `sourceURL`, with tests.
+
+#### Changed
+- A task's link count now comes from the links in its notes instead of a stored number.
+- Sample tasks have named subtasks, notes with links, creation dates and Gmail sources.
+
 ### App icon and menu bar icon — 2026-09-27
 
 #### Added

@@ -26,9 +26,17 @@ import SwiftUI
     var searchText = ""
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
     var inspectedTaskID: String?
+    /// The card showing the Schedule popover, whether it was opened from the hover row, ⋯ or right-click.
+    var schedulingTaskID: String?
+    /// The ⌘⌥T quick add panel (DESIGN_SYSTEM §13.4).
+    var isQuickAddOpen = false
     /// The list to return to from All lists.
     private(set) var lastListID: String?
+    /// Children of recurring tasks deleted by hand, so expanding the week doesn't bring them back.
+    private var dismissedChildren: Set<String> = []
     let toasts = ToastCenter()
+    /// The window's, so ⌘Z and Edit ▸ Undo reach the same restore as the toast's button. Set by `HomeView`.
+    weak var undoManager: UndoManager?
     let calendar: Calendar
     private let clock: () -> Date
     private let openURL: (URL) -> Void
@@ -49,6 +57,7 @@ import SwiftUI
             focus.taskID = live.id
             focus.flowStartedAt = max(0, live.timeTaken(at: clock()) - 25 * 60)
         }
+        expandRecurrences()
     }
 
     // MARK: Derived
@@ -118,14 +127,16 @@ import SwiftUI
 
     // MARK: Tasks
 
-    /// Adds a task to a column. A trailing estimate in the title becomes the EST (FEATURES §4.3).
+    /// Adds a task to a column. A trailing estimate in the title becomes the EST (FEATURES §4.3). Without a
+    /// list it goes to the one on screen, or the last one used from All lists (DESIGN_SYSTEM §13.3).
     @discardableResult
-    func addTask(_ rawTitle: String, to bucket: Bucket, atTop: Bool = false, estimate: TimeInterval? = nil)
-        -> TaskItem?
-    {
+    func addTask(
+        _ rawTitle: String, to bucket: Bucket, listID: String? = nil, atTop: Bool = false,
+        estimate: TimeInterval? = nil
+    ) -> TaskItem? {
         let parsed = EstimateParser.parse(rawTitle)
         guard !parsed.title.isEmpty else { return nil }
-        let listID = selectedListID ?? lists.first?.id ?? ""
+        let listID = listID ?? selectedListID ?? lastListID ?? lists.first?.id ?? ""
         let ranks = tasks.filter { $0.column(in: week) == bucket && !$0.isDone }.map(\.rank)
         let rank = atTop ? (ranks.min() ?? 0) - 1 : (ranks.max() ?? 0) + 1
         let task = TaskItem(
@@ -133,6 +144,14 @@ import SwiftUI
             estimate: estimate ?? parsed.estimate, createdAt: now)
         tasks.append(task)
         return task
+    }
+
+    /// ⌘Return in quick add (DESIGN_SYSTEM §13.4): adds the task to Today and makes it live.
+    func addAndStart(_ rawTitle: String, listID: String? = nil, estimate: TimeInterval? = nil) {
+        guard let task = addTask(rawTitle, to: .today, listID: listID, atTop: true, estimate: estimate) else {
+            return
+        }
+        makeLive(task.id)
     }
 
     func toggleDone(_ id: String) {
@@ -268,13 +287,101 @@ import SwiftUI
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         let removed = tasks.remove(at: index)
         if inspectedTaskID == id { inspectedTaskID = nil }
-        toasts.show(
-            Toast(
-                message: "Task deleted", detail: removed.title,
-                action: .init(title: "Undo", shortcut: "⌘Z") { [weak self] in
-                    guard let self, !self.tasks.contains(where: { $0.id == removed.id }) else { return }
-                    self.tasks.append(removed)
-                }))
+        if removed.repeatParentID != nil { dismissedChildren.insert(id) }
+        offerUndo("Task deleted", detail: removed.title) { store in
+            guard !store.tasks.contains(where: { $0.id == removed.id }) else { return }
+            store.dismissedChildren.remove(removed.id)
+            store.tasks.append(removed)
+        }
+    }
+
+    // MARK: Schedule and repeat (FEATURES §4.6–4.7)
+
+    /// What the Schedule popover saves: a day, an optional time, an optional repeat and the reminder switch.
+    struct Schedule: Equatable {
+        var date: LocalDate
+        /// Minutes after midnight; nil is all day.
+        var minute: Int?
+        var rule: RepeatRule?
+        var remindsAtStart = true
+        /// Replace existing tasks (a changed repeat) or Delete existing tasks (repeat turned off).
+        var clearsExisting = false
+    }
+
+    /// The task whose rule a task's Repeat row edits: itself, or the parent a child was made from.
+    func repeatOwner(of task: TaskItem) -> TaskItem? {
+        guard let parentID = task.repeatParentID else { return task }
+        return tasks.first { $0.id == parentID }
+    }
+
+    /// The popover's starting point for `task`: its day and time, or today with nothing else set.
+    func schedule(for task: TaskItem) -> Schedule {
+        let owner = repeatOwner(of: task)
+        return Schedule(
+            date: task.scheduledDate ?? owner?.repeatStart ?? today, minute: task.scheduledMinute,
+            rule: owner?.repeatRule, remindsAtStart: task.remindsAtStart)
+    }
+
+    func repeatSummary(for task: TaskItem) -> String? {
+        guard let owner = repeatOwner(of: task), let rule = owner.repeatRule, let start = owner.repeatStart else {
+            return nil
+        }
+        return rule.summary(from: start, calendar: calendar)
+    }
+
+    /// Saves the popover. Without a repeat the task simply moves to its day. With one it becomes the recurring
+    /// parent: it holds the rule in Backlog and this week's copies appear on their days.
+    func setSchedule(_ id: String, to schedule: Schedule) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        let ownerID = repeatOwner(of: task)?.id ?? id
+        if schedule.clearsExisting { tasks = Recurrence.removingUnfinishedChildren(of: ownerID, from: tasks) }
+        if let rule = schedule.rule {
+            update(ownerID) {
+                $0.repeatRule = rule
+                $0.repeatStart = schedule.date
+                $0.scheduledDate = nil
+                $0.scheduledMinute = schedule.minute
+                $0.remindsAtStart = schedule.remindsAtStart
+                $0.bucket = .backlog
+            }
+            if ownerID != id {
+                // A child keeps its own day; only the rule moved to the parent.
+                update(id) {
+                    $0.scheduledMinute = schedule.minute
+                    $0.remindsAtStart = schedule.remindsAtStart
+                }
+            }
+        } else {
+            update(ownerID) {
+                $0.repeatRule = nil
+                $0.repeatStart = nil
+            }
+            update(id) {
+                $0.scheduledDate = schedule.date
+                $0.scheduledMinute = schedule.minute
+                $0.remindsAtStart = schedule.remindsAtStart
+            }
+        }
+        expandRecurrences()
+    }
+
+    /// Remove schedule: the task goes back to the column it was parked in, without a day, time or repeat.
+    func removeSchedule(_ id: String) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        let before = task
+        update(id) {
+            $0.scheduledDate = nil
+            $0.scheduledMinute = nil
+            $0.repeatRule = nil
+            $0.repeatStart = nil
+        }
+        offerUndo("Schedule removed", detail: before.title, restoring: before)
+    }
+
+    /// Makes this week's missing children of every recurring task. Runs at launch and after every schedule
+    /// change; midnight and wake come with persistence.
+    func expandRecurrences() {
+        tasks = Recurrence.expanding(tasks, in: week, dismissed: dismissedChildren, calendar: calendar)
     }
 
     // MARK: Focus (FEATURES §4.8)
@@ -397,12 +504,28 @@ import SwiftUI
     }
 
     private func offerUndo(_ message: String, detail: String, restoring snapshot: TaskItem) {
+        offerUndo(message, detail: detail) { store in
+            guard let index = store.tasks.firstIndex(where: { $0.id == snapshot.id }) else { return }
+            store.tasks[index] = snapshot
+        }
+    }
+
+    private func offerUndo(_ message: String, detail: String, restore: @escaping @MainActor (BoardStore) -> Void) {
+        // Each change gets its own target so the toast's button can withdraw just its menu entry; the undo
+        // manager holds targets weakly, and the closures below keep this one alive.
+        let token = NSObject()
+        undoManager?.registerUndo(withTarget: token) { [weak self] _ in
+            guard let self else { return }
+            restore(self)
+        }
+        undoManager?.setActionName(message)
         toasts.show(
             Toast(
                 message: message, detail: detail,
                 action: .init(title: "Undo", shortcut: "⌘Z") { [weak self] in
-                    guard let self, let index = self.tasks.firstIndex(where: { $0.id == snapshot.id }) else { return }
-                    self.tasks[index] = snapshot
+                    guard let self else { return }
+                    restore(self)
+                    self.undoManager?.removeAllActions(withTarget: token)
                 }))
     }
 

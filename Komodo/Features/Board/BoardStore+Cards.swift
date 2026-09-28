@@ -12,6 +12,8 @@ extension BoardStore {
             timeTaken: taken,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count),
             hasNotes: task.hasNotes, linkCount: task.links.count, timing: timing(for: task),
+            repeatText: task.repeatParentID == nil ? nil : repeatSummary(for: task),
+            hasReminder: task.scheduledDate != nil && task.scheduledMinute != nil && task.remindsAtStart,
             source: task.source.map { $0 == .gmail ? .gmail : .calendar }, outcome: outcome(for: task),
             // Parked cards stay compact until there's something to track, as on the canvas.
             showsProgress: task.estimate != nil
@@ -26,6 +28,30 @@ extension BoardStore {
             source: task.source.map { $0 == .gmail ? "From Gmail" : "From Calendar" },
             estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt, linksOpened: task.linksToOpen.count,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count))
+    }
+
+    /// The card menu (FEATURES §4.3): Schedule · Subtasks · Notes · Duplicate · Move to list · Archive · Delete.
+    /// Subtasks and Notes open the inspector, where both live.
+    func cardMenu(for task: TaskItem) -> [[CardAction]] {
+        let otherLists = lists.filter { $0.id != task.listID }.map { list in
+            CardAction(label: list.name, symbol: "circle.fill") { self.update(task.id) { $0.listID = list.id } }
+        }
+        return [
+            [
+                CardAction(label: "Schedule", symbol: "calendar") { self.schedulingTaskID = task.id },
+                CardAction(label: "Subtasks", symbol: "checklist") { self.inspect(task.id) },
+                CardAction(label: "Notes", symbol: "note.text") { self.inspect(task.id) },
+            ],
+            [
+                CardAction(label: "Duplicate", symbol: "plus.square.on.square") { self.duplicate(task.id) },
+                CardAction(label: "Move to list", symbol: "folder", menu: [otherLists]),
+            ],
+            [
+                // Archive lands with Trash (FEATURES §4.20).
+                CardAction(label: "Archive", symbol: "archivebox", isEnabled: false),
+                CardAction(label: "Delete", symbol: "trash", isDestructive: true) { self.delete(task.id) },
+            ],
+        ]
     }
 
     /// "3:00" and "PM" for the scheduled card's time column.
@@ -51,7 +77,15 @@ extension BoardStore {
             let text = due.startOfDay(in: calendar).formatted(.dateTime.month(.abbreviated).day())
             return .due("Due \(text)")
         }
-        return task.repeatSummary.map { .repeats($0) }
+        return task.isRecurringParent ? repeatSummary(for: task).map { .repeats($0) } : nil
+    }
+
+    /// "Thu, Oct 1 · 2:30 PM", "Today · 2:00 PM" or "Sat, Oct 10 · all day", for the inspector and the popover.
+    func scheduleText(date: LocalDate, minute: Int?) -> String {
+        let day = date.startOfDay(in: calendar)
+        let dayText = date == today ? "Today" : day.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        guard let minute else { return "\(dayText) · all day" }
+        return "\(dayText) · \(day.addingTimeInterval(TimeInterval(minute * 60)).formatted(date: .omitted, time: .shortened))"
     }
 
     /// "Sun 10:00 AM" within the week, "Oct 12" beyond it, the time alone for today.
