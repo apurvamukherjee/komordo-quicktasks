@@ -88,20 +88,14 @@ struct ScheduleDetailsStep: View {
 
     @ViewBuilder private var time: some View {
         if let minute = draft.minute {
-            DatePicker(
-                "Time",
-                selection: Binding(
+            TimeField(
+                date: Binding(
                     get: { draft.date.startOfDay(in: calendar).addingTimeInterval(TimeInterval(minute * 60)) },
                     set: {
                         let parts = calendar.dateComponents([.hour, .minute], from: $0)
                         draft.minute = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
                     }),
-                displayedComponents: .hourAndMinute
-            )
-            .labelsHidden()
-            .datePickerStyle(.stepperField)
-            .environment(\.calendar, calendar)
-            .fixedSize()
+                calendar: calendar)
             Button("Remove time", systemImage: "xmark") { draft.minute = nil }
                 .buttonStyle(.icon(.compact))
         } else {
