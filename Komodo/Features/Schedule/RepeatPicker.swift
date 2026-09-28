@@ -101,15 +101,17 @@ struct CustomRepeatSheet: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Palette.violetText)
                     .frame(width: 32, height: 32)
-                    .background(Palette.violet.opacity(0.14), in: RoundedRectangle(cornerRadius: 9))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Custom repeat").font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.textPrimary)
+                    .background(Palette.violet.opacity(0.16), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.violet.opacity(0.32), lineWidth: 1))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Custom repeat").font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.textPrimary)
                     Text(title).font(.system(size: 12)).foregroundStyle(Palette.textMuted).lineLimit(1)
                 }
             }
-            VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 10) {
-                    Text("Every").frame(width: 48, alignment: .leading)
+                    Text("Every").frame(width: 44, alignment: .leading)
                     Stepper(value: $interval, in: 1...99) {
                         Text("\(interval)").monospacedDigit().frame(minWidth: 22)
                     }
@@ -123,15 +125,16 @@ struct CustomRepeatSheet: View {
                 }
                 if unit == .week {
                     HStack(spacing: 10) {
-                        Text("On").frame(width: 48, alignment: .leading)
+                        Text("On").frame(width: 44, alignment: .leading)
                         WeekdayRow(selection: $weekdays, calendar: calendar)
                     }
                 }
             }
-            .padding(Space.s3)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .spotlight(SpotlightTint.backlog, radius: Radius.tile, lifts: false) { TileSurface(radius: Radius.tile) }
             HStack(alignment: .top, spacing: 10) {
-                Text("Ends").frame(width: 48, alignment: .leading)
+                Text("Ends").frame(width: 44, alignment: .leading)
                 Picker("Ends", selection: Binding(get: { endsOn != nil }, set: setEnds)) {
                     Text("Never").tag(false)
                     Text("On date").tag(true)
@@ -152,14 +155,17 @@ struct CustomRepeatSheet: View {
                 .disabled(endsOn == nil)
                 .frame(maxHeight: .infinity, alignment: .bottom)
             }
-            .padding(Space.s3)
-            .spotlight(SpotlightTint.backlog, radius: Radius.tile, lifts: false) { TileSurface(radius: Radius.tile) }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .spotlight(SpotlightTint.week, radius: Radius.tile, lifts: false) { TileSurface(radius: Radius.tile) }
             Label(rule.sentence(from: start, calendar: calendar), systemImage: "info.circle")
                 .font(.system(size: 12.5))
                 .foregroundStyle(Palette.textSecondary)
                 .padding(.horizontal, Space.s3)
                 .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
                 .background(Palette.violet.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.violet.opacity(0.2), lineWidth: 1))
             HStack(spacing: 10) {
                 Spacer()
                 Button("Cancel", action: cancel)
@@ -172,7 +178,7 @@ struct CustomRepeatSheet: View {
             }
         }
         .font(.system(size: 13, weight: .medium))
-        .foregroundStyle(Palette.textSecondary)
+        .foregroundStyle(Palette.textBody)
         .padding(Space.s5)
         .frame(width: 400)
         .background(Palette.raised)
@@ -190,7 +196,7 @@ private struct WeekdayRow: View {
     var calendar: Calendar
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Space.s2) {
             ForEach(1...7, id: \.self) { day in
                 let isOn = selection.contains(day)
                 Button {
