@@ -1,8 +1,18 @@
 import AppKit
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+@MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The delegate owns the panels (ARCHITECTURE §4.1); `KomodoApp` hands it the store once Home appears.
     let focusSurfaces = FocusSurfaceController()
+    let alerts = FocusAlerts()
+
+    /// Called once Home appears with the app's store.
+    func attach(_ store: BoardStore) {
+        focusSurfaces.attach(store)
+        guard store.alerts == nil else { return }
+        alerts.install()
+        alerts.onResume = { store.endBreak() }
+        store.alerts = alerts
+    }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Only dark values are designed; Light is P2 (DESIGN_SYSTEM §2).

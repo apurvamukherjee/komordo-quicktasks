@@ -10,7 +10,7 @@ struct KomodoApp: App {
         Window("Komodo", id: "home") {
             HomeView(store: store)
                 .frame(minWidth: Layout.homeMin.width, minHeight: Layout.homeMin.height)
-                .onAppear { appDelegate.focusSurfaces.attach(store) }
+                .onAppear { appDelegate.attach(store) }
                 #if DEBUG
                     .openGalleryOnLaunchIfRequested()
                 #endif

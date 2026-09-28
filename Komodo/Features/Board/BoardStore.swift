@@ -51,7 +51,10 @@ import SwiftUI
     private(set) var tasks: [TaskItem]
     /// nil shows All lists.
     var selectedListID: String?
-    private(set) var focus = Focus()
+    private(set) var focus = Focus() {
+        // Whatever moved the break's end, the break-over alert follows it.
+        didSet { if focus.breakEndsAt != oldValue.breakEndsAt { syncBreakEnd() } }
+    }
     var isPomodoroOn = true {
         didSet { syncSprint() }
     }
@@ -88,6 +91,10 @@ import SwiftUI
     private let openURL: (URL) -> Void
     /// Ends the running sprint on time and starts its break (FEATURES §4.10).
     private var sprintEnd: Task<Void, Never>?
+    /// Says the break is over when it runs out (FEATURES §4.11).
+    private var breakEnd: Task<Void, Never>?
+    /// Sound and notifications; set by the app, absent in previews.
+    var alerts: FocusAlerts?
 
     init(
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
@@ -609,9 +616,24 @@ import SwiftUI
     private func endSprint() {
         guard let id = focus.taskID, focus.sprintSince != nil else { return }
         closeSession(id)
+        let finished = focus.pomodoro.number
         focus.pomodoro.finishSprint()
         focus.breakEndsAt = now.addingTimeInterval(breakLength)
         focus.breakLength = breakLength
+        alerts?.sprintEnded(
+            sprint: finished, of: PomodoroCycle.sprintsPerSet, breakLength: breakLength,
+            task: tasks.first { $0.id == id }?.title ?? "Your task", playsSound: playsSounds)
+    }
+
+    private func syncBreakEnd() {
+        breakEnd?.cancel()
+        breakEnd = nil
+        guard let endsAt = focus.breakEndsAt, endsAt > now else { return }
+        breakEnd = Task { [weak self] in
+            guard let self, (try? await Task.sleep(for: .seconds(endsAt.timeIntervalSince(now)))) != nil else { return }
+            let task = focus.taskID.flatMap { id in tasks.first { $0.id == id }?.title } ?? "your task"
+            alerts?.breakOver(task: task, playsSound: playsSounds)
+        }
     }
 
     private func column(_ bucket: Bucket) -> [TaskItem] {
