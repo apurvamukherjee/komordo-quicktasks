@@ -8,6 +8,35 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Focus Panel — 2026-09-28
+
+#### Added
+- **Focus Panel:** Start docks a 340 pt panel to the screen edge and sets the Home window aside; Home brings it
+  back with the task still running.
+  - Header: list picker, "Today", a FOCUS pill colored by the timer, Quick Settings, Home and a collapse button.
+  - The day at a glance: done of total, estimate left, one segment per task.
+  - The live task on a 236 pt dial with the countdown on its face, Flow and links chips, and 54 pt controls.
+  - Up next as compact rows with Done and the bolt on hover, ADD TASK (⌘⌥T), Scheduled today and Done.
+- **Focus states:** paused in grey with Resume, Time's Up in red with +5 and +15 min, a green break that
+  breathes four seconds in and four out and offers Resume once it's over, a calm card with Start early when only
+  timed tasks are left, and "You won the day." with tasks, focused time and how the estimates held up.
+- **Quick Settings:** Pomodoros with sprint and break lengths, panel side and sounds, applied live.
+- **Notes** open in a popover beside the panel.
+- `DaySummary` sorts the day's tasks into early, on time (±10%) and late, and `DurationFormat.compact` writes
+  `5h 40m`.
+- Debug flags `-openFocusPanel`, `-focusState` and `-quietCapture` for background captures.
+
+#### Changed
+- A hand-started break uses the break length from Quick Settings, and the Board's Pomodoro label shows it.
+- Finishing the queue with timed tasks still to come waits for them instead of winning the day.
+
+#### Fixed
+- Scheduled times read "3:00" and "PM" in every locale; a narrow no-break space had left "3 PM" as the period.
+
+#### Not yet
+- Pomodoro sprints don't count down or start breaks on their own, and sounds don't play.
+- The collapse button waits for the floating timer; the celebration between tasks waits for its milestone.
+
 ### Quick add, Schedule popover and Repeat — 2026-09-28
 
 #### Added
