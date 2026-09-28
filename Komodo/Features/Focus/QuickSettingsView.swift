@@ -27,13 +27,30 @@ struct QuickSettingsView: View {
             ) {
                 Toggle("Pomodoros", isOn: $store.isPomodoroOn).labelsHidden().komodoSwitch()
             }
-            HStack(spacing: Space.s2) {
-                lengthField(
-                    "WORK SPRINT", length: $store.sprintLength, range: Self.sprintRange, step: 5,
-                    accessibility: "Work sprint length in minutes")
-                lengthField(
-                    "BREAK", length: $store.breakLength, range: Self.breakRange, step: 1,
-                    accessibility: "Break length in minutes")
+            VStack(spacing: 10) {
+                HStack(spacing: Space.s2) {
+                    lengthField(
+                        "WORK SPRINT", length: $store.sprintLength, range: Self.sprintRange, step: 5,
+                        accessibility: "Work sprint length in minutes")
+                    lengthField(
+                        "BREAK", length: $store.breakLength, range: Self.breakRange, step: 1,
+                        accessibility: "Break length in minutes")
+                }
+                // The live card's big number: the task's estimate with the sprint as a chip, or the sprint in pink.
+                HStack {
+                    Text("SPRINT DISPLAY")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.8)
+                        .foregroundStyle(Palette.textSecondary)
+                    Spacer()
+                    Picker("Sprint display", selection: $store.sprintDisplay) {
+                        Text("Task").tag(BoardStore.SprintDisplay.task)
+                        Text("Sprint").tag(BoardStore.SprintDisplay.sprint)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .fixedSize()
+                }
             }
             .padding(.horizontal, 2)
             .padding(.top, 2)

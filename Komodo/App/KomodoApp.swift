@@ -42,6 +42,7 @@ struct KomodoApp: App {
 ///   so they can be captured without driving the pointer. Add `-openCustomRepeat YES` to `-openSchedule` for the
 ///   Custom repeat sheet.
 /// - `-openPalette "design rev"` opens the command palette with a query.
+/// - `-sprintDisplay sprint` counts the live card in sprints instead of the estimate.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
 enum LaunchOptions {
@@ -52,6 +53,7 @@ enum LaunchOptions {
             store.inspectedTaskID = defaults.string(forKey: "openInspector")
             store.isQuickAddOpen = defaults.bool(forKey: "openQuickAdd")
             store.isPaletteOpen = paletteQuery != nil
+            if defaults.string(forKey: "sprintDisplay") == "sprint" { store.sprintDisplay = .sprint }
             if let state = defaults.string(forKey: "focusState") { apply(state, to: store) }
             // The sample day already has a live task, so the panel opens on it rather than through Start.
             if defaults.bool(forKey: "openFocusPanel") { store.focusSurface = .panel }
