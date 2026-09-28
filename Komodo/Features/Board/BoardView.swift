@@ -80,7 +80,7 @@ struct BoardToolbar: View {
             }
             .buttonStyle(.komodo(.secondary))
             .disabled(true)
-            .help("The floating timer arrives with Focus mode")
+            .help("The floating timer arrives in the next milestone")
             Button("Start", systemImage: "play.fill", action: store.start)
                 .buttonStyle(.komodo(.primary))
                 .disabled(!canStart)
