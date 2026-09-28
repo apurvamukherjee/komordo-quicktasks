@@ -1,4 +1,5 @@
 import KomodoCore
+import OSLog
 import SwiftUI
 
 /// The Board's state and actions over in-memory tasks until the database lands (ARCHITECTURE §4.2). Views read
@@ -47,8 +48,12 @@ import SwiftUI
         case right
     }
 
-    var lists: [TaskList]
-    private(set) var tasks: [TaskItem]
+    var lists: [TaskList] {
+        didSet { persist(.lists(from: oldValue, to: lists)) }
+    }
+    private(set) var tasks: [TaskItem] {
+        didSet { persist(.tasks(from: oldValue, to: tasks)) }
+    }
     /// nil shows All lists.
     var selectedListID: String?
     private(set) var focus = Focus() {
@@ -56,19 +61,35 @@ import SwiftUI
         didSet { if focus.breakEndsAt != oldValue.breakEndsAt { syncBreakEnd() } }
     }
     var isPomodoroOn = true {
-        didSet { syncSprint() }
+        didSet {
+            syncSprint()
+            savePreference(isPomodoroOn ? "1" : "0", for: Preference.pomodoro)
+        }
     }
     // Quick Settings (DESIGN_SYSTEM §13.8), in memory until Settings persist them.
     var sprintLength: TimeInterval = 25 * 60 {
-        didSet { syncSprint() }
+        didSet {
+            syncSprint()
+            savePreference("\(Int(sprintLength))", for: Preference.sprintSeconds)
+        }
     }
-    var sprintDisplay = SprintDisplay.task
+    var sprintDisplay = SprintDisplay.task {
+        didSet { savePreference(sprintDisplay.rawValue, for: Preference.sprintDisplay) }
+    }
     /// Also the length of a break started by hand (FEATURES §4.11).
-    var breakLength: TimeInterval = 5 * 60
-    var panelSide = PanelSide.right
+    var breakLength: TimeInterval = 5 * 60 {
+        didSet { savePreference("\(Int(breakLength))", for: Preference.breakSeconds) }
+    }
+    var panelSide = PanelSide.right {
+        didSet { savePreference(panelSide.rawValue, for: Preference.panelSide) }
+    }
     /// When the workday ends, in minutes after midnight; the header measures the plan against it.
-    var workdayEnd = 18 * 60
-    var playsSounds = true
+    var workdayEnd = 18 * 60 {
+        didSet { savePreference("\(workdayEnd)", for: Preference.workdayEnd) }
+    }
+    var playsSounds = true {
+        didSet { savePreference(playsSounds ? "1" : "0", for: Preference.sounds) }
+    }
     /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
     var focusSurface: FocusSurface?
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
@@ -84,7 +105,9 @@ import SwiftUI
     /// The list to return to from All lists.
     private(set) var lastListID: String?
     /// Children of recurring tasks deleted by hand, so expanding the week doesn't bring them back.
-    private var dismissedChildren: Set<String> = []
+    private var dismissedChildren: Set<String> = [] {
+        didSet { savePreference(dismissedChildren.sorted().joined(separator: "\n"), for: Preference.dismissedRepeats) }
+    }
     let toasts = ToastCenter()
     /// The window's, so ⌘Z and Edit ▸ Undo reach the same restore as the toast's button. Set by `HomeView`.
     weak var undoManager: UndoManager?
@@ -97,13 +120,29 @@ import SwiftUI
     private var breakEnd: Task<Void, Never>?
     /// Sound and notifications; set by the app, absent in previews.
     var alerts: FocusAlerts?
+    /// Where every change is written; nil keeps the board in memory, as previews and captures do.
+    private let database: AppDatabase?
+
+    /// Settings kept in the database's `preferences` table.
+    enum Preference {
+        static let pomodoro = "pomodoro"
+        static let sprintSeconds = "sprintSeconds"
+        static let breakSeconds = "breakSeconds"
+        static let sprintDisplay = "sprintDisplay"
+        static let panelSide = "panelSide"
+        static let workdayEnd = "workdayEnd"
+        static let sounds = "sounds"
+        static let dismissedRepeats = "dismissedRepeats"
+    }
 
     init(
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
-        clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) }
+        clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
+        database: AppDatabase? = nil, preferences: [String: String] = [:]
     ) {
         self.lists = lists
         self.tasks = tasks
+        self.database = database
         self.selectedListID = selectedListID
         self.lastListID = selectedListID
         self.calendar = calendar
@@ -115,8 +154,57 @@ import SwiftUI
             focus.flowStartedAt = max(0, live.timeTaken(at: clock()) - 25 * 60)
             focus.sprintSince = clock()
         }
+        apply(preferences)
         expandRecurrences()
+        // Initializers don't run observers, so this week's new repeat copies are written here.
+        persist(.tasks(from: tasks, to: self.tasks))
         syncSprint()
+    }
+
+    // MARK: Storage
+
+    private func apply(_ preferences: [String: String]) {
+        if let value = preferences[Preference.pomodoro] { isPomodoroOn = value == "1" }
+        if let value = preferences[Preference.sprintSeconds].flatMap(Double.init) { sprintLength = value }
+        if let value = preferences[Preference.breakSeconds].flatMap(Double.init) { breakLength = value }
+        if let value = preferences[Preference.sprintDisplay].flatMap(SprintDisplay.init) { sprintDisplay = value }
+        if let value = preferences[Preference.panelSide].flatMap(PanelSide.init) { panelSide = value }
+        if let value = preferences[Preference.workdayEnd].flatMap(Int.init) { workdayEnd = value }
+        if let value = preferences[Preference.sounds] { playsSounds = value == "1" }
+        if let value = preferences[Preference.dismissedRepeats], !value.isEmpty {
+            dismissedChildren = Set(value.split(separator: "\n").map(String.init))
+        }
+    }
+
+    /// Writes one change; a failure is logged and shown, and the board carries on in memory.
+    func persist(_ change: BoardChange) {
+        guard let database, !change.isEmpty else { return }
+        do {
+            try database.apply(change, at: now)
+        } catch {
+            reportStorage(error)
+        }
+    }
+
+    private func savePreference(_ value: String, for key: String) {
+        guard let database else { return }
+        do {
+            try database.setPreference(value, for: key, at: now)
+        } catch {
+            reportStorage(error)
+        }
+    }
+
+    private func reportStorage(_ error: any Error) {
+        Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't save: \(error)")
+        toasts.show(
+            Toast(kind: .error, message: "Couldn't save your changes", detail: "They'll stay until you quit."))
+    }
+
+    /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
+    func pauseForQuit() {
+        guard let id = focus.taskID else { return }
+        closeSession(id)
     }
 
     // MARK: Derived
