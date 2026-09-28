@@ -8,6 +8,8 @@ struct CardAction: Identifiable {
     var isGo = false
     var isDestructive = false
     var isEnabled = true
+    /// Shown in the menu; the card handles the key itself, because a menu's shortcuts only work while it's open.
+    var shortcut: KeyboardShortcut?
     /// Groups separated by dividers. With any, the action opens a menu instead of performing (the ⋯ button,
     /// Move to list).
     var menu: [[CardAction]] = []
@@ -176,6 +178,7 @@ struct CardMenuItems: View {
                         action.label, systemImage: action.symbol, role: action.isDestructive ? .destructive : nil,
                         action: action.perform
                     )
+                    .keyboardShortcut(action.shortcut)
                     .disabled(!action.isEnabled)
                 } else {
                     Menu(action.label, systemImage: action.symbol) { CardMenuItems(sections: action.menu) }
