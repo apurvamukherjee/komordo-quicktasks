@@ -13,6 +13,8 @@ struct FloatingTimerView: View {
     var store: BoardStore
     /// The window moves itself from the mouse's screen position, so the pill only reports the drag.
     var onDrag: (DragPhase) -> Void = { _ in }
+    /// The window centres the celebration on the pill, so it needs the pill's width.
+    var onPillWidth: (CGFloat) -> Void = { _ in }
 
     @State private var isHovered = false
     @State private var isShowingNotes = false
@@ -61,6 +63,11 @@ struct FloatingTimerView: View {
                 .onEnded { _ in onDrag(.ended) }
         )
         .onHover { hovering in withAnimation(Motion.spring) { isHovered = hovering } }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            onPillWidth($0)
+        }
         .popover(isPresented: $isShowingNotes, arrowEdge: .bottom) {
             if let live = store.liveTask {
                 InspectorNotes(store: store, task: live)
@@ -105,6 +112,11 @@ struct FloatingTimerView: View {
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
                 .frame(maxWidth: 200, alignment: .leading)
+        case .done(let title):
+            Image(systemName: "checkmark.circle.fill").font(.system(size: 14))
+                .foregroundStyle(Palette.green)
+            titleText(title)
+            Text("Done").font(Typography.timerPill).foregroundStyle(Palette.greenText)
         case .waiting(let title, let time):
             Image(systemName: "calendar.badge.clock").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Palette.blueText)
@@ -159,6 +171,7 @@ private struct PillState {
     enum Kind {
         case live(tone: TimerTone, title: String, time: String)
         case onBreak(time: String, next: String)
+        case done(title: String)
         case waiting(title: String, time: String)
         case idle
     }
@@ -167,7 +180,10 @@ private struct PillState {
     var progress: Double
 
     @MainActor init(store: BoardStore, clock: FocusClock?, at date: Date) {
-        if let endsAt = store.breakEndsAtWallClock {
+        if let celebration = store.focus.celebration {
+            kind = .done(title: celebration.title)
+            progress = 1
+        } else if let endsAt = store.breakEndsAtWallClock {
             let remaining = max(0, endsAt.timeIntervalSince(date))
             let next = store.focus.taskID.flatMap { id in store.tasks.first { $0.id == id }?.title } ?? "the next task"
             kind = .onBreak(time: TimerFormat.clock(Int(remaining.rounded(.up))), next: next)
@@ -193,7 +209,7 @@ private struct PillState {
         switch kind {
         case .live(let tone, _, _): tone
         case .onBreak: .onBreak
-        case .waiting, .idle: nil
+        case .done, .waiting, .idle: nil
         }
     }
 
@@ -206,8 +222,14 @@ private struct PillState {
         }
     }
 
+    private var isDone: Bool {
+        if case .done = kind { return true }
+        return false
+    }
+
     var edge: Color {
-        switch tone {
+        if isDone { return Palette.lime.opacity(0.55) }
+        return switch tone {
         case .timesUp: Palette.danger.opacity(0.9)
         case .onBreak: Palette.green.opacity(0.5)
         default: Color.white.opacity(0.12)
@@ -226,7 +248,8 @@ private struct PillState {
     }
 
     var glow: Color? {
-        switch tone {
+        if isDone { return Palette.lime }
+        return switch tone {
         case .live, .sprint: Palette.lime
         case .timesUp: Palette.danger
         case .onBreak: Palette.green
@@ -259,7 +282,7 @@ private struct PillState {
             ]
         case .onBreak:
             return [CardAction(label: "Skip break", symbol: "play.fill") { store.endBreak() }, expand]
-        case .waiting, .idle:
+        case .done, .waiting, .idle:
             return [expand]
         }
     }

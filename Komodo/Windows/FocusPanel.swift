@@ -43,15 +43,14 @@ import SwiftUI
         guard let store else { return }
         setHomeAside(store.focusSurface != nil)
         if store.focusSurface == .panel { showPanel(store) } else { panel?.orderOut(nil) }
-        if store.focusSurface == .floatingTimer { showTimer(store) } else { timer?.window.orderOut(nil) }
+        if store.focusSurface == .floatingTimer { showTimer(store) } else { timer?.hide() }
     }
 
     private func showTimer(_ store: BoardStore) {
         let timer = self.timer ?? FloatingTimerPanel(store: store)
         self.timer = timer
         guard !timer.window.isVisible else { return }
-        timer.place()
-        Self.present(timer.window)
+        timer.show()
     }
 
     private func setHomeAside(_ aside: Bool) {
