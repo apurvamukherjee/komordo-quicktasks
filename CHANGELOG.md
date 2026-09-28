@@ -40,6 +40,12 @@ Nothing is released yet. Everything below is on `main`, grouped by milestone in 
 - **Performance:** the beam, halo, aurora, sheen and ping loop as Core Animation layer animations
   (`LayerEffect`). With `TimelineView` they re-ran the view graph and the Board's layout 60 times a second.
 
+#### Fixed
+- Column titles no longer wrap or truncate when the inspector narrows the Board; the subtitle truncates instead.
+- Step 2's time field matches the canvas: a clock icon, monospaced digits and a stepper in a Komodo field.
+- The Custom repeat sheet's tiles span its width, Ends uses the blue tint, and the labels, spacing and summary
+  border follow the canvas.
+
 #### Not yet
 - Reminders are stored but don't fire until the notifications milestone.
 - Archive stays disabled until Trash lands.
