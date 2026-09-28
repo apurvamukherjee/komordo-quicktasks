@@ -80,14 +80,19 @@ struct DayMeter: View {
     }
 }
 
-private struct DaySegment: View {
+/// One task's bar in a day meter: lit when done, pulsing for the current task, blue while only timed tasks are
+/// left to wait for, and faint for the rest.
+struct DaySegment: View {
     enum State {
         case done
         case current
+        case waiting
         case upcoming
     }
 
     var state: State
+    /// 7 pt in the Board's day meter, 6 pt in the Focus Panel's.
+    var height: CGFloat = 7
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -95,17 +100,19 @@ private struct DaySegment: View {
         switch state {
         case .done:
             shape.fill(Palette.liveGradient)
-                .frame(height: 7)
+                .frame(height: height)
                 .shadow(color: Palette.lime.opacity(0.5), radius: 4)
         case .upcoming:
-            shape.fill(Color.white.opacity(0.1)).frame(height: 7)
+            shape.fill(Color.white.opacity(0.1)).frame(height: height)
+        case .waiting:
+            shape.fill(Palette.blue.opacity(0.45)).frame(height: height)
         case .current:
             if reduceMotion {
-                shape.fill(Palette.lime.opacity(0.5)).frame(height: 7)
+                shape.fill(Palette.lime.opacity(0.5)).frame(height: height)
             } else {
                 // A layer animation: a SwiftUI one would tick the whole Board's view graph every frame.
                 LayerEffect<PulseLayerView> { $0.configure(color: Palette.lime.opacity(0.5), cornerRadius: 4) }
-                    .frame(height: 7)
+                    .frame(height: height)
             }
         }
     }
