@@ -42,5 +42,5 @@ extension BoardStore {
         }
     }
 
-    private static var firstList: TaskList { TaskList(id: UUID().uuidString, name: "Personal", color: "teal") }
+    static var firstList: TaskList { TaskList(id: UUID().uuidString, name: "Personal", color: "teal") }
 }

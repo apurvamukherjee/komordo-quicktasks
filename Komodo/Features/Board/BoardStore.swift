@@ -167,7 +167,11 @@ import SwiftUI
     /// Reminders go to the system a moment after edits settle, so typing a title doesn't resubmit them each key.
     private var reminderSync: Task<Void, Never>?
     /// Where every change is written; nil keeps the board in memory, as previews and captures do.
-    private let database: AppDatabase?
+    let database: AppDatabase?
+    /// A restore or Delete all data is loading the new contents, which are already in the file.
+    @ObservationIgnored private var isReloading = false
+    /// Export zip's spinner (DESIGN_SYSTEM §13.21).
+    var isExporting = false
 
     /// Settings kept in the database's `preferences` table.
     enum Preference {
@@ -245,7 +249,7 @@ import SwiftUI
 
     /// Writes one change; a failure is logged and shown, and the board carries on in memory.
     func persist(_ change: BoardChange) {
-        guard let database, !change.isEmpty else { return }
+        guard let database, !isReloading, !change.isEmpty else { return }
         do {
             try database.apply(change, at: now)
         } catch {
@@ -254,7 +258,7 @@ import SwiftUI
     }
 
     private func savePreference(_ value: String, for key: String) {
-        guard let database else { return }
+        guard let database, !isReloading else { return }
         do {
             try database.setPreference(value, for: key, at: now)
         } catch {
@@ -266,6 +270,53 @@ import SwiftUI
         Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't save: \(error)")
         toasts.show(
             Toast(kind: .error, message: "Couldn't save your changes", detail: "They'll stay until you quit."))
+    }
+
+    /// After a restore or Delete all data the board starts over from the file: Focus mode ends, open surfaces
+    /// close and every setting is read again. Nothing is written back while the new contents load, since the file
+    /// already holds them.
+    func reload() {
+        guard let database else { return }
+        let stored: StoredBoard
+        do {
+            stored = try database.load()
+        } catch {
+            Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't reload: \(error)")
+            toasts.show(Toast(kind: .error, message: "Couldn't open your tasks", detail: "Restart Komodo to try again."))
+            return
+        }
+        let lists = stored.lists.isEmpty ? [Self.firstList] : stored.lists
+        isReloading = true
+        focus = Focus()
+        focusSurface = nil
+        inspectedTaskID = nil
+        schedulingTaskID = nil
+        isShowingTrash = false
+        isPaletteOpen = false
+        isQuickAddOpen = false
+        self.lists = lists
+        tasks = stored.tasks
+        trash = stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now }
+        archived = stored.archived
+        selectedListID = lists.first?.id
+        lastListID = selectedListID
+        // Anything the file doesn't mention goes back to its default, as on a first launch.
+        isPomodoroOn = true
+        sprintLength = 25 * 60
+        breakLength = 5 * 60
+        sprintDisplay = .task
+        panelSide = .right
+        workdayEnd = 18 * 60
+        playsSounds = true
+        dismissedChildren = []
+        apply(stored.preferences)
+        undoManager?.removeAllActions()
+        isReloading = false
+        persist(.lists(from: stored.lists, to: lists))
+        expandRecurrences()
+        syncSprint()
+        syncBreakEnd()
+        scheduleReminderSync()
     }
 
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
