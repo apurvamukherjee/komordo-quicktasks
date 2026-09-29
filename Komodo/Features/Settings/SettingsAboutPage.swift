@@ -53,6 +53,13 @@ struct SettingsAboutPage: View {
                 .padding(.vertical, Space.s3)
                 .spotlight(Palette.green, radius: Radius.tile, lifts: false) { TileSurface() }
                 .padding(.top, 34)
+            // CC BY 4.0 asks for credit wherever the GIFs ship; no spec copy covers it.
+            if let credits = URL(string: "https://googlefonts.github.io/noto-emoji-animation/") {
+                Link("Celebration GIFs: Animated Noto Emoji by Google, CC BY 4.0 ↗", destination: credits)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Palette.textMuted)
+                    .padding(.top, Space.s4)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 40)
