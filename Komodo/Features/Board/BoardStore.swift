@@ -66,7 +66,7 @@ import SwiftUI
             savePreference(isPomodoroOn ? "1" : "0", for: Preference.pomodoro)
         }
     }
-    // Quick Settings (DESIGN_SYSTEM §13.8), in memory until Settings persist them.
+    // Quick Settings (DESIGN_SYSTEM §13.8); the Settings window edits the same values.
     var sprintLength: TimeInterval = 25 * 60 {
         didSet {
             syncSprint()
@@ -76,7 +76,7 @@ import SwiftUI
     var sprintDisplay = SprintDisplay.task {
         didSet { savePreference(sprintDisplay.rawValue, for: Preference.sprintDisplay) }
     }
-    /// Also the length of a break started by hand (FEATURES §4.11).
+    /// Also the length of a break started by hand while Pomodoros are on (FEATURES §4.11).
     var breakLength: TimeInterval = 5 * 60 {
         didSet { savePreference("\(Int(breakLength))", for: Preference.breakSeconds) }
     }
@@ -89,6 +89,13 @@ import SwiftUI
     }
     var playsSounds = true {
         didSet { savePreference(playsSounds ? "1" : "0", for: Preference.sounds) }
+    }
+    /// The Settings window's other values (FEATURES §4.18); each change writes only the keys that moved.
+    var settings = AppSettings() {
+        didSet {
+            for (key, value) in settings.changes(since: oldValue) { savePreference(value, for: key) }
+            if settings.weekStart != oldValue.weekStart { expandRecurrences() }
+        }
     }
     /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
     var focusSurface: FocusSurface?
@@ -171,6 +178,7 @@ import SwiftUI
         if let value = preferences[Preference.panelSide].flatMap(PanelSide.init) { panelSide = value }
         if let value = preferences[Preference.workdayEnd].flatMap(Int.init) { workdayEnd = value }
         if let value = preferences[Preference.sounds] { playsSounds = value == "1" }
+        settings = AppSettings(stored: preferences)
         if let value = preferences[Preference.dismissedRepeats], !value.isEmpty {
             dismissedChildren = Set(value.split(separator: "\n").map(String.init))
         }
@@ -211,7 +219,9 @@ import SwiftUI
 
     var now: Date { clock() }
     var today: LocalDate { LocalDate(now, calendar: calendar) }
-    var week: WeekRange { WeekRange(containing: today, calendar: calendar) }
+    var week: WeekRange {
+        WeekRange(containing: today, firstWeekday: settings.weekStart.firstWeekday, calendar: calendar)
+    }
     var layout: BoardLayout {
         BoardLayout(tasks: tasks, listID: selectedListID, week: week, calendar: calendar)
     }
@@ -635,11 +645,13 @@ import SwiftUI
         if tasks[index].sessions.allSatisfy({ $0.end != nil }) { openSession(id) }
     }
 
+    /// A break by hand: the Pomodoro break while sprints are on, the default break otherwise (FEATURES §4.11).
     func takeBreak() {
         guard let id = focus.taskID else { return }
         closeSession(id)
-        focus.breakEndsAt = now.addingTimeInterval(breakLength)
-        focus.breakLength = breakLength
+        let length = isPomodoroOn ? breakLength : settings.defaultBreakLength
+        focus.breakEndsAt = now.addingTimeInterval(length)
+        focus.breakLength = length
     }
 
     func extendBreak(by seconds: TimeInterval) {
@@ -663,7 +675,7 @@ import SwiftUI
         focus.taskID = id
         focus.isDayWon = false
         focus.celebration = nil
-        tasks.first { $0.id == id }?.linksToOpen.forEach(openURL)
+        if settings.opensLinksOnStart { tasks.first { $0.id == id }?.linksToOpen.forEach(openURL) }
         openSession(id)
         focus.flowStartedAt = tasks.first { $0.id == id }?.timeTaken(at: now) ?? 0
     }
