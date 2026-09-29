@@ -106,6 +106,8 @@ import SwiftUI
     var focusSurface: FocusSurface?
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
     private(set) var locatorPings = 0
+    /// Global shortcuts another app already holds; Settings marks them "Used by another app".
+    var shortcutConflicts: Set<GlobalShortcut> = []
     /// The Settings window's page (DESIGN_SYSTEM §13.15).
     var settingsSection = SettingsSection.general
     /// Bumped by every way into Settings; the window controller brings the window up each time it changes.
