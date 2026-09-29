@@ -81,8 +81,12 @@ import SwiftUI
 
     /// Puts the window where it was last on the main display, or top center the first time.
     func place() {
-        guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
+        guard let screen = FocusSurfaceController.screen(for: store) else { return }
         let frame = screen.visibleFrame
+        let behavior: NSWindow.CollectionBehavior =
+            store.settings.floatsAboveFullScreen ? [.canJoinAllSpaces, .fullScreenAuxiliary] : [.canJoinAllSpaces]
+        window.collectionBehavior = behavior
+        celebration.collectionBehavior = behavior
         let origin =
             Self.saved(for: screen)
             ?? NSPoint(x: frame.midX - Self.inset.x - 150, y: frame.maxY - Self.size.height + Self.inset.y - 8)

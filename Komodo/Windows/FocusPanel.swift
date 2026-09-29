@@ -31,6 +31,8 @@ import SwiftUI
         withObservationTracking {
             _ = store.focusSurface
             _ = store.panelSide
+            _ = store.settings.panelScreen
+            _ = store.settings.floatsAboveFullScreen
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.sync()
@@ -83,12 +85,17 @@ import SwiftUI
     }
 
     private func dock() {
-        guard let panel, let store, let frame = (NSScreen.main ?? NSScreen.screens.first)?.visibleFrame else {
-            return
-        }
+        guard let panel, let store, let frame = Self.screen(for: store)?.visibleFrame else { return }
+        panel.collectionBehavior = store.settings.floatsAboveFullScreen ? [.fullScreenAuxiliary] : []
         let width = Layout.focusPanelWidth
         let x = store.panelSide == .right ? frame.maxX - width : frame.minX
         panel.setFrame(NSRect(x: x, y: frame.minY, width: width, height: frame.height), display: true)
+    }
+
+    /// Settings' Panel screen by name, falling back to the menu bar's display when that one is unplugged.
+    static func screen(for store: BoardStore) -> NSScreen? {
+        NSScreen.screens.first { $0.localizedName == store.settings.panelScreen } ?? NSScreen.main
+            ?? NSScreen.screens.first
     }
 
     private func makePanel(_ store: BoardStore) -> NSPanel {
@@ -100,7 +107,6 @@ import SwiftUI
         panel.level = .floating
         panel.hidesOnDeactivate = false
         panel.becomesKeyOnlyIfNeeded = true
-        panel.collectionBehavior = [.fullScreenAuxiliary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
