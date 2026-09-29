@@ -4,6 +4,7 @@ import AppKit
     /// The delegate owns the panels (ARCHITECTURE §4.1); `KomodoApp` hands it the store once Home appears.
     let focusSurfaces = FocusSurfaceController()
     let alerts = FocusAlerts()
+    let settingsWindow = SettingsWindowController()
 
     private var store: BoardStore?
 
@@ -11,6 +12,7 @@ import AppKit
     func attach(_ store: BoardStore) {
         self.store = store
         focusSurfaces.attach(store)
+        settingsWindow.attach(store)
         guard store.alerts == nil else { return }
         alerts.install()
         alerts.onResume = { store.endBreak() }

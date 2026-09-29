@@ -101,6 +101,10 @@ import SwiftUI
     var focusSurface: FocusSurface?
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
     private(set) var locatorPings = 0
+    /// The Settings window's page (DESIGN_SYSTEM §13.15).
+    var settingsSection = SettingsSection.general
+    /// Bumped by every way into Settings; the window controller brings the window up each time it changes.
+    private(set) var settingsRequests = 0
     /// ⌘F's search and command palette (DESIGN_SYSTEM §13.7).
     var isPaletteOpen = false
     /// The task open in the inspector (DESIGN_SYSTEM §13.5); nil when it's closed.
@@ -213,6 +217,12 @@ import SwiftUI
     func pauseForQuit() {
         guard let id = focus.taskID else { return }
         closeSession(id)
+    }
+
+    /// ⌘,, the sidebar's Settings, Quick Settings' All settings and the palette: opens Settings on a page.
+    func showSettings(_ section: SettingsSection? = nil) {
+        if let section { settingsSection = section }
+        settingsRequests += 1
     }
 
     // MARK: Derived

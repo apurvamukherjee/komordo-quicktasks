@@ -31,7 +31,9 @@ enum Layout {
     static let inspectorIdeal: CGFloat = 380
     static let inspectorMin: CGFloat = 320
     static let inspectorMax: CGFloat = 460
-    static let settingsWindow = CGSize(width: 760, height: 560)
+    static let settingsWindow = CGSize(width: 1100, height: 760)
+    static let settingsMin = CGSize(width: 880, height: 560)
+    static let settingsSidebar: CGFloat = 236
     static let focusPanelWidth: CGFloat = 340
     static let floatingTimerHeight: CGFloat = 40
     static let floatingTimerMinWidth: CGFloat = 220
