@@ -52,7 +52,11 @@ import SwiftUI
         didSet { persist(.lists(from: oldValue, to: lists)) }
     }
     private(set) var tasks: [TaskItem] {
-        didSet { persist(.tasks(from: oldValue, to: tasks)) }
+        didSet {
+            persist(.tasks(from: oldValue, to: tasks))
+            syncTimesUp()
+            scheduleReminderSync()
+        }
     }
     /// nil shows All lists.
     var selectedListID: String?
@@ -141,7 +145,13 @@ import SwiftUI
     /// Timed alerts' nudge while the live task runs (FEATURES §4.18).
     private var timedAlert: Task<Void, Never>?
     /// Sound and notifications; set by the app, absent in previews.
-    var alerts: FocusAlerts?
+    var alerts: FocusAlerts? {
+        didSet { scheduleReminderSync() }
+    }
+    /// Time's Up for the running task (DESIGN_SYSTEM §14.2).
+    private var timesUpAlert: Task<Void, Never>?
+    /// Reminders go to the system a moment after edits settle, so typing a title doesn't resubmit them each key.
+    private var reminderSync: Task<Void, Never>?
     /// Where every change is written; nil keeps the board in memory, as previews and captures do.
     private let database: AppDatabase?
 
@@ -731,6 +741,7 @@ import SwiftUI
     /// Schedules the end of the running sprint, or cancels it when nothing runs or Pomodoros are off.
     private func syncSprint() {
         syncTimedAlert()
+        syncTimesUp()
         sprintEnd?.cancel()
         sprintEnd = nil
         guard isPomodoroOn, focus.taskID != nil, focus.breakEndsAt == nil, let since = focus.sprintSince else { return }
@@ -773,6 +784,30 @@ import SwiftUI
                 play(settings.timedAlertSound)
                 if settings.pulsesTimer { locatorPings += 1 }
             }
+        }
+    }
+
+    /// The running task's estimate runs out: a sound, and a notification when the panel isn't there to say it.
+    private func syncTimesUp() {
+        timesUpAlert?.cancel()
+        timesUpAlert = nil
+        guard let live = liveTask, focusClock(for: live).isRunning, let estimate = live.estimate else { return }
+        let remaining = estimate - live.timeTaken(at: now)
+        guard remaining > 0 else { return }
+        timesUpAlert = Task { [weak self] in
+            guard (try? await Task.sleep(for: .seconds(remaining))) != nil, let self else { return }
+            play(.glass)
+            if focusSurface != .panel { alerts?.timesUp(task: live.title, estimate: estimate) }
+        }
+    }
+
+    /// Only a saved board reminds; previews and captures hold sample tasks in memory.
+    private func scheduleReminderSync() {
+        guard database != nil, let alerts else { return }
+        reminderSync?.cancel()
+        reminderSync = Task { [weak self] in
+            guard (try? await Task.sleep(for: .seconds(1))) != nil, let self else { return }
+            alerts.syncReminders(Reminders.upcoming(in: tasks, after: now, calendar: calendar), calendar: calendar)
         }
     }
 

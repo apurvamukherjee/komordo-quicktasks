@@ -17,6 +17,13 @@ import AppKit
         followDockSetting()
         alerts.install()
         alerts.onResume = { store.endBreak() }
+        alerts.onExtend = { store.extendEstimate(by: 5 * 60) }
+        alerts.onDone = { store.completeLive() }
+        alerts.onStartNow = { id in store.startNow(id) }
+        alerts.onOpen = { id in
+            store.showHome()
+            store.inspectedTaskID = id
+        }
         store.alerts = alerts
     }
 
