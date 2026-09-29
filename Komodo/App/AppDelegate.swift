@@ -8,6 +8,7 @@ import AppKit
     let hotKeys = GlobalHotKeys()
 
     private var store: BoardStore?
+    private let backupScheduler = NSBackgroundActivityScheduler(identifier: "app.komodo.Komodo.backup")
 
     /// Called once Home appears with the app's store.
     func attach(_ store: BoardStore) {
@@ -16,6 +17,7 @@ import AppKit
         settingsWindow.attach(store)
         guard store.alerts == nil else { return }
         watchForNewDay(store)
+        scheduleBackups(store)
         followDockSetting()
         installHotKeys(store)
         alerts.install()
@@ -66,6 +68,27 @@ import AppKit
             _ = store.settings.shortcuts
         } onChange: { [weak self] in
             Task { @MainActor in self?.followShortcuts(store) }
+        }
+    }
+
+    /// ARCHITECTURE §4.4's daily backup: a check a minute after launch, so it lands within FEATURES §4.21's five
+    /// minutes, then hourly while Komodo runs. Each check backs up only when today's zip isn't there yet.
+    private func scheduleBackups(_ store: BoardStore) {
+        guard store.database != nil, !LaunchOptions.capturesQuietly else { return }
+        Task {
+            // Cancelled only if the app quits first, when there's nothing left to back up for.
+            guard (try? await Task.sleep(for: .seconds(60))) != nil else { return }
+            await store.backUpIfDue()
+        }
+        backupScheduler.repeats = true
+        backupScheduler.interval = 60 * 60
+        backupScheduler.tolerance = 10 * 60
+        backupScheduler.qualityOfService = .utility
+        backupScheduler.schedule { completion in
+            Task { @MainActor in
+                await store.backUpIfDue()
+                completion(.finished)
+            }
         }
     }
 
