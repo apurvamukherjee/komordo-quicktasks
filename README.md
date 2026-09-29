@@ -214,7 +214,7 @@ In a Debug build, **Debug → Design System Gallery** (⌥⇧⌘G) opens the gal
 open Komodo.app --args -design-gallery -galleryScrollTo motion
 ```
 
-The Board runs on sample data for now. To see it exactly as designed (Saturday, Sep 26 at 2:14 PM), launch with:
+Your board is saved on your Mac. To see the sample day exactly as designed (Saturday, Sep 26 at 2:14 PM), without touching your own tasks, launch a Debug build with:
 
 ```bash
 open Komodo.app --args -sampleTime artboard

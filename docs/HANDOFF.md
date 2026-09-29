@@ -54,8 +54,10 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5g | **Gmail → Calendar, Data & backup, Onboarding** | ⏭ **Next** | See §4 and §9 |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
-The remaining screen prompts from DESIGN_HANDOFF §6 step 5, in order: Inspector → Quick add → Schedule → Focus
-Panel (plus FocusStates) → Floating timer → Celebration → Palette → Settings → Gmail → the rest.
+Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
+Palette, Settings (six pages), System (menu bar, notifications), Trash. Screens left: DataSheets, Gmail,
+Onboarding (5g); Reports (P1); Assistant (P2). Settings pages left: Gmail → Calendar, Integrations, Data &
+backup, AI, Local MCP server (disabled in the sidebar with `.help` notes).
 
 ---
 
@@ -63,7 +65,10 @@ Panel (plus FocusStates) → Floating timer → Celebration → Palette → Sett
 
 ```
 Komodo/
-  App/                KomodoApp (scenes, commands, LaunchOptions), AppDelegate, DebugCommands (Debug menu, gallery)
+  App/                KomodoApp (scenes incl. MenuBarExtra, commands, LaunchOptions), AppDelegate (attaches the
+                      store; Dock policy, hotkeys, day rollover, notification actions), FocusAlerts
+                      (notifications, reminders), GlobalHotKeys (Carbon), Sounds (KomodoSound.play),
+                      FocusCommands, DebugCommands (Debug menu, gallery)
   DesignSystem/       Palette, Typography, Metrics (Space/Radius/Layout), Motion, Elevation,
                       WeightedHStack, FlowLayout
     Effects/          Spotlight, BeamBorder, FocusDial, OdometerText, TimerTone, Ping, Shake, Sheen, Rise, Aurora,
@@ -79,15 +84,24 @@ Komodo/
   Features/Focus/     FocusPanelView (header, day tile, lists), FocusHeroCard (236 pt dial), FocusStateCards
                       (break, timed tasks only, won day), FocusPanelRows, QuickSettingsView, FloatingTimerView
   Features/Palette/   CommandPalette (⌘F search and > commands, overlaid on the Board)
+  Features/Settings/  SettingsView (sidebar + page), SettingsSection (pages, search keywords), SettingsKit
+                      (group, row, switch, menu picker, duration stepper, sound preview), one file per page:
+                      General, Focus, Alerts, Celebration, Shortcuts (key recorder), About
+  Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
+  Features/Trash/     TrashView (shown in place of the Board when store.isShowingTrash)
   Windows/            FocusPanel (FocusSurfaceController: sets Home aside, docks the panel, shows the timer),
-                      FloatingTimerPanel (pill window plus the celebration window above it)
+                      FloatingTimerPanel (pill window plus the celebration window above it),
+                      SettingsWindow (SettingsWindowController: an AppKit window opened by store.settingsRequests)
   Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons)
 scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
-  Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory, TaskSearch, CelebrationCopy
-  Storage/            AppDatabase (GRDB: v1 migration, load, write-through, preferences), BoardChange (the diff)
-  Timer/              FocusClock, TimerFormat
+  Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory, TaskSearch, CelebrationCopy,
+                      Reminders (upcoming task reminders), Trash (30-day rule)
+  Settings/           AppSettings (every Settings value, stored as preferences), KeyCombo, GlobalShortcut
+  Storage/            AppDatabase (GRDB: v1 + v2 trash/archive migrations, load splits tasks/trash/archived,
+                      write-through, preferences), BoardChange (the diff)
+  Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery
   Formatting/         DurationFormat
   Parsing/            EstimateParser
   Recurrence/         RepeatRule (kinds, occurrences, wording), Recurrence (this week's copies)
@@ -122,6 +136,18 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   `NSPanel` to `panelSide` and sets the Home window aside while it's up. Both surfaces read one store, so
   there's one timer. Live-task tone and control mode come from `TimerTone(elapsed:…)` and
   `ControlBar.Mode(tone:)`, shared with the Board's live card.
+- **Settings:** Focus values (Pomodoros, lengths, side, sounds) are `BoardStore` properties shared with Quick
+  Settings; everything else is `store.settings: AppSettings`, whose `didSet` writes only the changed keys.
+  Surfaces follow settings with `withObservationTracking` loops (AppDelegate, FocusSurfaceController).
+- **Opening windows from anywhere:** the store bumps a counter (`settingsRequests`, `homeRequests`) and the
+  owner observes it: `SettingsWindowController`, and `MenuBarLabel` for Home (it's always alive).
+- **Sounds and alerts:** every sound goes through `store.play(_:)` so the Sounds switch and volume apply.
+  Timed work (sprint end, break end, Time's Up, timed alerts, heartbeat) are `Task`s re-armed from
+  `syncSprint()`, which every open/close of a session passes through.
+- **Trash and archive:** separate `trash` / `archived` arrays with their own write-through, so `tasks` only
+  holds what the Board shows. Delete = move to trash with Undo.
+- **Relaunch:** `pauseForQuit()` saves the live task, surface and break as preferences; the init restores
+  them, or after a crash closes the open session at the saved heartbeat (`CrashRecovery`).
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
@@ -147,6 +173,20 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 **Onboarding** (P0)
 - **Spec:** FEATURES §6.1, DESIGN_SYSTEM §13.1. Pixels: `Onboarding.png`; values: `Onboarding.dc.html`.
 - It asks for notification permission up front, which `FocusAlerts` asks for lazily until then.
+
+**After 5g, everything that's left** (ARCHITECTURE §16 phases; FEATURES priorities)
+- **Phase 0a done-when:** a week of real inbox mail through Gmail → Calendar with no duplicates, plus zip
+  export/restore and automatic backups. Then the app needs signing, notarizing and a DMG (ARCHITECTURE §15),
+  and Sparkle updates, which About's Check for Updates waits on.
+- **P0 polish still open (§5):** scrolling title in the floating timer, fun GIFs (need assets), the "You were
+  away 47 min" sleep question and App Nap activity (ARCHITECTURE §4.3), notification-scheduled sprint/break/
+  Time's Up alerts so they fire while napping, timed tasks joining the queue when their time passes, list
+  management (create, rename, color, archive, delete to Trash), Help menu items, XCUITest smoke tests.
+- **Phase 1:** Reports and Sessions (FEATURES §4.14–4.15, `Reports.png`), end-of-day review and streak rules,
+  calendar import, Claude mode, Local MCP server (§5.1), password-protected backups, Integrations page.
+- **Phase 2:** Komodo Assistant (`Assistant.png`), voice notes, Notion · Todoist · Linear · ClickUp · Asana.
+- **Maintainer-only steps:** README demo video re-recording (needs the screen), foreground captures with green
+  switches, trying notifications, global shortcuts and the menu bar menu by hand.
 
 ## 5. Known gaps and placeholders
 
@@ -299,7 +339,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 - `swift format format --in-place --recursive Komodo KomodoCore/Sources KomodoCore/Tests` fixes most lint
   errors.
 - **Commits:** Conventional Commits with scopes used so far: `core`, `app`, `design-system`, `effects`,
-  `components`, `gallery`, `board`, `readme`, `media`. Commit in dependency order so each commit builds, and
+  `components`, `gallery`, `board`, `readme`, `media`, `settings`, `focus`, `menubar`, `alerts`, `trash`,
+  `handoff`. Commit in dependency order so each commit builds, and
   build an intermediate commit in a throwaway `git worktree` to prove it.
 - **README media:** follow CONTRIBUTING.md.
   - Board: `open build/DerivedData/Build/Products/Debug/Komodo.app --args -sampleTime artboard -homeWindowSize
