@@ -10,6 +10,8 @@ extension EnvironmentValues {
 /// hairline under themselves; the group clips the last one away.
 struct SettingsGroup<Content: View>: View {
     var title: String
+    /// Data & backup's danger zone: a red title, spotlight and edge.
+    var isDanger = false
     @ViewBuilder var content: Content
 
     @Environment(\.settingsTint) private var tint
@@ -20,29 +22,34 @@ struct SettingsGroup<Content: View>: View {
             Text(title)
                 .font(Typography.label)
                 .tracking(Typography.Tracking.label)
-                .foregroundStyle(Palette.textMuted)
+                .foregroundStyle(isDanger ? Palette.dangerText : Palette.textMuted)
                 .padding(.horizontal, Space.s1)
                 .padding(.top, 18)
                 .padding(.bottom, Space.s2)
             VStack(spacing: 0) { content }
                 .padding(.bottom, -1)
                 .clipShape(shape)
-                .spotlight(tint, radius: Radius.tile, lifts: false) { SettingsGroupSurface() }
+                .spotlight(isDanger ? Palette.danger : tint, radius: Radius.tile, lifts: false) {
+                    SettingsGroupSurface(isDanger: isDanger)
+                }
         }
     }
 }
 
-/// White 3.5% fading to 2%, a hairline and a faint top highlight.
+/// White 3.5% fading to 2%, a hairline and a faint top highlight; red 6% to 2% with a red edge for danger.
 struct SettingsGroupSurface: View {
+    var isDanger = false
+
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
+        let fill = isDanger ? Palette.danger : Color.white
         shape
             .fill(
                 LinearGradient(
-                    colors: [Color.white.opacity(0.035), Color.white.opacity(0.02)], startPoint: .top,
+                    colors: [fill.opacity(isDanger ? 0.06 : 0.035), fill.opacity(0.02)], startPoint: .top,
                     endPoint: .bottom)
             )
-            .overlay(shape.strokeBorder(Palette.border, lineWidth: 1))
+            .overlay(shape.strokeBorder(isDanger ? Palette.dangerLine.opacity(0.22) : Palette.border, lineWidth: 1))
             .allowsHitTesting(false)
     }
 }
