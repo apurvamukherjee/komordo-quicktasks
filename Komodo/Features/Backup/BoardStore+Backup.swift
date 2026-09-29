@@ -1,6 +1,7 @@
 import AppKit
 import KomodoCore
 import OSLog
+import UniformTypeIdentifiers
 
 /// Data & backup's actions (FEATURES §4.21): zip export, the daily automatic backup, restore and Delete all data.
 /// The zip work runs off the main thread; the board only changes once a restore or delete has succeeded.
@@ -42,6 +43,15 @@ extension BoardStore {
             Self.log.error("Export failed: \(error)")
             toasts.show(Toast(kind: .error, message: "Couldn't save the backup", detail: destination.lastPathComponent))
         }
+    }
+
+    /// Export zip and the palette's Export Backup: the standard Save panel with today's name filled in.
+    func chooseExportDestination() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = suggestedBackupName
+        panel.allowedContentTypes = [.zip]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task { await exportBackup(to: url) }
     }
 
     var suggestedBackupName: String { Backup.fileName(on: now, calendar: calendar) }
@@ -106,7 +116,14 @@ extension BoardStore {
             toasts.show(Toast(kind: .error, message: "The backup is damaged.", detail: "Nothing was replaced."))
             return false
         }
+        // Where this Mac backs up, and how that went, describe the Mac rather than the data, so the backup's
+        // older values don't replace them.
+        let local = settings
         reload()
+        settings.backupFolder = local.backupFolder
+        settings.lastExportAt = local.lastExportAt
+        settings.lastBackupAt = local.lastBackupAt
+        settings.lastBackupFailure = local.lastBackupFailure
         return true
     }
 

@@ -67,7 +67,8 @@ struct SettingsCommand: Commands {
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
 /// - `-openTrash <count>` moves that many sample tasks to Trash and shows it.
-/// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts or about.
+/// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, data or about. With
+///   `data`, `-openRestore <zip>` checks that backup and shows its sheet, and `-openDeleteAll YES` the typed confirm.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG

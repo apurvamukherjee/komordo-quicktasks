@@ -11,16 +11,21 @@ struct SettingsView: View {
             SettingsSidebar(store: store)
                 .frame(width: Layout.settingsSidebar)
             VStack(spacing: 0) {
-                Text(store.settingsSection.title)
-                    .font(Typography.heading)
-                    .foregroundStyle(Palette.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 28)
-                    .frame(height: 52)
-                    .background(Palette.panel.opacity(0.6))
-                    .overlay(alignment: .bottom) {
-                        Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                HStack {
+                    Text(store.settingsSection.title)
+                        .font(Typography.heading)
+                        .foregroundStyle(Palette.textPrimary)
+                    Spacer()
+                    if store.settingsSection == .data {
+                        Chip("Stored on this Mac", tint: .green, icon: "checkmark.shield", size: .compact)
                     }
+                }
+                .padding(.horizontal, 28)
+                .frame(height: 52)
+                .background(Palette.panel.opacity(0.6))
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
+                }
                 ScrollView {
                     page
                         .padding(.horizontal, 28)
@@ -47,8 +52,9 @@ struct SettingsView: View {
         case .alerts: SettingsAlertsPage(store: store)
         case .celebration: SettingsCelebrationPage(store: store)
         case .shortcuts: SettingsShortcutsPage(store: store)
+        case .data: SettingsDataPage(store: store)
         case .about: SettingsAboutPage(store: store)
-        case .gmail, .integrations, .data, .ai, .mcp: EmptyView()
+        case .gmail, .integrations, .ai, .mcp: EmptyView()
         }
     }
 }

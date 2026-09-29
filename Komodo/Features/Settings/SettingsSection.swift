@@ -85,7 +85,6 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .gmail: "Gmail → Calendar arrives in the next milestone"
         case .integrations: "Integrations arrive in Phase 1"
-        case .data: "Data & backup arrives in the next milestone"
         case .ai, .mcp: "Arrives in Phase 1"
         default: nil
         }
