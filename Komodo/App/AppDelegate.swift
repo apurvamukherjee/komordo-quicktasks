@@ -5,6 +5,7 @@ import AppKit
     let focusSurfaces = FocusSurfaceController()
     let alerts = FocusAlerts()
     let settingsWindow = SettingsWindowController()
+    let hotKeys = GlobalHotKeys()
 
     private var store: BoardStore?
 
@@ -15,6 +16,7 @@ import AppKit
         settingsWindow.attach(store)
         guard store.alerts == nil else { return }
         followDockSetting()
+        installHotKeys(store)
         alerts.install()
         alerts.onResume = { store.endBreak() }
         alerts.onExtend = { store.extendEstimate(by: 5 * 60) }
@@ -40,6 +42,29 @@ import AppKit
             _ = store.settings.showsInDock
         } onChange: { [weak self] in
             Task { @MainActor in self?.followDockSetting() }
+        }
+    }
+
+    /// Background captures leave the maintainer's ⌘⇧B, ⌘⇧T and ⌘⇧P alone.
+    private func installHotKeys(_ store: BoardStore) {
+        guard !LaunchOptions.capturesQuietly else { return }
+        hotKeys.onPress = { action in
+            switch action {
+            case .showKomodo: store.showHome()
+            case .togglePanel: store.toggleFloatingTimer()
+            case .findTimer: store.locateFloatingTimer()
+            }
+        }
+        hotKeys.install()
+        followShortcuts(store)
+    }
+
+    private func followShortcuts(_ store: BoardStore) {
+        store.shortcutConflicts = hotKeys.register(store.settings)
+        withObservationTracking {
+            _ = store.settings.shortcuts
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.followShortcuts(store) }
         }
     }
 

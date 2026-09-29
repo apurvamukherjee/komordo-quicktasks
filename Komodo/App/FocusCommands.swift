@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// The Focus menu (ARCHITECTURE §4.1) with the app shortcuts from FEATURES §4.17. They work wherever Komodo has
-/// a key window, the Focus Panel and the floating timer included. ⌘⇧T and ⌘⇧P become global with the menu bar
-/// app (System surfaces); until then they need Komodo in front.
+/// a key window, the Focus Panel and the floating timer included. ⌘⇧T and ⌘⇧P also work from any app through
+/// `GlobalHotKeys`, which takes the keys before this menu sees them.
 struct FocusCommands: Commands {
     var store: BoardStore
 
