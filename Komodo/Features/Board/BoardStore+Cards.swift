@@ -6,17 +6,20 @@ extension BoardStore {
     func cardModel(for task: TaskItem) -> TaskCardModel {
         let list = list(for: task)
         let taken = task.timeTaken(at: now)
+        // "A calmer board": the EST and time taken leave the cards, and the timers keep counting underneath.
+        let hidesTimes = settings.hidesCardTimes
         return TaskCardModel(
             id: task.id, title: task.title, listLetter: list?.letter ?? "?",
-            listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime, estimate: task.estimate,
-            timeTaken: taken,
+            listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime,
+            estimate: hidesTimes ? nil : task.estimate,
+            timeTaken: hidesTimes ? 0 : taken,
             subtasks: task.subtasks.isEmpty ? nil : .init(done: task.subtasksDone, total: task.subtasks.count),
             hasNotes: task.hasNotes, linkCount: task.links.count, timing: timing(for: task),
             repeatText: task.repeatParentID == nil ? nil : repeatSummary(for: task),
             hasReminder: task.scheduledDate != nil && task.scheduledMinute != nil && task.remindsAtStart,
             source: task.source.map { $0 == .gmail ? .gmail : .calendar }, outcome: outcome(for: task),
             // Parked cards stay compact until there's something to track, as on the canvas.
-            showsProgress: task.estimate != nil
+            showsProgress: !hidesTimes && task.estimate != nil
                 && (taken > 0 || !task.subtasks.isEmpty || task.hasNotes || task.links.count > 0))
     }
 

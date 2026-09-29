@@ -14,8 +14,6 @@ struct QuickAddPanel: View {
     @State private var listID: String?
     @FocusState private var isFocused: Bool
 
-    private static let presets: [(String, TimeInterval)] = [("15m", 900), ("30m", 1_800), ("1h", 3_600)]
-
     private var parsed: EstimateParser.Result { EstimateParser.parse(title) }
     private var estimate: TimeInterval? { preset ?? parsed.estimate }
     private var list: TaskList? {
@@ -69,8 +67,8 @@ struct QuickAddPanel: View {
 
     private var controls: some View {
         HStack(spacing: 6) {
-            ForEach(Self.presets, id: \.0) { label, seconds in
-                Button(label) { preset = preset == seconds ? nil : seconds }
+            ForEach(store.settings.quickPresets, id: \.self) { seconds in
+                Button(DurationFormat.compact(seconds)) { preset = preset == seconds ? nil : seconds }
                     .buttonStyle(.presetChip)
                     .overlay {
                         if preset == seconds {

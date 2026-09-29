@@ -238,8 +238,6 @@ private struct QuickAddField: View {
     @State private var preset: TimeInterval?
     @FocusState private var isFocused: Bool
 
-    private static let presets: [(String, TimeInterval)] = [("15m", 900), ("30m", 1_800), ("1h", 3_600)]
-
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Space.s4, style: .continuous)
         VStack(alignment: .leading, spacing: 9) {
@@ -259,8 +257,8 @@ private struct QuickAddField: View {
                 KeyCap("↵")
             }
             HStack(spacing: 6) {
-                ForEach(Self.presets, id: \.0) { label, seconds in
-                    Button(label) { preset = preset == seconds ? nil : seconds }
+                ForEach(store.settings.quickPresets, id: \.self) { seconds in
+                    Button(DurationFormat.compact(seconds)) { preset = preset == seconds ? nil : seconds }
                         .buttonStyle(.presetChip)
                         .overlay {
                             if preset == seconds {
