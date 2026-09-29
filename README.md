@@ -44,11 +44,14 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
-| 🎉 | **Celebrations and day summary** | A burst on every Done, and "You won the day." when the queue is clear | ✅ Available · fun GIFs and sounds are next |
+| 🎉 | **Celebrations and day summary** | A burst and a chime on every Done, and "You won the day." when the queue is clear | ✅ Available · fun GIFs are next |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
-| 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available · reminders arrive with notifications |
+| 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available |
+| 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
+| ⚙️ | **Settings** | Every preference in one window that applies as you change it: the Dock, the panel's screen, Pomodoros, alerts and sounds, celebrations and shortcuts | ✅ Available |
+| 🗑️ | **Trash and archive** | Deleted tasks wait 30 days with Restore, and archived tasks leave the Board but stay in your history | ✅ Available |
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
-| ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action | ✅ Available · global shortcuts arrive with the menu bar |
+| ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export and a verified restore, all on your Mac | 🚧 In development |
 
 ## The Board
@@ -123,6 +126,40 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Return opens, ⌘Return starts.** No match? Create the task right there.
 - **Type > for commands.** New Task, Start and more, from the keyboard.
 
+## Settings
+
+<p align="center"><img src="docs/media/settings-general.png" alt="Settings on the General page: open at login, the Dock and menu bar timer, the week's first day, quick task presets and a calmer board" width="100%"></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/settings-focus.png" alt="Settings on the Focus page: panel screen, side and full-screen floating beside a small display preview, Pomodoro lengths and the default break"></td>
+    <td width="50%"><img src="docs/media/settings-alerts.png" alt="Settings on the Alerts and sounds page: timed alerts with interval, sound and pulse, the reminder sound and a volume slider"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/media/settings-celebration.png" alt="Settings on the Celebration page: success screen, fun GIF and success sound beside a live preview of the moment"></td>
+    <td width="50%"><img src="docs/media/settings-shortcuts.png" alt="Settings on the Shortcuts page: the three global shortcuts with recorders and reset buttons, then the app's own shortcuts"></td>
+  </tr>
+</table>
+
+- **Changes apply instantly.** No Save button: flip a switch and the Board, the panel and the timer follow at once. Quick Settings and Settings are two views of the same values.
+- **Make it yours.** Keep Komodo in the Dock or only in the menu bar, dock the Focus Panel on any display, and pick the week's first day and your quick estimates.
+- **Sounds with a preview.** Choose each sound, hear it with ▶, and set one volume for all of them. Timed alerts nudge you every few minutes while a task is live, if you want them.
+- **Record your own shortcuts.** Click a global shortcut and press new keys. If another app already holds them, Komodo says so.
+
+## Menu bar, reminders and shortcuts
+
+- **Always a click away.** The Komodo mark lives in the menu bar and shows the time left while a task runs. Its menu pauses, finishes or skips the task, opens Komodo and Settings.
+- **Reminders that fire on time.** A scheduled task reminds you when it starts, with Start now and Snooze 5 min, even when Komodo isn't running. When the estimate runs out with the panel hidden, Time's up offers +5 min and Done.
+- **Global shortcuts.** ⌘⇧B shows Komodo, ⌘⇧T swaps the panel and the floating timer, and ⌘⇧P finds the timer, from any app.
+- **Picks up where you left off.** Quit mid-task and the task is waiting, paused, when you come back. Even after a crash, only the time Komodo was really running counts.
+
+## Trash
+
+<p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks with their list, when they were deleted and the days left" width="100%"></p>
+
+- **Nothing is gone by accident.** Deleted tasks wait 30 days, with the last three days in amber. Restore puts a task back where it was.
+- **Archive, don't delete.** Archive a finished project task and it leaves the Board but stays in your history.
+
 ## The design system
 
 Komodo's look is **Obsidian Spectrum**: black is the canvas, color is earned, light follows your cursor, and time has a temperature. Every token, effect and component is built in SwiftUI and can be inspected live in the debug gallery.
@@ -189,13 +226,15 @@ open Komodo.app --args -sampleTime artboard
 - [x] Signature effects: spotlight, border beam, focus dial, odometer digits
 - [x] Design system gallery
 - [x] Components: buttons, chips, fields, task card, live task card, control bar, day meter, toasts, banners
-- [ ] Menu bar app, Settings, Gmail → Calendar, backup
+- [x] Menu bar app, Settings, reminders and global shortcuts
+- [ ] Gmail → Calendar, backup
 - [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue
 - [x] Inspector, scheduling and repeats, and the Quick add panel
 - [x] Saving to SQLite, on your Mac
 - [x] Focus Panel and its states
 - [x] Floating timer, celebrations, day summary, command palette
-- [ ] Reports and Trash
+- [x] Trash and archive
+- [ ] Reports
 
 ## Contributing
 
