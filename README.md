@@ -44,7 +44,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
-| 🎉 | **Celebrations and day summary** | A burst and a chime on every Done, and "You won the day." when the queue is clear | ✅ Available · fun GIFs are next |
+| 🎉 | **Celebrations and day summary** | A burst, a chime and a random animated GIF on every Done, and "You won the day." when the queue is clear | ✅ Available |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
 | 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available |
 | 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
@@ -52,7 +52,8 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🗑️ | **Trash and archive** | Deleted tasks wait 30 days with Restore, and archived tasks leave the Board but stay in your history | ✅ Available |
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
-| 💾 | **Backup and restore** | One-click zip export and a verified restore, all on your Mac | 🚧 In development |
+| 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
+| 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
 
 ## The Board
 
@@ -110,13 +111,13 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 <table>
   <tr>
     <td width="58%"><img src="docs/media/floating-timer.png" alt="The floating timer pill running with a lime ring, paused in grey, at Time's Up in red with +5 and Done, and on a green break"></td>
-    <td width="42%"><img src="docs/media/celebration.png" alt="The Focus Panel celebrating: a lime check, Nailed it. 9min early., and what's up next"></td>
+    <td width="42%"><img src="docs/media/celebration.png" alt="The Focus Panel celebrating: a flexed-biceps GIF under a burst of confetti, Nailed it. 9min early., and what's up next"></td>
   </tr>
 </table>
 
 - **Out of the way, never out of sight.** ⌘⇧T collapses the panel into a 40 pt pill that floats above every app and Space. Drag it anywhere; it remembers its spot on each display.
 - **Hover for controls.** Pause, Done, Skip, Break, Notes and back to the panel slide in on a spring. At Time's Up it turns red with +5 and Done inline, and ⌘⇧P ripples it so you can find it.
-- **A moment for every Done.** A confetti burst and a word on how you did against the estimate: "Nailed it. 12min early." The next task starts when it's over, never mid-celebration.
+- **A moment for every Done.** A confetti burst, a random animated GIF and a word on how you did against the estimate: "Nailed it. 12min early." The GIFs ship inside the app, so they work offline. The next task starts when it's over, never mid-celebration.
 
 ## Command palette
 
@@ -152,6 +153,25 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Reminders that fire on time.** A scheduled task reminds you when it starts, with Start now and Snooze 5 min, even when Komodo isn't running. When the estimate runs out with the panel hidden, Time's up offers +5 min and Done.
 - **Global shortcuts.** ⌘⇧B shows Komodo, ⌘⇧T swaps the panel and the floating timer, and ⌘⇧P finds the timer, from any app.
 - **Picks up where you left off.** Quit mid-task and the task is waiting, paused, when you come back. Even after a crash, only the time Komodo was really running counts.
+
+## Your data, backed up
+
+<p align="center"><img src="docs/media/settings-data.png" alt="Settings on the Data and backup page: Export zip, the automatic daily backup with its folder, how many to keep and the last backup, restore from a file and the danger zone" width="100%"></p>
+
+<p align="center"><img src="docs/media/data-sheets.png" alt="Two sheets over Data and backup: Restore this backup with the file's date, version and counts, and Delete all data waiting for DELETE to be typed" width="100%"></p>
+
+- **One zip, everything in it.** Export zip saves a consistent copy of the database plus readable JSON and CSVs for spreadsheets. Passwords and tokens are never inside.
+- **A backup every day.** Within minutes of the first launch each day, Komodo zips your data into a folder you choose and keeps the last 7, 14 or 30. Pick an iCloud Drive or Dropbox folder for a copy off your Mac.
+- **Restores you can trust.** Komodo checks the zip before touching anything, refuses one from a newer version, and saves your current data first. The board comes back exactly as it was.
+- **No accidents.** Delete all data waits until you type DELETE, and a restore from your last zip brings it all back.
+
+## First launch
+
+<p align="center"><img src="docs/media/onboarding.png" alt="Three onboarding steps: Plan your day in minutes over a mini board, One task at a time with the floating timer over a mail window, and What do you want to finish today with an estimate chip on each line" width="100%"></p>
+
+- **Up and running in a minute.** Three short screens show the idea: plan, focus, win.
+- **Notifications, asked once.** Allow them up front and choose Alerts so reminders keep their Start now and Snooze buttons.
+- **Today, typed.** One task per line with a time like "45m". Each line shows its estimate as you type, and ⌘Return puts them all in Today with a tip pointing at Start.
 
 ## Trash
 
@@ -198,6 +218,7 @@ Komodo's look is **Obsidian Spectrum**: black is the canvas, color is earned, li
 | Storage | SQLite on your Mac, no server |
 | Core logic | `KomodoCore` Swift package, tested with Swift Testing |
 | Project | Generated with XcodeGen, linted with swift-format |
+| Celebration GIFs | [Animated Noto Emoji](https://googlefonts.github.io/noto-emoji-animation/) by Google, CC BY 4.0 |
 
 ## Getting started
 
@@ -227,7 +248,9 @@ open Komodo.app --args -sampleTime artboard
 - [x] Design system gallery
 - [x] Components: buttons, chips, fields, task card, live task card, control bar, day meter, toasts, banners
 - [x] Menu bar app, Settings, reminders and global shortcuts
-- [ ] Gmail → Calendar, backup
+- [x] Backup, restore and automatic daily backups
+- [x] Onboarding
+- [ ] Gmail → Calendar
 - [x] Board: columns, drag and drop, quick add with estimates, the live task and its queue
 - [x] Inspector, scheduling and repeats, and the Quick add panel
 - [x] Saving to SQLite, on your Mac
