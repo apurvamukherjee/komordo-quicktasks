@@ -112,6 +112,8 @@ import SwiftUI
     private(set) var locatorPings = 0
     /// Bumped by ⌘⇧B and the menu bar's Open Komodo; the menu bar item reopens Home each time it changes.
     private(set) var homeRequests = 0
+    /// Bumped when the date changes under a running app (midnight, a time zone change, waking from sleep).
+    private(set) var dayChanges = 0
     /// Global shortcuts another app already holds; Settings marks them "Used by another app".
     var shortcutConflicts: Set<GlobalShortcut> = []
     /// The Settings window's page (DESIGN_SYSTEM §13.15).
@@ -287,6 +289,14 @@ import SwiftUI
                 action: .init(title: "Resume") { [weak self] in self?.togglePause() }))
     }
 
+    /// Midnight, a new time zone or a wake: this week's repeat copies are made and the Board moves to the new day
+    /// (FEATURES §4.7). A wake on the same day finds nothing new, so repeating it is harmless.
+    func dayMayHaveChanged() {
+        dayChanges += 1
+        expandRecurrences()
+        scheduleReminderSync()
+    }
+
     /// Show Komodo: Home comes forward, reopened if it was closed.
     func showHome() { homeRequests += 1 }
 
@@ -299,7 +309,11 @@ import SwiftUI
     // MARK: Derived
 
     var now: Date { clock() }
-    var today: LocalDate { LocalDate(now, calendar: calendar) }
+    var today: LocalDate {
+        // Reading the counter makes every view that shows the day redraw when it turns over.
+        _ = dayChanges
+        return LocalDate(now, calendar: calendar)
+    }
     var week: WeekRange {
         WeekRange(containing: today, firstWeekday: settings.weekStart.firstWeekday, calendar: calendar)
     }

@@ -15,6 +15,7 @@ import AppKit
         focusSurfaces.attach(store)
         settingsWindow.attach(store)
         guard store.alerts == nil else { return }
+        watchForNewDay(store)
         followDockSetting()
         installHotKeys(store)
         alerts.install()
@@ -65,6 +66,20 @@ import AppKit
             _ = store.settings.shortcuts
         } onChange: { [weak self] in
             Task { @MainActor in self?.followShortcuts(store) }
+        }
+    }
+
+    /// ARCHITECTURE §4.4's day rollover: the calendar day changing, the time zone changing, and waking up.
+    private func watchForNewDay(_ store: BoardStore) {
+        let names: [(NotificationCenter, Notification.Name)] = [
+            (.default, .NSCalendarDayChanged),
+            (.default, .NSSystemTimeZoneDidChange),
+            (NSWorkspace.shared.notificationCenter, NSWorkspace.didWakeNotification),
+        ]
+        for (center, name) in names {
+            center.addObserver(forName: name, object: nil, queue: .main) { _ in
+                MainActor.assumeIsolated { store.dayMayHaveChanged() }
+            }
         }
     }
 
