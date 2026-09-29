@@ -48,17 +48,7 @@ struct SettingsView: View {
         case .celebration: SettingsCelebrationPage(store: store)
         case .shortcuts: SettingsShortcutsPage(store: store)
         case .about: SettingsAboutPage(store: store)
-        case .focus: SettingsFocusPage(store: store)
-        case .alerts: SettingsAlertsPage(store: store)
-        case .celebration: SettingsCelebrationPage(store: store)
-        case .shortcuts: SettingsShortcutsPage(store: store)
-        case .focus: SettingsFocusPage(store: store)
-        case .alerts: SettingsAlertsPage(store: store)
-        case .celebration: SettingsCelebrationPage(store: store)
-        case .focus: SettingsFocusPage(store: store)
-        case .alerts: SettingsAlertsPage(store: store)
-        case .focus: SettingsFocusPage(store: store)
-        default: EmptyView()
+        case .gmail, .integrations, .data, .ai, .mcp: EmptyView()
         }
     }
 }
