@@ -388,7 +388,7 @@ private enum PaletteRow: Equatable {
     case command(PaletteCommand)
 }
 
-/// DESIGN_SYSTEM §13.7's commands. Backup and Gmail show but wait for their milestones.
+/// DESIGN_SYSTEM §13.7's commands. Gmail shows but waits for its milestone.
 private struct PaletteCommand: Equatable {
     var title: String
     var symbol: String
@@ -413,7 +413,8 @@ private struct PaletteCommand: Equatable {
             ) { store.start() },
             PaletteCommand(
                 title: "Export Backup", symbol: "archivebox", tint: Palette.green.opacity(0.14),
-                glyph: Palette.greenText, isEnabled: false),
+                glyph: Palette.greenText, isEnabled: store.database != nil && !store.isExporting
+            ) { store.chooseExportDestination() },
             PaletteCommand(
                 title: "Scan Gmail Now", symbol: "envelope", tint: Palette.danger.opacity(0.14), glyph: Palette.redText,
                 isEnabled: false),
