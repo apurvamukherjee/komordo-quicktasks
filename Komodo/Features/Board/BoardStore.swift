@@ -172,6 +172,10 @@ import SwiftUI
     @ObservationIgnored private var isReloading = false
     /// Export zip's spinner (DESIGN_SYSTEM §13.21).
     var isExporting = false
+    /// The first-launch sheet over Home (DESIGN_SYSTEM §13.1).
+    var isOnboarding = false
+    /// Onboarding's last step: the tip pointing at Start, once Today has something in it.
+    var showsStartTip = false
 
     /// Settings kept in the database's `preferences` table.
     enum Preference {
@@ -189,6 +193,7 @@ import SwiftUI
         static let breakEndsAt = "breakEndsAt"
         static let breakLength = "breakLength"
         static let heartbeat = "heartbeat"
+        static let onboarded = "onboarded"
     }
 
     init(
@@ -222,6 +227,7 @@ import SwiftUI
             focus.sprintSince = clock()
         }
         apply(preferences)
+        isOnboarding = needsOnboarding(preferences)
         expandRecurrences()
         // Initializers don't run observers, so this week's new repeat copies are written here.
         persist(.tasks(from: tasks, to: self.tasks))
@@ -272,6 +278,23 @@ import SwiftUI
             Toast(kind: .error, message: "Couldn't save your changes", detail: "They'll stay until you quit."))
     }
 
+    /// A saved board that hasn't finished onboarding and has nothing in it: a first launch, a quit halfway through
+    /// onboarding, or Delete all data. A board that already has tasks never sees it, whatever its preferences say.
+    private func needsOnboarding(_ preferences: [String: String]) -> Bool {
+        database != nil && preferences[Preference.onboarded] == nil && tasks.isEmpty && trash.isEmpty
+            && archived.isEmpty
+    }
+
+    /// Onboarding's Continue or Skip: each line typed on the Today step becomes a Today task, and the Start tip
+    /// follows when there's something to start.
+    func finishOnboarding(adding lines: [String]) {
+        let listID = selectedListID ?? lists.first?.id
+        let added = lines.compactMap { addTask($0, to: .today, listID: listID) }
+        savePreference("1", for: Preference.onboarded)
+        isOnboarding = false
+        showsStartTip = !added.isEmpty
+    }
+
     /// After a restore or Delete all data the board starts over from the file: Focus mode ends, open surfaces
     /// close and every setting is read again. Nothing is written back while the new contents load, since the file
     /// already holds them.
@@ -311,6 +334,7 @@ import SwiftUI
         playsSounds = true
         dismissedChildren = []
         apply(stored.preferences)
+        isOnboarding = needsOnboarding(stored.preferences)
         undoManager?.removeAllActions()
         isReloading = false
         persist(.lists(from: stored.lists, to: lists))
