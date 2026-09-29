@@ -65,6 +65,10 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     /// Remind at the scheduled time (DESIGN_SYSTEM §13.6). Only meaningful with a time.
     public var remindsAtStart: Bool
     public var completedAt: Date?
+    /// Moved to Trash (FEATURES §4.20); gone for good 30 days later.
+    public var deletedAt: Date?
+    /// Hidden everywhere except reports (FEATURES §4.3).
+    public var archivedAt: Date?
     public var subtasks: [Subtask]
     public var source: TaskSource?
     /// Who and what the task came from, such as `Apurva · “Re: Design review”`, and where to open it.
@@ -80,7 +84,7 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         notes: String? = nil, notesRTF: Data? = nil, opensLinks: Bool = true, scheduledDate: LocalDate? = nil,
         scheduledMinute: Int? = nil, dueDate: LocalDate? = nil, repeatRule: RepeatRule? = nil,
         repeatStart: LocalDate? = nil, repeatParentID: String? = nil, remindsAtStart: Bool = true,
-        completedAt: Date? = nil, subtasks: [Subtask] = [],
+        completedAt: Date? = nil, deletedAt: Date? = nil, archivedAt: Date? = nil, subtasks: [Subtask] = [],
         source: TaskSource? = nil, sourceTitle: String? = nil, sourceURL: URL? = nil, sessions: [WorkSession] = [],
         createdAt: Date? = nil, editedAt: Date? = nil
     ) {
@@ -100,6 +104,8 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         self.repeatStart = repeatStart
         self.repeatParentID = repeatParentID
         self.remindsAtStart = remindsAtStart
+        self.deletedAt = deletedAt
+        self.archivedAt = archivedAt
         self.completedAt = completedAt
         self.subtasks = subtasks
         self.source = source

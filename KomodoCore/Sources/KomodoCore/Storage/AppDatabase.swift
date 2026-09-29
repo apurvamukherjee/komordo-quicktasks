@@ -5,6 +5,9 @@ import GRDB
 public struct StoredBoard: Sendable {
     public var lists: [TaskList]
     public var tasks: [TaskItem]
+    /// In Trash, and archived: kept apart so nothing on the Board has to skip them.
+    public var trash: [TaskItem]
+    public var archived: [TaskItem]
     public var preferences: [String: String]
 }
 
@@ -73,6 +76,10 @@ public final class AppDatabase: Sendable {
                     CREATE TABLE preferences (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at REAL NOT NULL);
                     """)
         }
+        migrator.registerMigration("v2 trash and archive") { db in
+            try db.execute(
+                sql: "ALTER TABLE tasks ADD COLUMN deleted_at REAL; ALTER TABLE tasks ADD COLUMN archived_at REAL")
+        }
         return migrator
     }
 
@@ -98,7 +105,10 @@ public final class AppDatabase: Sendable {
             let preferences = try Row.fetchAll(db, sql: "SELECT key, value FROM preferences").reduce(
                 into: [String: String]()
             ) { $0[$1["key"]] = $1["value"] }
-            return StoredBoard(lists: lists, tasks: tasks, preferences: preferences)
+            return StoredBoard(
+                lists: lists, tasks: tasks.filter { $0.deletedAt == nil && $0.archivedAt == nil },
+                trash: tasks.filter { $0.deletedAt != nil },
+                archived: tasks.filter { $0.deletedAt == nil && $0.archivedAt != nil }, preferences: preferences)
         }
     }
 
@@ -145,6 +155,8 @@ public final class AppDatabase: Sendable {
             ("repeat_rule", try task.repeatRule.map(RepeatRuleColumn.encode)),
             ("repeat_start", task.repeatStart?.description), ("repeat_parent_id", task.repeatParentID),
             ("reminds_at_start", task.remindsAtStart), ("completed_at", task.completedAt?.timeIntervalSince1970),
+            ("deleted_at", task.deletedAt?.timeIntervalSince1970),
+            ("archived_at", task.archivedAt?.timeIntervalSince1970),
             ("source", task.source?.rawValue), ("source_title", task.sourceTitle),
             ("source_url", task.sourceURL?.absoluteString), ("created_at", task.createdAt?.timeIntervalSince1970),
             ("edited_at", task.editedAt?.timeIntervalSince1970), ("updated_at", now.timeIntervalSince1970),
@@ -194,7 +206,9 @@ public final class AppDatabase: Sendable {
             repeatRule: try (row["repeat_rule"] as String?).map(RepeatRuleColumn.decode),
             repeatStart: (row["repeat_start"] as String?).flatMap(LocalDate.init(iso:)),
             repeatParentID: row["repeat_parent_id"], remindsAtStart: row["reminds_at_start"],
-            completedAt: (row["completed_at"] as Double?).map(date), subtasks: subtasks,
+            completedAt: (row["completed_at"] as Double?).map(date),
+            deletedAt: (row["deleted_at"] as Double?).map(date), archivedAt: (row["archived_at"] as Double?).map(date),
+            subtasks: subtasks,
             source: (row["source"] as String?).flatMap(TaskSource.init(rawValue:)), sourceTitle: row["source_title"],
             sourceURL: (row["source_url"] as String?).flatMap(URL.init(string:)), sessions: sessions,
             createdAt: (row["created_at"] as Double?).map(date), editedAt: (row["edited_at"] as Double?).map(date))
