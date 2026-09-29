@@ -54,6 +54,11 @@ import UserNotifications
         ])
     }
 
+    /// Onboarding's Allow: the system prompt now, rather than at the first alert.
+    func requestPermission() async {
+        _ = await Self.isAllowed(UNUserNotificationCenter.current())
+    }
+
     func sprintEnded(sprint: Int, of count: Int, breakLength: TimeInterval, task: String) {
         post(
             title: "Sprint \(sprint) of \(count) done",
