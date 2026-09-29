@@ -1,7 +1,8 @@
 # Handoff: where Komodo stands and where to continue
 
 Last updated: 2026-09-29. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
-archive, and focus restore with crash recovery are on `main`. The maintainer
+archive, focus restore with crash recovery, and 5g without Google (Data & backup, onboarding, celebration GIFs)
+are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -23,12 +24,13 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": 5g, starting with Settings › Data & backup (export, restore,
-automatic backups), then Gmail → Calendar, then Onboarding. Try persistence on a scratch file with
--databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
+Then continue from docs/HANDOFF.md §4 "Next task": the P0 polish list, starting with list management
+(create, rename, color, archive, delete to Trash). Gmail → Calendar stays parked until I say so. Try
+persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
 PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
-before adding any dependency (bundle cost plus one alternative).
+before adding any dependency (bundle cost plus one alternative). The README demo video waits until I give you
+the screen; ask before recording.
 ```
 
 ---
@@ -51,13 +53,15 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5f-1 | Settings window | ✅ | General, Focus, Alerts & sounds, Celebration, Shortcuts, About; checked against `Settings.png` |
 | 5f-2 | System surfaces: menu bar extra, notifications and reminders, global shortcuts | ✅ | Carbon hotkeys, no dependency (§6); see §5 for what wasn't exercised |
 | — | Trash and archive, focus restore, crash recovery, day rollover | ✅ | Gaps from §5 closed between milestones; Trash checked against `Trash.png` |
-| 5g | **Gmail → Calendar, Data & backup, Onboarding** | ⏭ **Next** | See §4 and §9 |
+| 5g | Data & backup, Onboarding, celebration GIFs | ✅ | Checked against `DataSheets.png`, `Onboarding.png`, `Celebration.png` |
+| 5g | Gmail → Calendar | ⏸ Parked | The maintainer's call on 2026-09-29; §9 question 1 still open |
+| — | **P0 polish** | ⏭ **Next** | See §4 |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
-Palette, Settings (six pages), System (menu bar, notifications), Trash. Screens left: DataSheets, Gmail,
-Onboarding (5g); Reports (P1); Assistant (P2). Settings pages left: Gmail → Calendar, Integrations, Data &
-backup, AI, Local MCP server (disabled in the sidebar with `.help` notes).
+Palette, Settings (seven pages), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5
+and the Start tip). Screens left: Gmail and onboarding step 6 (parked); Reports (P1); Assistant (P2). Settings
+pages left: Gmail → Calendar, Integrations, AI, Local MCP server (disabled in the sidebar with `.help` notes).
 
 ---
 
@@ -89,16 +93,22 @@ Komodo/
                       General, Focus, Alerts, Celebration, Shortcuts (key recorder), About
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
   Features/Trash/     TrashView (shown in place of the Board when store.isShowingTrash)
+  Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all), BackupSheets (restore
+                      confirm, restore errors, typed delete)
+  Features/Onboarding/ OnboardingView (sheet, steps, dots), OnboardingStages (plan, focus, win, notification
+                      drawings), OnboardingTodayStep (lines with EST chips)
   Windows/            FocusPanel (FocusSurfaceController: sets Home aside, docks the panel, shows the timer),
                       FloatingTimerPanel (pill window plus the celebration window above it),
                       SettingsWindow (SettingsWindowController: an AppKit window opened by store.settingsRequests)
-  Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons)
+  Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons),
+                      CelebrationGIFs (ten Animated Noto Emoji, CC BY 4.0, 200 px)
 scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
   Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory, TaskSearch, CelebrationCopy,
                       Reminders (upcoming task reminders), Trash (30-day rule)
   Settings/           AppSettings (every Settings value, stored as preferences), KeyCombo, GlobalShortcut
+  Backup/             Backup (export zip, open and check, prune, file names), BackupManifest, CSV
   Storage/            AppDatabase (GRDB: v1 + v2 trash/archive migrations, load splits tasks/trash/archived,
                       write-through, preferences), BoardChange (the diff)
   Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery
@@ -148,55 +158,61 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   holds what the Board shows. Delete = move to trash with Undo.
 - **Relaunch:** `pauseForQuit()` saves the live task, surface and break as preferences; the init restores
   them, or after a crash closes the open session at the saved heartbeat (`CrashRecovery`).
+- **Backup and restore:** every file in a zip comes from one `VACUUM INTO` snapshot. A restore checks the zip's
+  file list before unzipping, then the manifest, SQLite's integrity check and a load, and migrates the copy; it
+  goes in with SQLite's online backup into the open pool, and `BoardStore.reload()` rebuilds the board with
+  writes paused. So there's no file swap and no `ValueObservation` yet. Backup status settings (folder, last
+  backup, last export, failure) are kept across a restore because they describe the Mac, not the data.
+- **Onboarding:** shown when a saved board has no tasks, no trash, no archive and no `onboarded` preference, so an
+  existing board never sees it. `finishOnboarding(adding:)` adds the lines to Today and raises the Start tip.
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
 ---
 
-## 4. Next task: 5g, Data & backup, then Gmail → Calendar, then Onboarding
+## 4. Next task: P0 polish, starting with list management
 
-**Data & backup** (Settings page, P0)
-- **Spec:** FEATURES §4.21, DESIGN_SYSTEM §13.21–13.22. Pixels: `design/previews/DataSheets.png`; values:
-  `design/screens/DataSheets.dc.html` and the Data & backup section of `Settings.dc.html`.
-- **Pieces:** `VACUUM INTO` for the zip's database, a restore that verifies before replacing, automatic
-  backups on `NSBackgroundActivityScheduler` (ARCHITECTURE §4.4), and the danger zone. The toast
-  "Backup saved: komodo-backup-2026-09-26.zip" with Show in Finder is on `System.png`.
-- **Hooks:** `SettingsSection.data` is in the sidebar, disabled with a `.help` note; drop its `comingIn`.
-  Add `ValueObservation` when a restore can change the file under the store (§5).
+Gmail → Calendar is parked (the maintainer's call, 2026-09-29), so the next work is the P0 polish that's left.
+In order:
+1. **List management:** create (the sidebar **+**, disabled today), rename, color, archive, and delete to Trash
+   with list rows in Trash (FEATURES §4.1, §4.20; `Trash.dc.html` has the list rows).
+2. **Timed tasks join the queue** when their time passes (FEATURES §4.6); the calm card waits for them.
+3. **Sleep and App Nap** (ARCHITECTURE §4.3): the "You were away 47 min" question, and an App Nap activity while
+   a timer runs.
+4. **Sprint, break and Time's Up alerts scheduled as notifications**, so they fire while the app naps.
+5. **Scrolling title** in the floating timer (Settings already stores it).
+6. **Help menu items** and **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete
+   all → Restore).
 
-**Gmail → Calendar** (P0)
-- **Spec:** FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20. Pixels: `Gmail.png`; values: `Gmail.dc.html`.
-- Needs Google OAuth and the Gmail and Calendar APIs: ask §9's questions before starting.
-- The menu bar menu's Gmail rows (DESIGN_SYSTEM §14.1) and the attention icon come with it; `MenuBarMenu` has
-  the spot.
-
-**Onboarding** (P0)
-- **Spec:** FEATURES §6.1, DESIGN_SYSTEM §13.1. Pixels: `Onboarding.png`; values: `Onboarding.dc.html`.
-- It asks for notification permission up front, which `FocusAlerts` asks for lazily until then.
-
-**After 5g, everything that's left** (ARCHITECTURE §16 phases; FEATURES priorities)
-- **Phase 0a done-when:** a week of real inbox mail through Gmail → Calendar with no duplicates, plus zip
-  export/restore and automatic backups. Then the app needs signing, notarizing and a DMG (ARCHITECTURE §15),
-  and Sparkle updates, which About's Check for Updates waits on.
-- **P0 polish still open (§5):** scrolling title in the floating timer, fun GIFs (need assets), the "You were
-  away 47 min" sleep question and App Nap activity (ARCHITECTURE §4.3), notification-scheduled sprint/break/
-  Time's Up alerts so they fire while napping, timed tasks joining the queue when their time passes, list
-  management (create, rename, color, archive, delete to Trash), Help menu items, XCUITest smoke tests.
-- **Phase 1:** Reports and Sessions (FEATURES §4.14–4.15, `Reports.png`), end-of-day review and streak rules,
-  calendar import, Claude mode, Local MCP server (§5.1), password-protected backups, Integrations page.
-- **Phase 2:** Komodo Assistant (`Assistant.png`), voice notes, Notion · Todoist · Linear · ClickUp · Asana.
-- **Maintainer-only steps:** README demo video re-recording (needs the screen), foreground captures with green
-  switches, trying notifications, global shortcuts and the menu bar menu by hand.
+**After that**
+- **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
+  It brings onboarding step 6, the menu bar's Gmail rows, the sidebar status row, "and disconnects Google" in
+  Delete all data, and the restore success sheet's Reconnect.
+- **Release:** signing, notarizing and a DMG (ARCHITECTURE §15), then Sparkle for Check for Updates.
+- **Phase 1:** Reports and Sessions, end-of-day review and streak rules, calendar import, Claude mode, Local MCP
+  server (it will need `ValueObservation`), password-protected backups, Integrations page.
+- **Phase 2:** Komodo Assistant, voice notes, Notion · Todoist · Linear · ClickUp · Asana.
+- **Maintainer-only steps:** re-record the README demo video (the maintainer will offer the screen later; ask
+  first), foreground captures with green switches, and trying notifications, global shortcuts and the menu bar
+  by hand.
 
 ## 5. Known gaps and placeholders
 
 - **Persistence:**
-  - The live Focus state (the running task, the Pomodoro cycle, a break in progress) isn't restored after a
-    relaunch; quitting pauses the running task instead. The heartbeat and crash recovery in ARCHITECTURE §4.3
-    aren't built, so a crash leaves the session open until the next launch counts it.
-  - No `ValueObservation`: nothing else writes the file yet. Add it when the MCP helper or backup restore lands.
-  - The selected list and panel positions aren't saved; Trash (`deleted_at`) isn't in the schema yet.
-  - Backups (`VACUUM INTO`) come with Data & backup.
+  - The Pomodoro count starts over after a relaunch (see Focus restore below).
+  - No `ValueObservation`: nothing else writes the file, and a restore reloads in place. Add it with the MCP
+    helper.
+  - The selected list and panel positions aren't saved.
+- **Data & backup:**
+  - The Save and Open panels (Export zip, Change, Choose file…) weren't clicked; export, restore and delete were
+    tried through the daily backup, `-openRestore`, `-openDeleteAll` and keystrokes, on scratch files only.
+  - A restore without Google shows a "Restored." toast instead of the success sheet, whose copy is about
+    reconnecting Google. A newer backup's error offers OK, since Check for Updates waits for Sparkle.
+  - Password-protected backups (P1) show as a disabled switch. List icons (`assets/` in the zip) don't exist yet.
+- **Onboarding:**
+  - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip has no pulsing rings, and the
+    illustrations don't float or tick (static drawings, so an open sheet costs nothing).
+  - Allow was pressed once in a background test, which may have shown the system notification prompt.
 - **Disabled until their milestones:**
   - Reports (sidebar)
   - Create list (sidebar **+**), so list delete, archive and list rows in Trash wait for list management
@@ -207,8 +223,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
 - **README recording** has not been re-recorded for 5b to 5e. The screenshots are fresh, but recording needs the
   pointer and the screen. Ask the maintainer for a window when it's time.
-- **Celebration:** no fun GIF or success sound (they need bundled assets and Settings toggles), and no "3 in a
-  row today" chip (needs streak rules). The success screen can't be switched off until Settings.
+- **Celebration:** the floating card keeps the check, since the 240 × 180 GIF tile doesn't fit a 320 × 240 card.
+  No "3 in a row today" chip (needs streak rules).
 - **Floating timer:**
   - The title doesn't scroll yet. Settings stores Scrolling title, but nothing reads it.
   - Its window is a fixed 600 × 88 transparent frame. Clicks pass through the transparent part; that was
@@ -224,8 +240,6 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   custom notification sound needs a bundled file.
 - **Sounds:** macOS system sounds stand in (Tink, Ping, Pop, Glass, and Hero for success) until Komodo bundles
   its own. The volume and Quick Settings' switch cover all of them.
-- **Celebration:** Fun GIF is a setting and a placeholder in the Settings preview; the success screen shows no
-  GIF until a bundled set exists (FEATURES §4.13). The "3 in a row today" chip still needs streak rules.
 - **Menu bar:** the item and its window-style menu were captured in the menu bar, but the menu itself wasn't
   opened with the pointer. Gmail rows wait for 5g. The label uses a one-second task because a `TimelineView`
   there re-renders the status item endlessly, and it opens Home at launch because a `MenuBarExtra` stops
@@ -250,8 +264,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   - The won card's twinkling sparks are left out, and See reports is disabled until Reports.
 - **Timed tasks** don't join the queue when their time passes (FEATURES §4.6); the calm card waits for them.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
-- **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, page dots, code
-  block, folder picker. Build each with the
+- **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
+  dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
   screen that uses it.
 - **README recording** (`board.gif`) still shows the old sidebar mark (clock hand, no check).
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
@@ -322,6 +336,16 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Trash | Separate `trash` and `archived` arrays in the store and `StoredBoard` | Nothing on the Board, in search or reminders has to skip them |
 | Empty Trash | Asks first with a confirmation dialog | Can't be undone; the canvas shows no dialog |
 | Crash recovery | A toast "Resume <task>?" and the task live but paused | ARCHITECTURE §4.3 says "asked"; a toast doesn't block launch |
+| Celebration GIFs | Ten Animated Noto Emoji by Google, CC BY 4.0, credited in About and the README | The maintainer asked for funny GIFs bundled without review; meme GIFs are copyrighted, these can ship |
+| GIF on the floating card | The check stays | `Celebration.png` only shows the GIF in the panel; a 240 × 180 tile doesn't fit the 320 × 240 card |
+| Restore mechanics | SQLite online backup into the open pool, then an in-place reload | ARCHITECTURE §7 says close the pool and swap the file; this keeps the store's connection and needs no relaunch |
+| Daily backup timing | A check 60 s after launch plus an hourly `NSBackgroundActivityScheduler` | FEATURES §4.21's "within 5 minutes"; ARCHITECTURE §4.4 names the scheduler at 24 h, which could miss that |
+| Delete all data copy | "Deletes every list, task, and session on this Mac." | The spec's "and disconnects Google" returns with Gmail |
+| Last export / last backup dates | Date and time formatted apart: "24 Sep, 10:08 PM" | Some locales join them with "at"; the canvas writes "Sep 24, 6:12 PM" |
+| Keep last row | Custom row: picker and "backups" left, the status right | Matches the canvas; `SettingsRow` puts controls only on the trailing side |
+| Onboarding trigger | An empty saved board without the `onboarded` preference | The maintainer's board already has tasks, so it never sees onboarding |
+| Onboarding step count | Five, Gmail left out | Gmail → Calendar is parked |
+| ⌘Return in onboarding | Caught with `onKeyPress` on the editor | The text view takes ⌘Return before the button's shortcut |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
 ---
@@ -357,8 +381,13 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     window appears. `-quietCapture` keeps the
     panel at normal level behind other apps, so it doesn't cover the screen; `screencapture -l` still gets it.
     The window is named "Focus Panel" in `CGWindowListCopyWindowInfo` (use `.optionAll`, it isn't on top).
-  - Settings: `-openSettings general|focus|alerts|celebration|shortcuts|about` (window "Settings"). Trash:
-    `-openTrash <count>` deletes that many sample tasks and shows Trash.
+  - Settings: `-openSettings general|focus|alerts|celebration|shortcuts|data|about` (window "Settings"). With
+    `data`, `-openRestore <zip>` and `-openDeleteAll YES` open the sheets. Trash: `-openTrash <count>` deletes
+    that many sample tasks and shows Trash.
+  - Onboarding: `-openOnboarding plan|focus|win|notifications|today` and `-openStartTip YES`. The sheet blocks
+    Quit, so end those runs with `pkill` (sample data only, never a database).
+  - Backups: launch without `-quietCapture` on a scratch database with its `backupFolder` preference pointed at
+    a scratch folder, or the daily backup writes to `~/Documents/Komodo Backups` a minute after launch.
   - Persistence: `-databasePath <file>` points a Debug build at a scratch database. Quit with
     `osascript -e 'tell application id "app.komodo.Komodo" to quit'` to run the quit path; `pkill` acts like a
     crash, which is how crash recovery was tried.
@@ -421,8 +450,7 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **Gmail → Calendar:** which Google Cloud project and OAuth client should Komodo use, and is a Google sign-in
+1. **Gmail → Calendar (parked):** when it's unparked, which Google Cloud project and OAuth client should Komodo use, and is a Google sign-in
    dependency acceptable (GoogleSignIn, about 1 MB), or should it be `ASWebAuthenticationSession` with PKCE and
    no dependency?
-2. **README demo video:** recording needs the screen and pointer for about two minutes. When is a good time?
-3. **Fun GIFs:** is there a set of GIFs to bundle for the celebration, or should Komodo ship without them?
+2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
