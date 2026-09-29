@@ -1,6 +1,6 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-28. Milestones through 5e (floating timer, celebrations, day summary, command palette) are on `main`. The maintainer
+Last updated: 2026-09-29. Milestones through 5e (floating timer, celebrations, day summary, command palette) are on `main`. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -22,10 +22,10 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Settings and the system surfaces (menu bar extra, global
-shortcuts, notifications) to match design/previews/Settings.png and System.png and their design/screens/*.dc.html
-(DESIGN_SYSTEM §14), with the behavior from FEATURES §4.12, §4.17 and §4.18. Settings persist through the
-store's preferences (AppDatabase); captures use the in-memory sample day. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
+Then continue from docs/HANDOFF.md §4 "Next task": 5f-1, the Settings window, to match
+design/previews/Settings.png and design/screens/Settings.dc.html, with the behavior from FEATURES §4.18.
+Settings persist through the store's preferences (AppDatabase); captures use the in-memory sample day. The menu
+bar extra, notifications and global shortcuts are 5f-2, the task after this one. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
 PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
 before adding any dependency (bundle cost plus one alternative).
@@ -48,7 +48,9 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5c | Quick add panel (⌘⌥T), Schedule popover + Repeat | ✅ | Checked against `Schedule.png` and `BoardStates.png`; see §5 for what's left |
 | 5d | Focus Panel + FocusStates | ✅ | Checked against `FocusPanel.png` and `FocusStates.png`; see §5 for what's left |
 | 5e | Floating timer, Celebration, Day summary, Command palette | ✅ | Checked against `FloatingTimer.png`, `Celebration.png` and `CommandPalette.png`; see §5 |
-| 5f | **Settings, System surfaces**, then Gmail → Calendar, Data & backup, Onboarding | ⏭ **Next** | See §4. ARCHITECTURE puts Settings and Gmail in Phase 0a |
+| 5f-1 | **Settings window** | ⏭ **Next** | See §4. ARCHITECTURE puts Settings and Gmail in Phase 0a |
+| 5f-2 | System surfaces: menu bar extra, notifications and reminders, global shortcuts | Planned | See §4. Carbon hotkeys, no dependency (§6) |
+| 5g | Gmail → Calendar, Data & backup, Onboarding | Planned | |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 The remaining screen prompts from DESIGN_HANDOFF §6 step 5, in order: Inspector → Quick add → Schedule → Focus
@@ -124,22 +126,36 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: Settings and System surfaces
+## 4. Next task: 5f-1 Settings window, then 5f-2 System surfaces
 
-- **Spec:** DESIGN_SYSTEM §14 (menu bar, notifications) and the Settings section; FEATURES §4.12 (reminders),
-  §4.17 (shortcuts) and §4.18 (settings). Pixels: `design/previews/Settings.png` and `System.png`; values:
-  their `design/screens/*.dc.html`.
+The maintainer split the milestone in two on 2026-09-29.
+
+**5f-1 Settings window**
+- **Spec:** FEATURES §4.18 (the table is the list of settings and defaults), DESIGN_SYSTEM's Settings section.
+  Pixels: `design/previews/Settings.png`; values: `design/screens/Settings.dc.html`.
+- **Sections:** General, Focus, Alerts & sounds, Celebration, Shortcuts. Gmail → Calendar, Integrations,
+  Data & backup, AI and Local MCP server show in the sidebar but stay disabled with a `.help` note until their
+  milestones. About can be a plain version page.
 - **Hooks already in place:**
-  - The store holds the Focus settings in memory (`isPomodoroOn`, `sprintLength`, `breakLength`, `panelSide`,
-    `playsSounds`); Settings should edit the same values and persist them (`@AppStorage` or the database).
-  - `FocusCommands` has ⌘⇧T and ⌘⇧P as app shortcuts. Make them and ⌘⇧B global; there's no dependency for it
-    in the project yet, so ask before adding one.
-  - Menu bar icons exist as image sets; `FloatingTimerView`'s `PillState` shows what each timer state says.
-  - Disabled placeholders waiting for Settings: the sidebar's Settings row, Quick Settings' All settings, the
+  - The store holds the Focus settings (`isPomodoroOn`, `sprintLength`, `breakLength`, `panelSide`,
+    `playsSounds`, workday end, Sprint display) and saves them as preferences; Settings edits the same values.
+    Quick Settings and Settings must stay two views of one store.
+  - Disabled placeholders to wire to ⌘,: the sidebar's Settings row, Quick Settings' All settings, the
     palette's Settings command.
-- **Capturing:** Settings is its own window; add a flag like `-openSettings <section>`.
+- **Native pieces:** `Settings` scene for the window; `SMAppService.mainApp` for Open at login;
+  `NSApp.setActivationPolicy(.accessory/.regular)` for the Dock toggle. Settings that drive 5f-2 surfaces (menu
+  bar timer, reminder sound, global shortcut recorder) can be stored and shown now and take effect in 5f-2.
+- **Capturing:** add a flag like `-openSettings <section>`.
 
----
+**5f-2 System surfaces**
+- **Spec:** DESIGN_SYSTEM §14 (menu bar §14.1, notifications §14.2, app menus §14.3), FEATURES §4.12 and §4.17.
+  Pixels: `design/previews/System.png`; values: `design/screens/System.dc.html`.
+- **Menu bar extra:** `MenuBarExtra` with the existing icon image sets; `FloatingTimerView`'s `PillState` shows
+  what each timer state says. Gmail rows wait for 5g.
+- **Global shortcuts:** ⌘⇧B, ⌘⇧T, ⌘⇧P through Carbon `RegisterEventHotKey` (decision in §6). Hook up the
+  recorder from 5f-1; warn on `eventHotKeyExistsErr`.
+- **Reminders:** `UNCalendarNotificationTrigger` per scheduled task with `remindsAtStart`, so they fire while
+  Komodo is closed; Start now / Snooze 5 min actions. Reuse `FocusAlerts`. Reschedule on every task change.
 
 ## 5. Known gaps and placeholders
 
@@ -256,6 +272,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 | Toolbar search | A button that opens the palette | DESIGN_SYSTEM §13.7; the Board no longer filters in place |
 | Move to list items | Letter-square symbols (`w.square.fill`) | Native menus draw symbols in one color, so the canvas's colored list badges can't be matched exactly |
 | Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
+| Global shortcuts | Carbon `RegisterEventHotKey`, no dependency | The maintainer's pick (2026-09-29). KeyboardShortcuts was the alternative; conflicts are only detected against other Carbon hotkeys |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
 ---
