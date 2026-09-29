@@ -14,7 +14,7 @@ public struct StoredBoard: Sendable {
 /// Komodo's SQLite file (ARCHITECTURE §5): lists, tasks with their subtasks and work sessions, and preferences.
 /// The store writes each change through as it happens and reads everything back at launch.
 public final class AppDatabase: Sendable {
-    private let writer: any DatabaseWriter
+    let writer: any DatabaseWriter
 
     public init(_ writer: any DatabaseWriter) throws {
         self.writer = writer
