@@ -28,7 +28,7 @@ struct CelebrationCard: View {
         let shape = RoundedRectangle(cornerRadius: radius - 1.5, style: .continuous)
         ZStack {
             if !reduceMotion {
-                Burst(hasPlayed: hasPlayed, isHero: isHero)
+                CelebrationBurst(hasPlayed: hasPlayed, isHero: isHero)
             }
             VStack(spacing: isHero ? 10 : Space.s2) {
                 CelebrationCheck(hasPlayed: hasPlayed, side: isHero ? 92 : 42, isStill: reduceMotion)
@@ -101,7 +101,7 @@ struct CelebrationCard: View {
 }
 
 /// The lime disc with a check that draws itself after the disc pops, or an outlined check when still.
-private struct CelebrationCheck: View {
+struct CelebrationCheck: View {
     var hasPlayed: Bool
     var side: CGFloat
     var isStill: Bool
@@ -144,7 +144,7 @@ private struct CelebrationCheck: View {
 }
 
 /// Two shockwave rings and a burst of confetti from behind the check, once.
-private struct Burst: View {
+struct CelebrationBurst: View {
     var hasPlayed: Bool
     var isHero: Bool
 
