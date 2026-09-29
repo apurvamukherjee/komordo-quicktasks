@@ -282,7 +282,8 @@ import SwiftUI
             stored = try database.load()
         } catch {
             Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't reload: \(error)")
-            toasts.show(Toast(kind: .error, message: "Couldn't open your tasks", detail: "Restart Komodo to try again."))
+            toasts.show(
+                Toast(kind: .error, message: "Couldn't open your tasks", detail: "Restart Komodo to try again."))
             return
         }
         let lists = stored.lists.isEmpty ? [Self.firstList] : stored.lists
