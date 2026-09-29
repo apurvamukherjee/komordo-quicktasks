@@ -26,6 +26,13 @@ struct KomodoApp: App {
             #endif
         }
 
+        MenuBarExtra {
+            MenuBarMenu(store: store)
+        } label: {
+            MenuBarLabel(store: store)
+        }
+        .menuBarExtraStyle(.window)
+
         #if DEBUG
             Window("Design System", id: DesignSystemGallery.windowID) {
                 DesignSystemGallery()

@@ -175,7 +175,7 @@ struct FloatingTimerView: View {
 }
 
 /// What the pill shows, derived from the store and the clock at one moment.
-private struct PillState {
+struct PillState {
     enum Kind {
         case live(tone: TimerTone, title: String, time: String)
         case onBreak(time: String, next: String)

@@ -106,6 +106,8 @@ import SwiftUI
     var focusSurface: FocusSurface?
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
     private(set) var locatorPings = 0
+    /// Bumped by ⌘⇧B and the menu bar's Open Komodo; the menu bar item reopens Home each time it changes.
+    private(set) var homeRequests = 0
     /// Global shortcuts another app already holds; Settings marks them "Used by another app".
     var shortcutConflicts: Set<GlobalShortcut> = []
     /// The Settings window's page (DESIGN_SYSTEM §13.15).
@@ -227,6 +229,9 @@ import SwiftUI
         guard let id = focus.taskID else { return }
         closeSession(id)
     }
+
+    /// Show Komodo: Home comes forward, reopened if it was closed.
+    func showHome() { homeRequests += 1 }
 
     /// ⌘,, the sidebar's Settings, Quick Settings' All settings and the palette: opens Settings on a page.
     func showSettings(_ section: SettingsSection? = nil) {
