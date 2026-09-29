@@ -2,7 +2,8 @@ import SwiftUI
 
 /// The celebration on Done (DESIGN_SYSTEM §13.10, Celebration.png): a lime check pops out of a confetti burst,
 /// then the result against the estimate and what's next. It ends after 2.5 s, on a click or on Esc. Under Reduce
-/// Motion it's the still card: an outlined check, no confetti, pop or scale.
+/// Motion it's the still card: an outlined check, no confetti, pop or scale. With Fun GIF on, the hero size shows a
+/// bundled GIF in the check's place; the floating card is too small for one, so it keeps the check.
 struct CelebrationCard: View {
     enum Size {
         /// Takes the live card's place in the Focus Panel and the Today stage.
@@ -14,25 +15,38 @@ struct CelebrationCard: View {
     var message: String
     var nextTitle: String?
     var size: Size = .hero
+    var showsGIF = false
     var onFinish: () -> Void
 
     static let duration: TimeInterval = 2.5
 
     @State private var hasPlayed = false
+    // Picked once per card, so a re-render never swaps the GIF mid-celebration.
+    @State private var gif = CelebrationGIF.bundled.randomElement()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isHero: Bool { size == .hero }
+
+    private var shownGIF: URL? { isHero && showsGIF ? gif : nil }
 
     var body: some View {
         let radius: CGFloat = isHero ? 24 : Space.s5
         let shape = RoundedRectangle(cornerRadius: radius - 1.5, style: .continuous)
         ZStack {
             if !reduceMotion {
-                CelebrationBurst(hasPlayed: hasPlayed, isHero: isHero)
+                CelebrationBurst(hasPlayed: hasPlayed, isHero: isHero, originY: shownGIF == nil ? nil : 0.3)
             }
             VStack(spacing: isHero ? 10 : Space.s2) {
-                CelebrationCheck(hasPlayed: hasPlayed, side: isHero ? 92 : 42, isStill: reduceMotion)
-                    .padding(.bottom, isHero ? 6 : 0)
+                if let shownGIF {
+                    CelebrationGIF(url: shownGIF, isStill: reduceMotion)
+                        .scaleEffect(reduceMotion || hasPlayed ? 1 : 0.8)
+                        .opacity(reduceMotion || hasPlayed ? 1 : 0)
+                        .animation(reduceMotion ? nil : Motion.spring, value: hasPlayed)
+                        .padding(.bottom, 4)
+                } else {
+                    CelebrationCheck(hasPlayed: hasPlayed, side: isHero ? 92 : 42, isStill: reduceMotion)
+                        .padding(.bottom, isHero ? 6 : 0)
+                }
                 Text(message)
                     .font(.system(size: isHero ? 22 : 14, weight: .heavy))
                     .tracking(isHero ? -0.44 : 0)
@@ -147,6 +161,8 @@ struct CelebrationCheck: View {
 struct CelebrationBurst: View {
     var hasPlayed: Bool
     var isHero: Bool
+    /// Where the burst starts as a share of the height; the GIF variant bursts from higher up (`top:30%`).
+    var originY: CGFloat?
 
     private static let colors = [
         Palette.lime, Palette.teal, Palette.blue, Palette.violet, Palette.pink, Palette.amber, Palette.green,
@@ -156,7 +172,7 @@ struct CelebrationBurst: View {
 
     var body: some View {
         GeometryReader { geo in
-            let origin = CGPoint(x: geo.size.width / 2, y: geo.size.height * (isHero ? 0.4 : 0.36))
+            let origin = CGPoint(x: geo.size.width / 2, y: geo.size.height * (originY ?? (isHero ? 0.4 : 0.36)))
             ZStack {
                 ForEach(0..<2, id: \.self) { ring in
                     Circle()
@@ -202,6 +218,8 @@ struct CelebrationBurst: View {
 #Preview("Celebration") {
     HStack(alignment: .top, spacing: Space.s6) {
         CelebrationCard(message: "Nailed it. 12min early.", nextTitle: "Review accounts") {}
+            .frame(width: 312)
+        CelebrationCard(message: "Done. Right on time.", nextTitle: "Prep 1:1 with Apurva", showsGIF: true) {}
             .frame(width: 312)
         CelebrationCard(message: "Done. Right on time.", nextTitle: "Prep 1:1 with Apurva", size: .floating) {}
     }
