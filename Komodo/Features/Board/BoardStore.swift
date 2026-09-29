@@ -51,6 +51,17 @@ import SwiftUI
     var lists: [TaskList] {
         didSet { persist(.lists(from: oldValue, to: lists)) }
     }
+    /// Deleted tasks for 30 days (FEATURES §4.20), newest first in the Trash view. Apart from `tasks`, so
+    /// nothing on the Board, in search or in reminders has to skip them.
+    private(set) var trash: [TaskItem] {
+        didSet { persist(.tasks(from: oldValue, to: trash)) }
+    }
+    /// Archived tasks, kept for Reports.
+    private var archived: [TaskItem] {
+        didSet { persist(.tasks(from: oldValue, to: archived)) }
+    }
+    /// The Trash view is in place of the Board.
+    var isShowingTrash = false
     private(set) var tasks: [TaskItem] {
         didSet {
             persist(.tasks(from: oldValue, to: tasks))
@@ -179,10 +190,13 @@ import SwiftUI
     init(
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
         clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
-        database: AppDatabase? = nil, preferences: [String: String] = [:]
+        database: AppDatabase? = nil, preferences: [String: String] = [:], trash: [TaskItem] = [],
+        archived: [TaskItem] = []
     ) {
         self.lists = lists
         self.tasks = tasks
+        self.trash = trash
+        self.archived = archived
         self.database = database
         self.selectedListID = selectedListID
         self.lastListID = selectedListID
@@ -207,6 +221,7 @@ import SwiftUI
         expandRecurrences()
         // Initializers don't run observers, so this week's new repeat copies are written here.
         persist(.tasks(from: tasks, to: self.tasks))
+        purgeTrash()
         syncSprint()
         // A break restored from the last quit still says when it's over.
         syncBreakEnd()
@@ -293,6 +308,7 @@ import SwiftUI
     /// (FEATURES §4.7). A wake on the same day finds nothing new, so repeating it is harmless.
     func dayMayHaveChanged() {
         dayChanges += 1
+        purgeTrash()
         expandRecurrences()
         scheduleReminderSync()
     }
@@ -322,6 +338,7 @@ import SwiftUI
     }
 
     func showList(_ id: String?) {
+        isShowingTrash = false
         selectedListID = id
         if let id { lastListID = id }
     }
@@ -525,22 +542,74 @@ import SwiftUI
         inspectedTaskID = copy.id
     }
 
-    /// Removes a task with Undo. Trash comes later (FEATURES §4.20); until then Undo is the way back.
+    /// Moves a task to Trash, with Undo (FEATURES §4.20).
     func delete(_ id: String) {
-        // A deleted live task stops its clock first, so Undo brings it back paused rather than running unseen.
+        guard var removed = takeOff(id) else { return }
+        removed.deletedAt = now
+        trash.insert(removed, at: 0)
+        offerUndo("Task deleted", detail: removed.title) { store in store.restore(removed.id, announces: false) }
+    }
+
+    /// The card menu's Archive: the task leaves the Board and search but stays in reports (FEATURES §4.3).
+    func archive(_ id: String) {
+        guard var removed = takeOff(id) else { return }
+        removed.archivedAt = now
+        archived.append(removed)
+        offerUndo("Task archived", detail: removed.title) { store in
+            guard let index = store.archived.firstIndex(where: { $0.id == removed.id }) else { return }
+            var task = store.archived.remove(at: index)
+            task.archivedAt = nil
+            store.putBack(task)
+        }
+    }
+
+    /// Trash's Restore: the task goes back where it was, with Undo returning it to Trash.
+    func restore(_ id: String, announces: Bool = true) {
+        guard let index = trash.firstIndex(where: { $0.id == id }) else { return }
+        var task = trash.remove(at: index)
+        let deletedAt = task.deletedAt
+        task.deletedAt = nil
+        putBack(task)
+        guard announces else { return }
+        offerUndo("Restored “\(task.title)”", detail: nil) { store in
+            guard var again = store.takeOff(task.id) else { return }
+            again.deletedAt = deletedAt
+            store.trash.insert(again, at: 0)
+        }
+    }
+
+    /// Trash's Delete now: gone for good.
+    func deleteForever(_ id: String) {
+        trash.removeAll { $0.id == id }
+    }
+
+    func emptyTrash() { trash = [] }
+
+    /// Items past their 30 days leave for good; checked at launch and each new day.
+    private func purgeTrash() {
+        let expired = trash.filter { task in
+            task.deletedAt.map { Trash.isExpired(deletedAt: $0, now: now, calendar: calendar) } ?? true
+        }
+        if !expired.isEmpty { trash.removeAll { expired.contains($0) } }
+    }
+
+    /// Takes a task off the Board. A live one stops its clock first, so coming back finds it paused rather than
+    /// running unseen, and a deleted repeat copy isn't made again.
+    private func takeOff(_ id: String) -> TaskItem? {
         if focus.taskID == id {
             closeSession(id)
             focus = Focus()
         }
-        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return nil }
         let removed = tasks.remove(at: index)
         if inspectedTaskID == id { inspectedTaskID = nil }
         if removed.repeatParentID != nil { dismissedChildren.insert(id) }
-        offerUndo("Task deleted", detail: removed.title) { store in
-            guard !store.tasks.contains(where: { $0.id == removed.id }) else { return }
-            store.dismissedChildren.remove(removed.id)
-            store.tasks.append(removed)
-        }
+        return removed
+    }
+
+    private func putBack(_ task: TaskItem) {
+        dismissedChildren.remove(task.id)
+        if !tasks.contains(where: { $0.id == task.id }) { tasks.append(task) }
     }
 
     // MARK: Schedule and repeat (FEATURES §4.6–4.7)
@@ -922,7 +991,7 @@ import SwiftUI
         }
     }
 
-    private func offerUndo(_ message: String, detail: String, restore: @escaping @MainActor (BoardStore) -> Void) {
+    private func offerUndo(_ message: String, detail: String?, restore: @escaping @MainActor (BoardStore) -> Void) {
         // Each change gets its own target so the toast's button can withdraw just its menu entry; the undo
         // manager holds targets weakly, and the closures below keep this one alive.
         let token = NSObject()

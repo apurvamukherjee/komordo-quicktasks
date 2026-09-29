@@ -62,8 +62,7 @@ extension BoardStore {
                 CardAction(label: "Move to list", symbol: "folder", menu: [otherLists]),
             ],
             [
-                // Archive lands with Trash (FEATURES §4.20).
-                CardAction(label: "Archive", symbol: "archivebox", isEnabled: false),
+                CardAction(label: "Archive", symbol: "archivebox") { self.archive(task.id) },
                 CardAction(
                     label: "Delete", symbol: "trash", isDestructive: true,
                     shortcut: KeyboardShortcut(.delete, modifiers: .command)

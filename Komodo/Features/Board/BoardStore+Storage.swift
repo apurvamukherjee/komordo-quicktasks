@@ -25,7 +25,9 @@ extension BoardStore {
             let lists = stored.lists.isEmpty ? [firstList] : stored.lists
             let store = BoardStore(
                 lists: lists, tasks: stored.tasks, selectedListID: lists.first?.id, database: database,
-                preferences: stored.preferences)
+                preferences: stored.preferences,
+                trash: stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now },
+                archived: stored.archived)
             store.persist(.lists(from: stored.lists, to: lists))
             return store
         } catch {
