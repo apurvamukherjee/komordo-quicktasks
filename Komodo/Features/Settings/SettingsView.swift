@@ -45,6 +45,9 @@ struct SettingsView: View {
         case .general: SettingsGeneralPage(store: store)
         case .focus: SettingsFocusPage(store: store)
         case .alerts: SettingsAlertsPage(store: store)
+        case .celebration: SettingsCelebrationPage(store: store)
+        case .focus: SettingsFocusPage(store: store)
+        case .alerts: SettingsAlertsPage(store: store)
         case .focus: SettingsFocusPage(store: store)
         default: EmptyView()
         }
