@@ -8,6 +8,28 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Data & backup, onboarding and celebration GIFs (5g without Google) — 2026-09-29
+
+#### Added
+- **Data & backup (Settings):** Export zip with a spinner and a "Backup saved" toast with Show in Finder, an
+  automatic daily backup to a chosen folder (default `~/Documents/Komodo Backups`) that keeps the last 7, 14 or
+  30, and shows the last backup or why it failed. Restore from backup checks the zip, shows its date, version
+  and counts, saves the current data as a before-restore zip, then replaces it. Delete all data waits for DELETE
+  to be typed. The palette's Export Backup opens the same Save panel.
+- **Zip contents:** `manifest.json`, a `VACUUM INTO` snapshot as `komodo.sqlite`, every table as `data.json`,
+  and `tasks.csv` and `sessions.csv` for spreadsheets. No tokens or keys are stored, so none are exported.
+- **Onboarding:** a 560 × 520 sheet over Home on a first launch (or after Delete all data): Plan, Focus and Win
+  illustrations, notifications with Allow and Not now, and "What do you want to finish today?" with each line's
+  parsed estimate as a chip. ⌘Return adds the tasks to Today, then a tip points at Start.
+- **Fun GIF:** ten bundled Animated Noto Emoji (CC BY 4.0, credited in About) play in the hero celebration
+  when Fun GIF is on; Reduce Motion shows a still frame.
+- `Backup` and `CSV` in KomodoCore with tests for the round trip, the refusals and pruning. Debug flags
+  `-openRestore <zip>`, `-openDeleteAll`, `-openOnboarding <step>` and `-openStartTip`.
+
+#### Changed
+- A restore or Delete all data reloads the board in place: Focus mode ends and every setting is read again.
+- Notification permission can be asked for up front instead of at the first alert.
+
 ### Settings, menu bar, reminders and Trash — 2026-09-29
 
 #### Added
