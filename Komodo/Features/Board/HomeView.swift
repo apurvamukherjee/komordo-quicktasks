@@ -29,6 +29,10 @@ struct HomeView: View {
         .onExitCommand { store.inspect(nil) }
         .background { shortcuts }
         .onChange(of: undoManager, initial: true) { store.undoManager = undoManager }
+        .sheet(isPresented: $store.isOnboarding) {
+            OnboardingView(store: store, step: LaunchOptions.onboardingStep)
+                .interactiveDismissDisabled()
+        }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
     }

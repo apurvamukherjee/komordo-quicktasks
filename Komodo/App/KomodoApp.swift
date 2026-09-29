@@ -87,6 +87,8 @@ enum LaunchOptions {
             if defaults.bool(forKey: "openFloatingTimer") { store.focusSurface = .floatingTimer }
             // `-openTrash <count>` deletes that many sample tasks and shows Trash.
             let trashed = defaults.integer(forKey: "openTrash")
+            if defaults.string(forKey: "openOnboarding") != nil { store.isOnboarding = true }
+            store.showsStartTip = defaults.bool(forKey: "openStartTip")
             if trashed > 0 {
                 for task in store.tasks.prefix(trashed) { store.delete(task.id) }
                 store.isShowingTrash = true
@@ -140,6 +142,22 @@ enum LaunchOptions {
             UserDefaults.standard.string(forKey: "openPalette")
         #else
             nil
+        #endif
+    }
+
+    /// `-openOnboarding <step>`: the first-launch sheet on plan, focus, win, notifications or today, over the
+    /// sample day, and `-openStartTip YES` the tip that follows it.
+    static var onboardingStep: OnboardingView.Step {
+        #if DEBUG
+            switch UserDefaults.standard.string(forKey: "openOnboarding") {
+            case "focus": .focus
+            case "win": .win
+            case "notifications": .notifications
+            case "today": .today
+            default: .plan
+            }
+        #else
+            .plan
         #endif
     }
 

@@ -96,6 +96,7 @@ struct BoardToolbar: View {
                 .help(startHelp)
                 // ⌘⇧B brings Komodo forward and Return starts (FEATURES §4.8).
                 .keyboardShortcut(.defaultAction)
+                .popover(isPresented: $store.showsStartTip, arrowEdge: .bottom) { StartTip(store: store) }
         }
         .padding(.leading, Space.s6)
         .padding(.trailing, 22)
@@ -228,4 +229,29 @@ struct BoardHeader: View {
 #Preview("Board") {
     BoardView(store: BoardSamples.store(anchoredAt: BoardSamples.artboardMoment))
         .frame(width: 1192, height: 960)
+}
+
+/// Onboarding's last step (Onboarding.png ⑦): a tip pointing at Start once the sheet closes with tasks in Today.
+private struct StartTip: View {
+    var store: BoardStore
+
+    var body: some View {
+        HStack(spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Press Start. Your first task goes live.")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Palette.textPrimary)
+                Text("The timer follows you in a floating pill.")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            .fixedSize()
+            Button("Got it") { store.showsStartTip = false }
+                .buttonStyle(.komodo(.ghost, size: .small))
+        }
+        .padding(.leading, 14)
+        .padding(.trailing, Space.s3)
+        .padding(.vertical, 10)
+        .preferredColorScheme(.dark)
+    }
 }
