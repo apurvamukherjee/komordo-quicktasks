@@ -43,6 +43,7 @@ struct SettingsView: View {
     @ViewBuilder private var page: some View {
         switch store.settingsSection {
         case .general: SettingsGeneralPage(store: store)
+        case .focus: SettingsFocusPage(store: store)
         default: EmptyView()
         }
     }
