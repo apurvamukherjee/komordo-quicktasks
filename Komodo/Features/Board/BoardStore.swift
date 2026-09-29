@@ -95,6 +95,11 @@ import SwiftUI
         didSet {
             for (key, value) in settings.changes(since: oldValue) { savePreference(value, for: key) }
             if settings.weekStart != oldValue.weekStart { expandRecurrences() }
+            if settings.timedAlerts != oldValue.timedAlerts
+                || settings.timedAlertInterval != oldValue.timedAlertInterval
+            {
+                syncTimedAlert()
+            }
         }
     }
     /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
@@ -129,6 +134,8 @@ import SwiftUI
     private var sprintEnd: Task<Void, Never>?
     /// Says the break is over when it runs out (FEATURES §4.11).
     private var breakEnd: Task<Void, Never>?
+    /// Timed alerts' nudge while the live task runs (FEATURES §4.18).
+    private var timedAlert: Task<Void, Never>?
     /// Sound and notifications; set by the app, absent in previews.
     var alerts: FocusAlerts?
     /// Where every change is written; nil keeps the board in memory, as previews and captures do.
@@ -629,10 +636,13 @@ import SwiftUI
         tasks[index].completedAt = now
         focus.taskID = nil
         let task = tasks[index]
+        if settings.playsSuccessSound, playsSounds { KomodoSound.playSuccess(volume: settings.volume) }
         focus.celebration = Celebration(
             taskID: id, title: task.title,
             message: CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now)),
             nextTitle: layout.upNext.first?.title)
+        // With the success screen off, Done goes straight to the next task.
+        if !settings.showsSuccessScreen { finishCelebration() }
     }
 
     /// After about 2.5 s, a click or Esc: the next eligible task starts. With only timed tasks left the panel
@@ -713,6 +723,7 @@ import SwiftUI
 
     /// Schedules the end of the running sprint, or cancels it when nothing runs or Pomodoros are off.
     private func syncSprint() {
+        syncTimedAlert()
         sprintEnd?.cancel()
         sprintEnd = nil
         guard isPomodoroOn, focus.taskID != nil, focus.breakEndsAt == nil, let since = focus.sprintSince else { return }
@@ -734,7 +745,28 @@ import SwiftUI
         focus.breakLength = breakLength
         alerts?.sprintEnded(
             sprint: finished, of: PomodoroCycle.sprintsPerSet, breakLength: breakLength,
-            task: tasks.first { $0.id == id }?.title ?? "Your task", playsSound: playsSounds)
+            task: tasks.first { $0.id == id }?.title ?? "Your task")
+        play(.glass)
+    }
+
+    /// Every Komodo sound goes through here, so Quick Settings' Sounds switch and the volume cover them all.
+    func play(_ sound: KomodoSound) {
+        if playsSounds { sound.play(volume: settings.volume) }
+    }
+
+    /// Every sprint or pause passes through `syncSprint`, so the nudge restarts its interval with each resume.
+    private func syncTimedAlert() {
+        timedAlert?.cancel()
+        timedAlert = nil
+        guard settings.timedAlerts, focus.breakEndsAt == nil, focus.sprintSince != nil else { return }
+        let interval = settings.timedAlertInterval
+        timedAlert = Task { [weak self] in
+            while (try? await Task.sleep(for: .seconds(interval))) != nil {
+                guard let self else { return }
+                play(settings.timedAlertSound)
+                if settings.pulsesTimer { locatorPings += 1 }
+            }
+        }
     }
 
     private func syncBreakEnd() {
@@ -744,7 +776,8 @@ import SwiftUI
         breakEnd = Task { [weak self] in
             guard let self, (try? await Task.sleep(for: .seconds(endsAt.timeIntervalSince(now)))) != nil else { return }
             let task = focus.taskID.flatMap { id in tasks.first { $0.id == id }?.title } ?? "your task"
-            alerts?.breakOver(task: task, playsSound: playsSounds)
+            alerts?.breakOver(task: task)
+            play(.glass)
         }
     }
 

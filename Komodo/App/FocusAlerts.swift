@@ -12,9 +12,6 @@ import UserNotifications
         static let resume = "resume"
     }
 
-    /// Stands in until Komodo bundles its own sounds (`success.caf` and friends).
-    private static let sound = NSSound.Name("Glass")
-
     /// Resume on the break-over notification.
     var onResume: () -> Void = {}
 
@@ -28,15 +25,13 @@ import UserNotifications
         ])
     }
 
-    func sprintEnded(sprint: Int, of count: Int, breakLength: TimeInterval, task: String, playsSound: Bool) {
-        if playsSound { NSSound(named: Self.sound)?.play() }
+    func sprintEnded(sprint: Int, of count: Int, breakLength: TimeInterval, task: String) {
         post(
             title: "Sprint \(sprint) of \(count) done",
             body: "Take \(DurationFormat.short(breakLength)). \(task) is paused.", category: nil)
     }
 
-    func breakOver(task: String, playsSound: Bool) {
-        if playsSound { NSSound(named: Self.sound)?.play() }
+    func breakOver(task: String) {
         post(title: "Break's over", body: "Back to \(task)?", category: ID.breakOverCategory)
     }
 
