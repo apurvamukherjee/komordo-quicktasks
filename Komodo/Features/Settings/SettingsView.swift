@@ -44,6 +44,8 @@ struct SettingsView: View {
         switch store.settingsSection {
         case .general: SettingsGeneralPage(store: store)
         case .focus: SettingsFocusPage(store: store)
+        case .alerts: SettingsAlertsPage(store: store)
+        case .focus: SettingsFocusPage(store: store)
         default: EmptyView()
         }
     }
