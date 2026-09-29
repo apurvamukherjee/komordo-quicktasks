@@ -6,7 +6,11 @@ extension BoardStore {
     /// Komodo's database in Application Support.
     static var databaseURL: URL {
         get throws {
-            try FileManager.default
+            #if DEBUG
+                // `-databasePath <file>` tries persistence, crash recovery and reminders on a scratch file.
+                if let path = UserDefaults.standard.string(forKey: "databasePath") { return URL(filePath: path) }
+            #endif
+            return try FileManager.default
                 .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                 .appending(path: "Komodo/Komodo.sqlite")
         }
