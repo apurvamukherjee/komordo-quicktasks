@@ -50,9 +50,9 @@ struct SidebarView: View {
             NavRow(title: "Trash", symbol: "trash", isSelected: false, height: 32) {}
                 .disabled(true)
                 .help("Trash arrives in Phase 1")
-            NavRow(title: "Settings", symbol: "gearshape", shortcut: "⌘,", isSelected: false, height: 32) {}
-                .disabled(true)
-                .help("Settings is the next milestone")
+            NavRow(title: "Settings", symbol: "gearshape", shortcut: "⌘,", isSelected: false, height: 32) {
+                store.showSettings()
+            }
         }
         .padding(.top, 52)
         .padding(.horizontal, Space.s3)

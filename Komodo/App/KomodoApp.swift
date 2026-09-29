@@ -18,6 +18,7 @@ struct KomodoApp: App {
         .windowResizability(.contentMinSize)
         .windowStyle(.hiddenTitleBar)
         .commands {
+            SettingsCommand(store: store)
             SidebarCommand()
             FocusCommands(store: store)
             #if DEBUG
@@ -34,6 +35,18 @@ struct KomodoApp: App {
     }
 }
 
+/// ⌘, opens Komodo's own Settings window in place of the standard item.
+struct SettingsCommand: Commands {
+    var store: BoardStore
+
+    var body: some Commands {
+        CommandGroup(replacing: .appSettings) {
+            Button("Settings…") { store.showSettings() }
+                .keyboardShortcut(",", modifiers: .command)
+        }
+    }
+}
+
 /// Debug launch arguments for design reviews and screenshots:
 /// - `-sampleTime artboard` anchors the sample day to the Main artboard's afternoon, and `-sampleData YES` shows it
 ///   around the real time. Both keep the board in memory; without them the app opens the saved database.
@@ -46,6 +59,7 @@ struct KomodoApp: App {
 ///   shortens sprints to watch one end.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
+/// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts or about.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG

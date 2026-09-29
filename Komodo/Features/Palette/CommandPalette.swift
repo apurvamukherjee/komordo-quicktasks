@@ -388,7 +388,7 @@ private enum PaletteRow: Equatable {
     case command(PaletteCommand)
 }
 
-/// DESIGN_SYSTEM §13.7's commands. Backup, Gmail and Settings show but wait for their milestones.
+/// DESIGN_SYSTEM §13.7's commands. Backup and Gmail show but wait for their milestones.
 private struct PaletteCommand: Equatable {
     var title: String
     var symbol: String
@@ -419,7 +419,8 @@ private struct PaletteCommand: Equatable {
                 isEnabled: false),
             PaletteCommand(
                 title: "Settings", symbol: "slider.horizontal.3", tint: Color.white.opacity(0.06),
-                glyph: Palette.textTertiary, keys: "⌘,", isEnabled: false),
+                glyph: Palette.textTertiary, keys: "⌘,"
+            ) { store.showSettings() },
         ]
     }
 }

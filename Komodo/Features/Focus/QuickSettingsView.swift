@@ -87,6 +87,7 @@ struct QuickSettingsView: View {
             }
             Divider().overlay(Palette.border).padding(.horizontal, -Space.s3).padding(.bottom, 6)
             Button {
+                store.showSettings(.focus)
             } label: {
                 HStack(spacing: Space.s2) {
                     Image(systemName: "slider.horizontal.3").font(.system(size: 12, weight: .semibold))
@@ -101,8 +102,6 @@ struct QuickSettingsView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(true)
-            .help("Settings arrive in a later milestone")
         }
         .padding(.horizontal, Space.s3)
         .padding(.top, Space.s2)
