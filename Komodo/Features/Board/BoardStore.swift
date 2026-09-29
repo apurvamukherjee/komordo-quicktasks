@@ -30,7 +30,7 @@ import SwiftUI
         var nextTitle: String?
     }
 
-    enum FocusSurface: Sendable {
+    enum FocusSurface: String, Sendable {
         case panel
         case floatingTimer
     }
@@ -148,6 +148,7 @@ import SwiftUI
     var alerts: FocusAlerts? {
         didSet { scheduleReminderSync() }
     }
+    private var heartbeat: Task<Void, Never>?
     /// Time's Up for the running task (DESIGN_SYSTEM §14.2).
     private var timesUpAlert: Task<Void, Never>?
     /// Reminders go to the system a moment after edits settle, so typing a title doesn't resubmit them each key.
@@ -165,6 +166,12 @@ import SwiftUI
         static let workdayEnd = "workdayEnd"
         static let sounds = "sounds"
         static let dismissedRepeats = "dismissedRepeats"
+        // What Focus mode was doing when Komodo quit, and the running session's last sign of life.
+        static let liveTask = "liveTask"
+        static let liveSurface = "liveSurface"
+        static let breakEndsAt = "breakEndsAt"
+        static let breakLength = "breakLength"
+        static let heartbeat = "heartbeat"
     }
 
     init(
@@ -180,8 +187,16 @@ import SwiftUI
         self.calendar = calendar
         self.clock = clock
         self.openURL = openURL
-        // A sample or restored open session means a task is already live.
-        if let live = tasks.first(where: { task in task.sessions.contains { $0.end == nil } }) {
+        // A sample's open session means a task is already live; a saved one means Komodo stopped without quitting.
+        if database != nil {
+            let recovered = CrashRecovery.closingOpenSessions(
+                in: tasks,
+                lastHeartbeat: preferences[Preference.heartbeat].flatMap(Double.init).map(
+                    Date.init(timeIntervalSince1970:)))
+            self.tasks = recovered.tasks
+            // The quit-time state is older than a crash, so it only applies after a clean quit.
+            if let interrupted = recovered.interrupted { offerResume(interrupted) } else { restoreFocus(preferences) }
+        } else if let live = tasks.first(where: { task in task.sessions.contains { $0.end == nil } }) {
             focus.taskID = live.id
             focus.flowStartedAt = max(0, live.timeTaken(at: clock()) - 25 * 60)
             focus.sprintSince = clock()
@@ -191,6 +206,8 @@ import SwiftUI
         // Initializers don't run observers, so this week's new repeat copies are written here.
         persist(.tasks(from: tasks, to: self.tasks))
         syncSprint()
+        // A break restored from the last quit still says when it's over.
+        syncBreakEnd()
     }
 
     // MARK: Storage
@@ -236,8 +253,38 @@ import SwiftUI
 
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
     func pauseForQuit() {
-        guard let id = focus.taskID else { return }
-        closeSession(id)
+        if let id = focus.taskID { closeSession(id) }
+        savePreference(focus.taskID ?? "", for: Preference.liveTask)
+        savePreference(focusSurface?.rawValue ?? "", for: Preference.liveSurface)
+        savePreference(focus.breakEndsAt.map { "\($0.timeIntervalSince1970)" } ?? "", for: Preference.breakEndsAt)
+        savePreference("\(Int(focus.breakLength))", for: Preference.breakLength)
+    }
+
+    /// The task that was live at quit comes back live but paused, in the surface it was in, and a break that
+    /// hasn't run out carries on. The Pomodoro count starts over.
+    private func restoreFocus(_ preferences: [String: String]) {
+        guard let id = preferences[Preference.liveTask],
+            let task = tasks.first(where: { $0.id == id }), task.completedAt == nil
+        else { return }
+        focus.taskID = id
+        focus.flowStartedAt = task.timeTaken(at: now)
+        focusSurface = preferences[Preference.liveSurface].flatMap(FocusSurface.init)
+        if let endsAt = preferences[Preference.breakEndsAt].flatMap(Double.init).map(Date.init(timeIntervalSince1970:)),
+            endsAt > now
+        {
+            focus.breakEndsAt = endsAt
+            focus.breakLength = preferences[Preference.breakLength].flatMap(Double.init) ?? 0
+        }
+    }
+
+    /// After a crash the task stays live but paused, and the toast offers to pick it up again.
+    private func offerResume(_ task: TaskItem) {
+        focus.taskID = task.id
+        focus.flowStartedAt = task.timeTaken(at: now)
+        toasts.show(
+            Toast(
+                kind: .info, message: "Resume \(task.title)?", detail: "Komodo closed unexpectedly.",
+                action: .init(title: "Resume") { [weak self] in self?.togglePause() }))
     }
 
     /// Show Komodo: Home comes forward, reopened if it was closed.
@@ -740,6 +787,7 @@ import SwiftUI
 
     /// Schedules the end of the running sprint, or cancels it when nothing runs or Pomodoros are off.
     private func syncSprint() {
+        syncHeartbeat()
         syncTimedAlert()
         syncTimesUp()
         sprintEnd?.cancel()
@@ -784,6 +832,19 @@ import SwiftUI
                 play(settings.timedAlertSound)
                 if settings.pulsesTimer { locatorPings += 1 }
             }
+        }
+    }
+
+    /// Every 30 s while a session runs, so a crash can close it where it stopped (ARCHITECTURE §4.3).
+    private func syncHeartbeat() {
+        heartbeat?.cancel()
+        heartbeat = nil
+        guard database != nil, focus.sprintSince != nil else { return }
+        heartbeat = Task { [weak self] in
+            repeat {
+                guard let self else { return }
+                savePreference("\(now.timeIntervalSince1970)", for: Preference.heartbeat)
+            } while (try? await Task.sleep(for: .seconds(30))) != nil
         }
     }
 
