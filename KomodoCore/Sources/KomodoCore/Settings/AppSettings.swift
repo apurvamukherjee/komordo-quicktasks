@@ -34,11 +34,22 @@ public struct AppSettings: Equatable, Sendable {
     public var showsGIF = true
     public var playsSuccessSound = true
 
+    // Data & backup
+    public var backsUpDaily = true
+    /// A folder the user chose, or nil for `~/Documents/Komodo Backups`.
+    public var backupFolder: String?
+    public var backupsKept = 14
+    public var lastExportAt: Date?
+    public var lastBackupAt: Date?
+    /// Why the last automatic backup failed, shown in danger text until one succeeds.
+    public var lastBackupFailure: String?
+
     // Shortcuts
     /// Only the global shortcuts can be changed; a missing entry means the default.
     public var shortcuts: [GlobalShortcut: KeyCombo] = [:]
 
     public static let presetLimit = 5
+    public static let backupsKeptChoices = [7, 14, 30]
     public static let timedAlertIntervals: [TimeInterval] = [5, 10, 15, 30].map { $0 * 60 }
 
     public init() {}
@@ -67,6 +78,12 @@ public struct AppSettings: Equatable, Sendable {
         static let successScreen = "showsSuccessScreen"
         static let gif = "showsGIF"
         static let successSound = "playsSuccessSound"
+        static let backsUpDaily = "backsUpDaily"
+        static let backupFolder = "backupFolder"
+        static let backupsKept = "backupsKept"
+        static let lastExport = "lastExportAt"
+        static let lastBackup = "lastBackupAt"
+        static let backupFailure = "lastBackupFailure"
         static let shortcutPrefix = "shortcut."
     }
 
@@ -99,6 +116,12 @@ public struct AppSettings: Equatable, Sendable {
         bool(Key.successScreen, &showsSuccessScreen)
         bool(Key.gif, &showsGIF)
         bool(Key.successSound, &playsSuccessSound)
+        bool(Key.backsUpDaily, &backsUpDaily)
+        if let text = stored[Key.backupFolder], !text.isEmpty { backupFolder = text }
+        if let value = stored[Key.backupsKept].flatMap(Int.init), value > 0 { backupsKept = value }
+        lastExportAt = stored[Key.lastExport].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
+        lastBackupAt = stored[Key.lastBackup].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
+        if let text = stored[Key.backupFailure], !text.isEmpty { lastBackupFailure = text }
         for action in GlobalShortcut.allCases {
             if let combo = stored[Key.shortcutPrefix + action.rawValue].flatMap(KeyCombo.init(stored:)) {
                 shortcuts[action] = combo
@@ -130,6 +153,12 @@ public struct AppSettings: Equatable, Sendable {
             Key.successScreen: flag(showsSuccessScreen),
             Key.gif: flag(showsGIF),
             Key.successSound: flag(playsSuccessSound),
+            Key.backsUpDaily: flag(backsUpDaily),
+            Key.backupFolder: backupFolder ?? "",
+            Key.backupsKept: String(backupsKept),
+            Key.lastExport: lastExportAt.map { String($0.timeIntervalSince1970) } ?? "",
+            Key.lastBackup: lastBackupAt.map { String($0.timeIntervalSince1970) } ?? "",
+            Key.backupFailure: lastBackupFailure ?? "",
         ]
         for action in GlobalShortcut.allCases {
             result[Key.shortcutPrefix + action.rawValue] = shortcuts[action]?.storedValue ?? ""

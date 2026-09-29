@@ -13,6 +13,7 @@ struct AppSettingsTests {
         #expect(settings.panelScreen == nil)
         #expect(!settings.timedAlerts && settings.timedAlertInterval == 900 && settings.timedAlertSound == .tick)
         #expect(settings.reminderSound == .chime && settings.volume == 0.7)
+        #expect(settings.backsUpDaily && settings.backupFolder == nil && settings.backupsKept == 14)
         #expect(settings.shortcut(for: .showKomodo).label == "⌘⇧B")
     }
 
@@ -36,6 +37,12 @@ struct AppSettingsTests {
         settings.showsSuccessScreen = false
         settings.showsGIF = false
         settings.playsSuccessSound = false
+        settings.backsUpDaily = false
+        settings.backupFolder = "/Volumes/Backup Drive/Komodo"
+        settings.backupsKept = 30
+        settings.lastExportAt = Date(timeIntervalSince1970: 1_790_000_000.25)
+        settings.lastBackupAt = Date(timeIntervalSince1970: 1_790_086_400)
+        settings.lastBackupFailure = "folder not found"
         settings.shortcuts[.findTimer] = KeyCombo(keyCode: 3, modifiers: [.control, .option], key: "f")
         #expect(AppSettings(stored: settings.stored) == settings)
     }
