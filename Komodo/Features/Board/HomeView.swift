@@ -15,12 +15,14 @@ struct HomeView: View {
                     .frame(width: Layout.sidebarIdeal)
                     .transition(.move(edge: .leading))
             }
-            BoardView(store: store)
-                .inspector(isPresented: isInspectorPresented) {
-                    InspectorView(store: store)
-                        .inspectorColumnWidth(
-                            min: Layout.inspectorMin, ideal: Layout.inspectorIdeal, max: Layout.inspectorMax)
-                }
+            Group {
+                if store.isShowingTrash { TrashView(store: store) } else { BoardView(store: store) }
+            }
+            .inspector(isPresented: isInspectorPresented) {
+                InspectorView(store: store)
+                    .inspectorColumnWidth(
+                        min: Layout.inspectorMin, ideal: Layout.inspectorIdeal, max: Layout.inspectorMax)
+            }
         }
         .animation(Motion.base, value: isSidebarVisible)
         // Esc closes the inspector from anywhere in the window; fields that use Esc themselves handle it first.

@@ -66,6 +66,7 @@ struct SettingsCommand: Commands {
 ///   shortens sprints to watch one end.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
+/// - `-openTrash <count>` moves that many sample tasks to Trash and shows it.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts or about.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
@@ -83,6 +84,12 @@ enum LaunchOptions {
             // The sample day already has a live task, so the panel opens on it rather than through Start.
             if defaults.bool(forKey: "openFocusPanel") { store.focusSurface = .panel }
             if defaults.bool(forKey: "openFloatingTimer") { store.focusSurface = .floatingTimer }
+            // `-openTrash <count>` deletes that many sample tasks and shows Trash.
+            let trashed = defaults.integer(forKey: "openTrash")
+            if trashed > 0 {
+                for task in store.tasks.prefix(trashed) { store.delete(task.id) }
+                store.isShowingTrash = true
+            }
         #endif
         return store
     }

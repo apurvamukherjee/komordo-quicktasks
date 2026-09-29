@@ -8,10 +8,16 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             brand
-            NavRow(title: "Home", symbol: "house", shortcut: "⌘1", isSelected: store.selectedListID != nil) {
-                if store.selectedListID == nil { store.showBoard() }
+            NavRow(
+                title: "Home", symbol: "house", shortcut: "⌘1",
+                isSelected: !store.isShowingTrash && store.selectedListID != nil
+            ) {
+                if store.isShowingTrash || store.selectedListID == nil { store.showBoard() }
             }
-            NavRow(title: "All lists", symbol: "square.grid.2x2", isSelected: store.selectedListID == nil) {
+            NavRow(
+                title: "All lists", symbol: "square.grid.2x2",
+                isSelected: !store.isShowingTrash && store.selectedListID == nil
+            ) {
                 store.showList(nil)
             }
             NavRow(title: "Reports", symbol: "chart.bar.xaxis", shortcut: "⌘2", isSelected: false) {}
@@ -35,7 +41,8 @@ struct SidebarView: View {
 
             ForEach(store.lists) { list in
                 ListRow(
-                    list: list, count: store.openCount(listID: list.id), isSelected: store.selectedListID == list.id
+                    list: list, count: store.openCount(listID: list.id),
+                    isSelected: !store.isShowingTrash && store.selectedListID == list.id
                 ) {
                     store.showList(list.id)
                 }
@@ -47,9 +54,13 @@ struct SidebarView: View {
                 .padding(.horizontal, 2)
                 .padding(.bottom, 10)
 
-            NavRow(title: "Trash", symbol: "trash", isSelected: false, height: 32) {}
-                .disabled(true)
-                .help("Trash arrives in Phase 1")
+            NavRow(
+                title: "Trash", symbol: "trash", count: store.trash.isEmpty ? nil : store.trash.count,
+                isSelected: store.isShowingTrash, height: 32
+            ) {
+                store.inspect(nil)
+                store.isShowingTrash = true
+            }
             NavRow(title: "Settings", symbol: "gearshape", shortcut: "⌘,", isSelected: false, height: 32) {
                 store.showSettings()
             }
@@ -95,6 +106,7 @@ private struct NavRow: View {
     var title: String
     var symbol: String
     var shortcut: String?
+    var count: Int?
     var isSelected: Bool
     var height: CGFloat = 34
     var action: () -> Void
@@ -110,6 +122,9 @@ private struct NavRow: View {
                     .frame(width: 18)
                 Text(title).frame(maxWidth: .infinity, alignment: .leading)
                 if let shortcut { KeyCap(shortcut) }
+                if let count {
+                    Text("\(count)").font(.system(size: 11.5).monospacedDigit()).foregroundStyle(Palette.textMuted)
+                }
             }
             .font(.system(size: height > 32 ? 13.5 : 13, weight: .medium))
             .foregroundStyle(isSelected || isHovered ? Palette.textPrimary : Palette.textSecondary)
