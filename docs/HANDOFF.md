@@ -1,6 +1,7 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-29. Milestones through 5e (floating timer, celebrations, day summary, command palette) are on `main`. The maintainer
+Last updated: 2026-09-29. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
+archive, and focus restore with crash recovery are on `main`. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -22,10 +23,9 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": 5f-1, the Settings window, to match
-design/previews/Settings.png and design/screens/Settings.dc.html, with the behavior from FEATURES §4.18.
-Settings persist through the store's preferences (AppDatabase); captures use the in-memory sample day. The menu
-bar extra, notifications and global shortcuts are 5f-2, the task after this one. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
+Then continue from docs/HANDOFF.md §4 "Next task": 5g, starting with Settings › Data & backup (export, restore,
+automatic backups), then Gmail → Calendar, then Onboarding. Try persistence on a scratch file with
+-databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
 PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
 before adding any dependency (bundle cost plus one alternative).
@@ -48,9 +48,10 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5c | Quick add panel (⌘⌥T), Schedule popover + Repeat | ✅ | Checked against `Schedule.png` and `BoardStates.png`; see §5 for what's left |
 | 5d | Focus Panel + FocusStates | ✅ | Checked against `FocusPanel.png` and `FocusStates.png`; see §5 for what's left |
 | 5e | Floating timer, Celebration, Day summary, Command palette | ✅ | Checked against `FloatingTimer.png`, `Celebration.png` and `CommandPalette.png`; see §5 |
-| 5f-1 | **Settings window** | ⏭ **Next** | See §4. ARCHITECTURE puts Settings and Gmail in Phase 0a |
-| 5f-2 | System surfaces: menu bar extra, notifications and reminders, global shortcuts | Planned | See §4. Carbon hotkeys, no dependency (§6) |
-| 5g | Gmail → Calendar, Data & backup, Onboarding | Planned | |
+| 5f-1 | Settings window | ✅ | General, Focus, Alerts & sounds, Celebration, Shortcuts, About; checked against `Settings.png` |
+| 5f-2 | System surfaces: menu bar extra, notifications and reminders, global shortcuts | ✅ | Carbon hotkeys, no dependency (§6); see §5 for what wasn't exercised |
+| — | Trash and archive, focus restore, crash recovery, day rollover | ✅ | Gaps from §5 closed between milestones; Trash checked against `Trash.png` |
+| 5g | **Gmail → Calendar, Data & backup, Onboarding** | ⏭ **Next** | See §4 and §9 |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 The remaining screen prompts from DESIGN_HANDOFF §6 step 5, in order: Inspector → Quick add → Schedule → Focus
@@ -126,36 +127,26 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: 5f-1 Settings window, then 5f-2 System surfaces
+## 4. Next task: 5g, Data & backup, then Gmail → Calendar, then Onboarding
 
-The maintainer split the milestone in two on 2026-09-29.
+**Data & backup** (Settings page, P0)
+- **Spec:** FEATURES §4.21, DESIGN_SYSTEM §13.21–13.22. Pixels: `design/previews/DataSheets.png`; values:
+  `design/screens/DataSheets.dc.html` and the Data & backup section of `Settings.dc.html`.
+- **Pieces:** `VACUUM INTO` for the zip's database, a restore that verifies before replacing, automatic
+  backups on `NSBackgroundActivityScheduler` (ARCHITECTURE §4.4), and the danger zone. The toast
+  "Backup saved: komodo-backup-2026-09-26.zip" with Show in Finder is on `System.png`.
+- **Hooks:** `SettingsSection.data` is in the sidebar, disabled with a `.help` note; drop its `comingIn`.
+  Add `ValueObservation` when a restore can change the file under the store (§5).
 
-**5f-1 Settings window**
-- **Spec:** FEATURES §4.18 (the table is the list of settings and defaults), DESIGN_SYSTEM's Settings section.
-  Pixels: `design/previews/Settings.png`; values: `design/screens/Settings.dc.html`.
-- **Sections:** General, Focus, Alerts & sounds, Celebration, Shortcuts. Gmail → Calendar, Integrations,
-  Data & backup, AI and Local MCP server show in the sidebar but stay disabled with a `.help` note until their
-  milestones. About can be a plain version page.
-- **Hooks already in place:**
-  - The store holds the Focus settings (`isPomodoroOn`, `sprintLength`, `breakLength`, `panelSide`,
-    `playsSounds`, workday end, Sprint display) and saves them as preferences; Settings edits the same values.
-    Quick Settings and Settings must stay two views of one store.
-  - Disabled placeholders to wire to ⌘,: the sidebar's Settings row, Quick Settings' All settings, the
-    palette's Settings command.
-- **Native pieces:** `Settings` scene for the window; `SMAppService.mainApp` for Open at login;
-  `NSApp.setActivationPolicy(.accessory/.regular)` for the Dock toggle. Settings that drive 5f-2 surfaces (menu
-  bar timer, reminder sound, global shortcut recorder) can be stored and shown now and take effect in 5f-2.
-- **Capturing:** add a flag like `-openSettings <section>`.
+**Gmail → Calendar** (P0)
+- **Spec:** FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20. Pixels: `Gmail.png`; values: `Gmail.dc.html`.
+- Needs Google OAuth and the Gmail and Calendar APIs: ask §9's questions before starting.
+- The menu bar menu's Gmail rows (DESIGN_SYSTEM §14.1) and the attention icon come with it; `MenuBarMenu` has
+  the spot.
 
-**5f-2 System surfaces**
-- **Spec:** DESIGN_SYSTEM §14 (menu bar §14.1, notifications §14.2, app menus §14.3), FEATURES §4.12 and §4.17.
-  Pixels: `design/previews/System.png`; values: `design/screens/System.dc.html`.
-- **Menu bar extra:** `MenuBarExtra` with the existing icon image sets; `FloatingTimerView`'s `PillState` shows
-  what each timer state says. Gmail rows wait for 5g.
-- **Global shortcuts:** ⌘⇧B, ⌘⇧T, ⌘⇧P through Carbon `RegisterEventHotKey` (decision in §6). Hook up the
-  recorder from 5f-1; warn on `eventHotKeyExistsErr`.
-- **Reminders:** `UNCalendarNotificationTrigger` per scheduled task with `remindsAtStart`, so they fire while
-  Komodo is closed; Start now / Snooze 5 min actions. Reuse `FocusAlerts`. Reschedule on every task change.
+**Onboarding** (P0)
+- **Spec:** FEATURES §6.1, DESIGN_SYSTEM §13.1. Pixels: `Onboarding.png`; values: `Onboarding.dc.html`.
+- It asks for notification permission up front, which `FocusAlerts` asks for lazily until then.
 
 ## 5. Known gaps and placeholders
 
@@ -167,15 +158,11 @@ The maintainer split the milestone in two on 2026-09-29.
   - The selected list and panel positions aren't saved; Trash (`deleted_at`) isn't in the schema yet.
   - Backups (`VACUUM INTO`) come with Data & backup.
 - **Disabled until their milestones:**
-  - Reports, Trash and Settings (sidebar)
-  - Create list (sidebar **+**)
+  - Reports (sidebar)
+  - Create list (sidebar **+**), so list delete, archive and list rows in Trash wait for list management
 
   Each has a `.help` note.
-- **Reminders** are stored (`remindsAtStart`) and shown as "Reminder on", but nothing fires until the
-  notifications milestone.
-- **Archive** in the card menu stays disabled until Trash lands.
-- **Repeat copies** are made at launch and after schedule changes only. Midnight rollover and wake from sleep
-  need a trigger (FEATURES §4.7).
+- **Archive:** archived tasks are kept for Reports; nothing shows them yet, and Undo is the only way back.
 - **Card ⋯ menu:** its items, groups and shortcuts were checked against `BoardStates.dc.html` in code. It's a
   native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
 - **README recording** has not been re-recorded for 5b to 5e. The screenshots are fresh, but recording needs the
@@ -183,34 +170,49 @@ The maintainer split the milestone in two on 2026-09-29.
 - **Celebration:** no fun GIF or success sound (they need bundled assets and Settings toggles), and no "3 in a
   row today" chip (needs streak rules). The success screen can't be switched off until Settings.
 - **Floating timer:**
-  - ⌘⇧T and ⌘⇧P only work while Komodo is active; they become global with System surfaces.
-  - The title doesn't scroll (Scrolling title is a Settings toggle); the timed alert is P1.
+  - The title doesn't scroll yet. Settings stores Scrolling title, but nothing reads it.
   - Its window is a fixed 600 × 88 transparent frame. Clicks pass through the transparent part; that was
     reasoned from AppKit's alpha hit-testing, not tried by clicking.
   - Dragging, hover controls and the position memory weren't exercised with the pointer.
 - **Command palette:** the dim covers the Board, not the sidebar. Backup, Gmail and Settings show dimmed.
   Keyboard navigation and ⌘F weren't tried with real keystrokes; each state was opened with `-openPalette`.
 - **Day summary:** unfinished tasks with Tomorrow / This week are the P1 end-of-day review (FEATURES §6.4).
-- **Alerts** (`FocusAlerts`): sprint end and break over sound and notify, but neither has been triggered on the
-  maintainer's Mac, since the first one asks for notification permission with a system dialog. The macOS
-  "Glass" sound stands in for Komodo's own sounds. Scheduled reminders and Time's Up notifications (§14.2) come
-  with the notifications milestone; they can reuse `FocusAlerts`.
-- **Sounds:** the Quick Settings switch is stored; nothing plays yet.
+- **Notifications** (`FocusAlerts`): sprint end, break over, Time's Up (panel hidden) and scheduled reminders
+  with Start now / Snooze 5 min are built, but none has been triggered on the maintainer's Mac, since the first
+  asks for permission with a system dialog. Reminders are replaced a second after edits and only for a saved
+  board. They play the system default sound; Settings' reminder sound only covers the preview, because a
+  custom notification sound needs a bundled file.
+- **Sounds:** macOS system sounds stand in (Tink, Ping, Pop, Glass, and Hero for success) until Komodo bundles
+  its own. The volume and Quick Settings' switch cover all of them.
+- **Celebration:** Fun GIF is a setting and a placeholder in the Settings preview; the success screen shows no
+  GIF until a bundled set exists (FEATURES §4.13). The "3 in a row today" chip still needs streak rules.
+- **Menu bar:** the item and its window-style menu were captured in the menu bar, but the menu itself wasn't
+  opened with the pointer. Gmail rows wait for 5g. The label uses a one-second task because a `TimelineView`
+  there re-renders the status item endlessly, and it opens Home at launch because a `MenuBarExtra` stops
+  SwiftUI from doing so (§8).
+- **Global shortcuts:** registered with Carbon and re-registered on every settings change; not pressed from
+  another app yet. Background captures (`-quietCapture`) skip them. A conflict is only detected against another
+  Carbon hotkey.
+- **Settings:**
+  - Switches draw grey in the background captures (docs/media) because Komodo wasn't the active app; a
+    foreground capture needs the maintainer's go-ahead (§7).
+  - Check for Updates is disabled until the signed release (Sparkle); Release notes isn't linked.
+  - The Dock toggle and Open at login weren't flipped on the maintainer's Mac.
+- **Focus restore:** a relaunch brings the live task back paused, in its surface, with an unfinished break;
+  the Pomodoro count starts over. Sleep and the "You were away 47 min" question (ARCHITECTURE §4.3) aren't
+  built, and there's no App Nap activity while a timer runs.
 - **Focus Panel:**
   - The Scheduled today **+** is disabled with a `.help` note.
   - Rows have Make live, Done, Duplicate and Delete. Schedule, Subtasks, Notes and Move to list open the Home
     window, so they're left out of the panel's menu, and rows can't be dragged to reorder yet.
   - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
   - If the Home window was closed before Start, Home has no window to bring back.
-  - It docks to `NSScreen.main`.
   - The won card's twinkling sparks are left out, and See reports is disabled until Reports.
 - **Timed tasks** don't join the queue when their time passes (FEATURES §4.6); the calm card waits for them.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, page dots, code
   block, folder picker. Build each with the
   screen that uses it.
-- **Menu bar icons** exist as image sets, but nothing shows them until the menu bar extra lands (System
-  surfaces milestone, DESIGN_SYSTEM §14.1).
 - **README recording** (`board.gif`) still shows the old sidebar mark (clock hand, no check).
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
@@ -273,6 +275,13 @@ The maintainer split the milestone in two on 2026-09-29.
 | Move to list items | Letter-square symbols (`w.square.fill`) | Native menus draw symbols in one color, so the canvas's colored list badges can't be matched exactly |
 | Quick add empty footer | "A trailing time like “45m” sets the estimate." | No spec copy for the empty state; the canvas only shows the filled one |
 | Global shortcuts | Carbon `RegisterEventHotKey`, no dependency | The maintainer's pick (2026-09-29). KeyboardShortcuts was the alternative; conflicts are only detected against other Carbon hotkeys |
+| Settings sounds | macOS system sounds by name | No bundled sound files yet; each has a preview button |
+| Settings segmented control | Native `.segmented` for Panel side | Matches Quick Settings; the canvas draws `.k-seg` |
+| Celebration preview | The real check and burst at 52 pt, rebuilt on Preview | Reuses `CelebrationCheck` and `CelebrationBurst` instead of a second animation |
+| Menu bar menu | `MenuBarExtra` with `.window` style | The live task row with Pause, Done and Skip needs custom views; a `.menu` style can't draw them |
+| Trash | Separate `trash` and `archived` arrays in the store and `StoredBoard` | Nothing on the Board, in search or reminders has to skip them |
+| Empty Trash | Asks first with a confirmation dialog | Can't be undone; the canvas shows no dialog |
+| Crash recovery | A toast "Resume <task>?" and the task live but paused | ARCHITECTURE §4.3 says "asked"; a toast doesn't block launch |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
 
 ---
@@ -307,6 +316,12 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     window appears. `-quietCapture` keeps the
     panel at normal level behind other apps, so it doesn't cover the screen; `screencapture -l` still gets it.
     The window is named "Focus Panel" in `CGWindowListCopyWindowInfo` (use `.optionAll`, it isn't on top).
+  - Settings: `-openSettings general|focus|alerts|celebration|shortcuts|about` (window "Settings"). Trash:
+    `-openTrash <count>` deletes that many sample tasks and shows Trash.
+  - Persistence: `-databasePath <file>` points a Debug build at a scratch database. Quit with
+    `osascript -e 'tell application id "app.komodo.Komodo" to quit'` to run the quit path; `pkill` acts like a
+    crash, which is how crash recovery was tried.
+  - Measure CPU on a Release build (`-configuration Release`); Debug idles near 50% with the same windows.
   - **The maintainer uses the Mac while you work.** Launch with `open -g` so Komodo stays in the background,
     capture with `screencapture -x -o -l <window id>`, and type with `CGEvent.postToPid`, which reaches Komodo
     without bringing it forward. Never click or record the screen without asking first.
@@ -330,6 +345,13 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 - **Shell:** BSD `sed` has no `\b`; use `perl -pi -e`.
 - **Git:** never `git stash` with uncommitted work to fix up history. Reword commits with `git commit-tree`
   plus `git update-ref`, which leaves the working tree alone, and only when they aren't pushed yet.
+- **MenuBarExtra:**
+  - A `TimelineView` in the label makes SwiftUI update the status button in an endless loop at launch, which
+    also stops every window from appearing. Tick with a `.task` instead.
+  - With a menu bar extra, SwiftUI no longer opens the first `Window` at a background launch; the label's
+    `onAppear` opens Home.
+- **History:** the maintainer pushes seconds after a commit. Rewrite only what `git log origin/main..HEAD`
+  lists, and build each commit before committing it rather than after.
 - **Screen capture:**
   - The screen is 1710×1073 points.
   - `screencapture -l <window id>` fails with "could not create image from window" while the window is still
@@ -358,4 +380,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-None right now.
+1. **Gmail → Calendar:** which Google Cloud project and OAuth client should Komodo use, and is a Google sign-in
+   dependency acceptable (GoogleSignIn, about 1 MB), or should it be `ASWebAuthenticationSession` with PKCE and
+   no dependency?
+2. **README demo video:** recording needs the screen and pointer for about two minutes. When is a good time?
+3. **Fun GIFs:** is there a set of GIFs to bundle for the celebration, or should Komodo ship without them?

@@ -8,6 +8,44 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Settings, menu bar, reminders and Trash — 2026-09-29
+
+#### Added
+- **Settings window (⌘,):** General, Focus, Alerts & sounds, Celebration, Shortcuts and About, in a window of
+  its own with a searchable sidebar. Everything applies as it changes and is saved. It opens from ⌘, the
+  sidebar, the palette, Quick Settings (on Focus) and the menu bar.
+  - General: Open at login, Show in Dock (off makes Komodo a menu bar app), the menu bar timer, the week's first
+    day, quick task presets and hiding card times.
+  - Focus: the panel's screen, side and full-screen floating with a live preview, Pomodoro lengths, the default
+    break, scrolling titles and opening note links on start.
+  - Alerts & sounds: timed alerts with interval, sound and timer pulse, the reminder sound, and one volume for
+    every sound, each with a preview.
+  - Celebration: success screen, fun GIF and success sound, with a preview of the moment.
+  - Shortcuts: record new keys for the three global shortcuts, reset them, and see when another app holds one.
+  - About: version, Save Diagnostics… and the local-only promise.
+- **Menu bar item:** the Komodo mark, with the time left while a task or break runs. Its menu has the live task
+  with Pause, Done and Skip, then Open Komodo, Settings and Quit.
+- **Global shortcuts:** ⌘⇧B shows Komodo, ⌘⇧T swaps the panel and the floating timer, ⌘⇧P finds the timer, from
+  any app.
+- **Reminders:** each scheduled task with Remind at start notifies at its time, even with Komodo closed, with
+  Start now and Snooze 5 min. Time's up notifies with +5 min and Done when the panel isn't showing.
+- **Sounds:** a success sound on Done, timed alert nudges, and every sound at the chosen volume.
+- **Trash:** deleted tasks wait 30 days with Restore and Delete now, the last three days in amber, and Empty
+  Trash. Archive in the card menu hides a task everywhere but reports.
+- **Picks up where you left off:** quitting saves the live task, its surface and any break, and relaunching
+  brings them back with the task paused. After a crash, the open session ends at the last 30-second heartbeat
+  and a toast offers to resume.
+- **New day:** midnight, a time zone change or waking from sleep make this week's repeat copies and move the
+  Board to the new day.
+- `Reminders`, `CrashRecovery` and `Trash` in KomodoCore with tests; a v2 migration adds `deleted_at` and
+  `archived_at`. Debug flags `-openSettings`, `-openTrash` and `-databasePath`.
+
+#### Changed
+- Delete moves a task to Trash instead of removing it; Undo still brings it straight back.
+- The Focus Panel and floating timer open on the chosen display and join full-screen spaces only when Settings
+  says so.
+- The success screen can be turned off: Done then goes straight to the next task.
+
 ### Saving to disk — 2026-09-28
 
 #### Added
