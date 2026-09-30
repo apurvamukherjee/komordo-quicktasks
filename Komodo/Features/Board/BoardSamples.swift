@@ -153,7 +153,7 @@ enum BoardSamples {
         return tasks
     }
 
-    /// Two months of finished work for Reports, archived so the Board, the sidebar's bars and the streak stay as
+    /// Nine months of finished work for Reports, archived so the Board, the sidebar's bars and the streak stay as
     /// on the Main artboard. Weekdays only, with yesterday left empty as on Reports.png, and estimates that land
     /// early, on time and late in turn.
     static func history(now: Date, calendar: Calendar) -> (tasks: [TaskItem], breaks: [BreakSession]) {
@@ -167,7 +167,7 @@ enum BoardSamples {
         let factors = [1.0, 1.25, 0.8, 1.05, 0.7, 1.3, 0.95]
         var tasks: [TaskItem] = []
         var breaks: [BreakSession] = []
-        for daysAgo in 2...60 {
+        for daysAgo in 2...270 {
             let day = today.adding(days: -daysAgo, calendar: calendar)
             let weekday = calendar.component(.weekday, from: day.startOfDay(in: calendar))
             guard weekday != 1, weekday != 7 else { continue }
