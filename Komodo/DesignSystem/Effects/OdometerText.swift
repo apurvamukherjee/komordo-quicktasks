@@ -56,16 +56,18 @@ private struct OdometerDigit: View {
             .hidden()
             .overlay(alignment: .top) {
                 GeometryReader { geo in
-                    VStack(spacing: 0) {
-                        ForEach(0..<10, id: \.self) { value in
-                            Text("\(value)").frame(width: geo.size.width, height: geo.size.height)
+                    // The 0–9 strip rolls on Core Animation; a SwiftUI spring here kept the window laying out.
+                    HostedLayer(size: geo.size) {
+                        VStack(spacing: 0) {
+                            ForEach(0..<10, id: \.self) { value in
+                                Text("\(value)").frame(width: geo.size.width, height: geo.size.height)
+                            }
                         }
+                    } update: { view in
+                        view.slide(to: CGFloat(digit) * geo.size.height, animated: !reduceMotion)
                     }
-                    .offset(y: -CGFloat(digit) * geo.size.height)
-                    .animation(reduceMotion ? nil : Motion.spring, value: digit)
                 }
             }
-            .clipped()
     }
 }
 
@@ -87,19 +89,46 @@ private struct OdometerColon: View {
         case (_, true):
             Text(":")
         case (.beat, false):
-            Text(":").phaseAnimator([Beat.high, Beat.low]) { view, opacity in
-                view.opacity(opacity)
-            } animation: { _ in
-                .easeInOut(duration: Motion.Period.colonBeat / 2)
+            hosted { view in
+                view.loop("beat", opacity: Beat.high) {
+                    let beat = CABasicAnimation(keyPath: "opacity")
+                    beat.fromValue = Beat.high
+                    beat.toValue = Beat.low
+                    beat.duration = Motion.Period.colonBeat / 2
+                    beat.autoreverses = true
+                    beat.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    return beat.loopingForever(period: Motion.Period.colonBeat)
+                }
             }
         case (.blink, false):
-            // A zero-length animation after a delay holds each phase, then snaps: a step blink.
-            Text(":").phaseAnimator([Beat.blinkOn, Beat.blinkOff]) { view, opacity in
-                view.opacity(opacity)
-            } animation: { _ in
-                .linear(duration: 0).delay(Motion.Period.colonBeat / 2)
+            // Holds each opacity for half a beat, then snaps: a step blink.
+            hosted { view in
+                view.loop("blink", opacity: Beat.blinkOn) {
+                    let blink = CAKeyframeAnimation(keyPath: "opacity")
+                    blink.values = [Beat.blinkOn, Beat.blinkOff]
+                    blink.keyTimes = [0, 0.5]
+                    blink.calculationMode = .discrete
+                    blink.duration = Motion.Period.colonBeat
+                    return blink.loopingForever(period: Motion.Period.colonBeat)
+                }
             }
         }
+    }
+
+    /// The colon fades on Core Animation. A hidden colon measures its cell, so the host never measures its own
+    /// content on each tick.
+    private func hosted(_ update: @escaping (HostedLayerView) -> Void) -> some View {
+        Text(":")
+            .hidden()
+            .overlay {
+                GeometryReader { geo in
+                    HostedLayer(size: geo.size) {
+                        Text(":")
+                    } update: {
+                        update($0)
+                    }
+                }
+            }
     }
 }
 
