@@ -5,14 +5,16 @@ import Foundation
 public struct BoardLayout: Sendable {
     public var backlog: [TaskItem]
     public var week: [TaskItem]
-    /// Today's focus queue: open Today tasks with no time today, in priority order. Overdue tasks land here.
+    /// Today's focus queue: open Today tasks with no time today, in priority order. Overdue tasks land here, and
+    /// timed tasks whose time has passed go first, by time (FEATURES §4.6).
     public var upNext: [TaskItem]
-    /// Today's tasks with a time, sorted by that time.
+    /// Today's tasks with a time still ahead, sorted by that time.
     public var scheduledToday: [TaskItem]
     /// Completed today, oldest first.
     public var doneToday: [TaskItem]
 
-    public init(tasks: [TaskItem], listID: String? = nil, week: WeekRange, calendar: Calendar) {
+    /// Without `now`, every timed task today stays in Scheduled, whatever the hour.
+    public init(tasks: [TaskItem], listID: String? = nil, week: WeekRange, now: Date? = nil, calendar: Calendar) {
         let inScope = tasks.filter { listID == nil || $0.listID == listID }
         let open = inScope.filter { !$0.isDone }
         let byRank: (TaskItem, TaskItem) -> Bool = { $0.rank < $1.rank }
@@ -27,8 +29,13 @@ public struct BoardLayout: Sendable {
 
         let today = open.filter { $0.column(in: week) == .today }
         let isTimedToday: (TaskItem) -> Bool = { $0.scheduledDate == week.today && $0.scheduledMinute != nil }
-        upNext = today.filter { !isTimedToday($0) }.sorted(by: byRank)
-        scheduledToday = today.filter(isTimedToday).sorted(by: BoardLayout.bySchedule)
+        let timed = today.filter(isTimedToday).sorted(by: BoardLayout.bySchedule)
+        let hasStarted: (TaskItem) -> Bool = { task in
+            guard let now, let start = task.scheduledStart(calendar: calendar) else { return false }
+            return start <= now
+        }
+        upNext = timed.filter(hasStarted) + today.filter { !isTimedToday($0) }.sorted(by: byRank)
+        scheduledToday = timed.filter { !hasStarted($0) }
 
         let dayStart = week.today.startOfDay(in: calendar)
         let dayEnd = week.today.adding(days: 1, calendar: calendar).startOfDay(in: calendar)

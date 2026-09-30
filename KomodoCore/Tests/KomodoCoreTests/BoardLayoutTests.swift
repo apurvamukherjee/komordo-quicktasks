@@ -56,6 +56,20 @@ struct BoardLayoutTests {
         #expect(layout.doneToday.map(\.id) == ["finished"])
     }
 
+    @Test func timedTasksJoinTheQueueFirstOnceTheirTimePasses() {
+        let now = today.startOfDay(in: calendar).addingTimeInterval(14 * 3600 + 14 * 60)
+        let tasks = [
+            task("queued", bucket: .today, rank: 1),
+            task("review", date: today, minute: 15 * 60),
+            task("lunch", date: today, minute: 13 * 60),
+            task("standup", date: today, minute: 9 * 60),
+            task("atTheMinute", date: today, minute: 14 * 60 + 14),
+        ]
+        let layout = BoardLayout(tasks: tasks, week: week, now: now, calendar: calendar)
+        #expect(layout.upNext.map(\.id) == ["standup", "lunch", "atTheMinute", "queued"])
+        #expect(layout.scheduledToday.map(\.id) == ["review"])
+    }
+
     @Test func datedTasksSitBelowHandPlacedOnesInThisWeek() {
         let tasks = [
             task("sunday", date: LocalDate(year: 2026, month: 9, day: 27)),
