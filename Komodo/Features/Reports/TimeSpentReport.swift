@@ -84,7 +84,7 @@ struct TimeSpentReport: View {
 
     // MARK: Table
 
-    private var columns: [ReportTableColumn] { [.flexible, .fixed(120), .fixed(210)] }
+    private var columns: [ReportTableColumn] { [.flexible, .fixed(110), .fixed(212)] }
 
     private func table(_ spent: TimeSpent) -> some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -102,15 +102,25 @@ struct TimeSpentReport: View {
             ForEach(spent.lists, id: \.listID) { list in
                 listRow(list, spent: spent)
                 if openListID == list.listID {
-                    ForEach(list.tasks, id: \.id) { task in
-                        ReportTableRow(columns: columns) {
-                            Text(task.title).lineLimit(1).padding(.leading, 46)
-                            Text(DurationFormat.short(task.time))
-                            ShareBar(share: list.time > 0 ? task.time / list.time : 0, color: color(of: list.listID))
+                    VStack(spacing: 0) {
+                        ForEach(list.tasks, id: \.id) { task in
+                            ReportTableRow(columns: columns) {
+                                Text(task.title).lineLimit(1)
+                                Text(DurationFormat.short(task.time)).font(.system(size: 12.5).monospacedDigit())
+                                ShareBar(
+                                    share: list.time > 0 ? task.time / list.time : 0, color: color(of: list.listID),
+                                    height: 4)
+                            }
+                            .frame(height: 34)
                         }
-                        .frame(height: 36)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
+                    .padding(.vertical, Space.s1)
+                    .overlay(alignment: .leading) {
+                        Rectangle().fill(color(of: list.listID).opacity(0.35)).frame(width: 2)
+                    }
+                    .padding(.leading, 38)
+                    .padding([.trailing, .bottom], Space.s2)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
         }
@@ -136,7 +146,9 @@ struct TimeSpentReport: View {
                         .font(.system(size: 13.5, weight: .semibold))
                     Text(count(list.tasks.count, "task")).font(.system(size: 12)).foregroundStyle(Palette.textMuted)
                 }
-                Text(DurationFormat.short(list.time)).foregroundStyle(Palette.textPrimary)
+                Text(DurationFormat.short(list.time))
+                    .font(.system(size: 13.5, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Palette.textPrimary)
                 ShareBar(share: spent.share(of: list.time), color: color(of: list.listID))
             }
             .frame(height: 46)
@@ -169,21 +181,27 @@ struct TimeSpentReport: View {
     private func count(_ number: Int, _ noun: String) -> String { number == 1 ? "1 \(noun)" : "\(number) \(noun)s" }
 }
 
-/// A 120 pt track filled to the share in the list's color, with the percentage beside it.
+/// A track filled to the share in the list's color, with the percentage in a 36 pt column beside it.
 private struct ShareBar: View {
     var share: Double
     var color: Color
+    var height: CGFloat = 8
 
     var body: some View {
         HStack(spacing: 10) {
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.white.opacity(0.06))
-                Capsule().fill(color).frame(width: 120 * min(1, max(0, share)))
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.06))
+                    Capsule().fill(color).frame(width: geo.size.width * min(1, max(0, share)))
+                }
             }
-            .frame(width: 120, height: 6)
+            .frame(height: height)
             Text("\(Int((share * 100).rounded()))%")
-                .font(.system(size: 12.5, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Palette.textSecondary)
+                .font(
+                    .system(size: height > 4 ? 12.5 : 11.5, weight: height > 4 ? .semibold : .regular).monospacedDigit()
+                )
+                .foregroundStyle(height > 4 ? Palette.textBody : Palette.textMuted)
+                .frame(width: 36, alignment: .trailing)
         }
     }
 }
