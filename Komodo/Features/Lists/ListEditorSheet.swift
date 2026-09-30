@@ -40,7 +40,7 @@ struct ListEditorSheet: View {
             VStack(alignment: .leading, spacing: Space.s4) {
                 field("NAME") {
                     KomodoTextField(
-                        "Work", text: $name, error: isTooLong ? "Keep it to 60 characters." : nil,
+                        "List name", text: $name, error: isTooLong ? "Keep it to 60 characters." : nil,
                         focusesOnAppear: true
                     )
                     .onSubmit(submit)
