@@ -12,13 +12,13 @@ struct SidebarView: View {
             brand
             NavRow(
                 title: "Home", symbol: "house", shortcut: "⌘1",
-                isSelected: !store.isShowingTrash && store.selectedListID != nil
+                isSelected: store.page == .board && store.selectedListID != nil
             ) {
-                if store.isShowingTrash || store.selectedListID == nil { store.showBoard() }
+                if store.page != .board || store.selectedListID == nil { store.showBoard() }
             }
             NavRow(
                 title: "All lists", symbol: "square.grid.2x2",
-                isSelected: !store.isShowingTrash && store.selectedListID == nil
+                isSelected: store.page == .board && store.selectedListID == nil
             ) {
                 store.showList(nil)
             }
@@ -43,7 +43,7 @@ struct SidebarView: View {
             ForEach(store.lists) { list in
                 ListRow(
                     list: list, count: store.openCount(listID: list.id),
-                    isSelected: !store.isShowingTrash && store.selectedListID == list.id
+                    isSelected: store.page == .board && store.selectedListID == list.id
                 ) {
                     store.showList(list.id)
                 }
@@ -74,10 +74,10 @@ struct SidebarView: View {
 
             NavRow(
                 title: "Trash", symbol: "trash", count: store.trashItems.isEmpty ? nil : store.trashItems.count,
-                isSelected: store.isShowingTrash, height: 32
+                isSelected: store.page == .trash, height: 32
             ) {
                 store.inspect(nil)
-                store.isShowingTrash = true
+                store.page = .trash
             }
             NavRow(title: "Settings", symbol: "gearshape", shortcut: "⌘,", isSelected: false, height: 32) {
                 store.showSettings()

@@ -95,7 +95,7 @@ Komodo/
                       (group, row, switch, menu picker, duration stepper, sound preview), one file per page:
                       General, Focus, Alerts, Celebration, Shortcuts (key recorder), About
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
-  Features/Trash/     TrashView (shown in place of the Board when store.isShowingTrash): task and list rows
+  Features/Trash/     TrashView (shown in place of the Board when store.page is .trash): task and list rows
   Features/Lists/     ListEditorSheet (new, rename, color & icon), DeleteListSheet (typed name)
   Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all), BackupSheets (restore
                       confirm, restore errors, typed delete)

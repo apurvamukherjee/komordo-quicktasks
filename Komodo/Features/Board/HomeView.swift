@@ -16,7 +16,10 @@ struct HomeView: View {
                     .transition(.move(edge: .leading))
             }
             Group {
-                if store.isShowingTrash { TrashView(store: store) } else { BoardView(store: store) }
+                switch store.page {
+                case .board: BoardView(store: store)
+                case .trash: TrashView(store: store)
+                }
             }
             .sheet(item: $store.listSheet) { sheet in listSheet(sheet) }
             .inspector(isPresented: isInspectorPresented) {

@@ -102,7 +102,7 @@ enum LaunchOptions {
             store.showsStartTip = defaults.bool(forKey: "openStartTip")
             if trashed > 0 {
                 for task in store.tasks.prefix(trashed) { store.delete(task.id) }
-                store.isShowingTrash = true
+                store.page = .trash
             }
         #endif
         return store

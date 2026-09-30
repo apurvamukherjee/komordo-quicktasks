@@ -102,8 +102,13 @@ import SwiftUI
     private var archived: [TaskItem] {
         didSet { persist(.tasks(from: oldValue, to: archived)) }
     }
-    /// The Trash view is in place of the Board.
-    var isShowingTrash = false
+    /// What Home shows beside the sidebar.
+    enum Page: Sendable {
+        case board
+        case trash
+    }
+
+    var page = Page.board
     private(set) var tasks: [TaskItem] {
         didSet {
             persist(.tasks(from: oldValue, to: tasks))
@@ -388,7 +393,7 @@ import SwiftUI
         focusSurface = nil
         inspectedTaskID = nil
         schedulingTaskID = nil
-        isShowingTrash = false
+        page = .board
         isPaletteOpen = false
         isQuickAddOpen = false
         listSheet = nil
@@ -515,7 +520,7 @@ import SwiftUI
     }
 
     func showList(_ id: String?) {
-        isShowingTrash = false
+        page = .board
         selectedListID = id
         if let id { lastListID = id }
     }
