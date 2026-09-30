@@ -154,13 +154,12 @@ struct FloatingTimerView: View {
         }
     }
 
+    /// DESIGN_SYSTEM §10.5 caps the title at 200 pt; with Scrolling title on, a longer one scrolls and holds
+    /// still under the pointer.
     private func titleText(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(Palette.textBody)
-            .lineLimit(1)
-            // DESIGN_SYSTEM §10.5 caps the title at 200 pt.
-            .frame(maxWidth: 200, alignment: .leading)
+        MarqueeText(
+            text: title, width: 200, font: .systemFont(ofSize: 13, weight: .semibold), color: Palette.textBody,
+            scrolls: store.settings.scrollsTitle, isPaused: isHovered)
     }
 
     private func controls(_ actions: [CardAction]) -> some View {
