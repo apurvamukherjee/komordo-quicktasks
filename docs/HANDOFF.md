@@ -25,8 +25,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": finish the P0 polish with the XCUITest smoke tests (ask
-before running them, they drive the pointer), the README screenshots of lists, and the idle CPU check in §4.
+Then continue from docs/HANDOFF.md §4 "Next task": fix the Board's ~50% idle CPU (§4), then the XCUITest smoke
+tests (ask before running them, they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -58,7 +58,7 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5g | Data & backup, Onboarding, celebration GIFs | ✅ | Checked against `DataSheets.png`, `Onboarding.png`, `Celebration.png` |
 | 5g | Gmail → Calendar | ⏸ Parked | The maintainer's call on 2026-09-29; §9 question 1 still open |
 | — | P0 polish: lists, timed tasks, sleep, App Nap, scheduled alerts, scrolling title, File and Help menus | ✅ | 2026-10-01; tried on a scratch database |
-| — | **P0 polish: XCUITest smoke tests, list screenshots, idle CPU** | ⏭ **Next** | See §4 |
+| — | **Idle CPU, then XCUITest smoke tests** | ⏭ **Next** | See §4 |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
@@ -188,13 +188,12 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 Done on 2026-10-01: list management, timed tasks joining the queue, the sleep question and App Nap, scheduled
 sprint / break / Time's Up notifications, the scrolling title, and the File and Help menus. Left, in order:
-1. **README screenshots** of the list sheets and Trash with a list row, captured from the running app with
-   `-openListSheet new|edit|delete` and `-openTrash 3 -deleteList growth` (the screen was locked this session).
-2. **Idle CPU:** an optimized build with sample data (`-configuration Release SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`,
+1. **Idle CPU:** an optimized build with sample data (`-configuration Release SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`,
    since Release strips the sample flags and would open the real board) idled near 50% on 2026-10-01, the same
-   before and after this session's changes, while the screen was locked. `sample` shows a SwiftUI animation
-   updating the graph continuously. Measure again with the screen unlocked; if it holds, find the animation.
-3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore). They take
+   at `fb2f43b` and after this session's changes, locked or unlocked. `sample` shows the main thread busy in
+   AttributeGraph updates with `CollectAnimationsData`, so a SwiftUI animation on the Board keeps running. Find
+   it and move it to Core Animation (`LayerEffect`) before new features.
+2. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore). They take
    over the pointer, so ask the maintainer for the screen before running them.
 
 **After that**
@@ -233,8 +232,8 @@ sprint / break / Time's Up notifications, the scrolling title, and the File and 
   - No Create List tile on Home (FEATURES §4.1): `Main.png` draws none; the sidebar **+** and File ▸ New List
     cover it. No palette command either, since DESIGN_SYSTEM §13.7 lists none.
   - Badges are one letter or emoji; image icons (and `assets/` in the backup zip) wait.
-  - Tried on a scratch database with `-deleteList` and a backdated purge; the sheets, the context menu and
-    dragging weren't driven with the pointer, and nothing was captured because the screen was locked.
+  - Tried on a scratch database with `-deleteList` and a backdated purge, and the sheets and Trash were captured
+    for the README; the context menu and dragging weren't driven with the pointer.
 - **Card ⋯ menu:** its items, groups and shortcuts were checked against `BoardStates.dc.html` in code. It's a
   native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
 - **README recording** has not been re-recorded for 5b to 5e. The screenshots are fresh, but recording needs the
