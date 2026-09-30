@@ -19,6 +19,7 @@ struct KomodoApp: App {
         .windowStyle(.hiddenTitleBar)
         .commands {
             SettingsCommand(store: store)
+            FileCommands(store: store)
             SidebarCommand()
             FocusCommands(store: store)
             #if DEBUG
