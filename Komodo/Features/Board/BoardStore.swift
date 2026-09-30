@@ -655,6 +655,11 @@ import SwiftUI
         var task = trash.remove(at: index)
         let deletedAt = task.deletedAt
         task.deletedAt = nil
+        // A task whose list is archived waits with the list's other tasks rather than showing up alone.
+        if list(for: task)?.isActive == false {
+            shelved.append(task)
+            return
+        }
         putBack(task)
         guard announces else { return }
         offerUndo("Restored “\(task.title)”", detail: nil) { store in
@@ -677,6 +682,11 @@ import SwiftUI
             task.deletedAt.map { Trash.isExpired(deletedAt: $0, now: now, calendar: calendar) } ?? true
         }
         if !expired.isEmpty { trash.removeAll { expired.contains($0) } }
+        for list in allLists {
+            if let deletedAt = list.deletedAt, Trash.isExpired(deletedAt: deletedAt, now: now, calendar: calendar) {
+                deleteListForever(list.id)
+            }
+        }
     }
 
     /// Takes a task off the Board. A live one stops its clock first, so coming back finds it paused rather than
@@ -729,6 +739,78 @@ import SwiftUI
         let target = beforeID.flatMap { before in reordered.firstIndex { $0.id == before } } ?? reordered.endIndex
         reordered.insert(list, at: target)
         allLists = reordered
+    }
+
+    /// Archive and Delete need another list left, since the Board always adds to one.
+    var canRemoveLists: Bool { lists.count > 1 }
+
+    /// Archive: the list and its tasks leave the sidebar, All lists and search, and stay for reports.
+    func archiveList(_ id: String) {
+        guard canRemoveLists, let index = allLists.firstIndex(where: { $0.id == id && $0.isActive }) else { return }
+        shelveTasks(of: id)
+        allLists[index].archivedAt = now
+        leaveList(id)
+        offerUndo("List archived", detail: allLists[index].name) { store in store.bringBackList(id) }
+    }
+
+    /// Delete: the list and its tasks wait in Trash for 30 days (FEATURES §4.20).
+    func deleteList(_ id: String) {
+        guard canRemoveLists, let index = allLists.firstIndex(where: { $0.id == id && $0.isActive }) else { return }
+        shelveTasks(of: id)
+        allLists[index].deletedAt = now
+        leaveList(id)
+        offerUndo("List deleted", detail: allLists[index].name) { store in store.bringBackList(id) }
+    }
+
+    /// Trash's Restore for a list: it returns to its place in the sidebar with its tasks, with Undo.
+    func restoreList(_ id: String) {
+        guard let list = allLists.first(where: { $0.id == id }), let deletedAt = list.deletedAt else { return }
+        bringBackList(id)
+        offerUndo("Restored “\(list.name)”", detail: nil) { store in
+            guard let index = store.allLists.firstIndex(where: { $0.id == id }), store.allLists[index].isActive
+            else { return }
+            store.shelveTasks(of: id)
+            store.allLists[index].deletedAt = deletedAt
+            store.leaveList(id)
+        }
+    }
+
+    /// Delete now or 30 days up: the list goes for good with every task that was in it.
+    func deleteListForever(_ id: String) {
+        shelved.removeAll { $0.listID == id }
+        trash.removeAll { $0.listID == id }
+        archived.removeAll { $0.listID == id }
+        allLists.removeAll { $0.id == id }
+    }
+
+    private func bringBackList(_ id: String) {
+        guard let index = allLists.firstIndex(where: { $0.id == id }) else { return }
+        allLists[index].deletedAt = nil
+        allLists[index].archivedAt = nil
+        tasks += shelved.filter { $0.listID == id }
+        shelved.removeAll { $0.listID == id }
+        // Weeks may have turned while it was away.
+        expandRecurrences()
+    }
+
+    /// Takes a list's tasks off the Board. A live one stops first, as when a task is deleted.
+    private func shelveTasks(of listID: String) {
+        let leaving = tasks.filter { $0.listID == listID }
+        let ids = Set(leaving.map(\.id))
+        if let live = focus.taskID, ids.contains(live) {
+            closeSession(live)
+            focus = Focus()
+        }
+        if let inspected = inspectedTaskID, ids.contains(inspected) { inspectedTaskID = nil }
+        if let scheduling = schedulingTaskID, ids.contains(scheduling) { schedulingTaskID = nil }
+        tasks.removeAll { ids.contains($0.id) }
+        shelved += leaving
+    }
+
+    /// A list on screen that goes away hands over to the first one left.
+    private func leaveList(_ id: String) {
+        if lastListID == id { lastListID = lists.first?.id }
+        if selectedListID == id { selectedListID = lists.first?.id }
     }
 
     /// One character, a letter or an emoji; nil when nothing was typed.
