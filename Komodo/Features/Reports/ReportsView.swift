@@ -38,7 +38,9 @@ struct ReportsView: View {
         switch store.reports.tab {
         case .overview:
             ScrollView { OverviewReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
-        case .punctuality, .time, .sessions:
+        case .punctuality:
+            ScrollView { PunctualityReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
+        case .time, .sessions:
             Color.clear
         }
     }
