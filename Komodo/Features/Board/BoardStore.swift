@@ -108,6 +108,7 @@ import SwiftUI
         didSet {
             persist(.tasks(from: oldValue, to: tasks))
             syncTimesUp()
+            syncScheduleTick()
             scheduleReminderSync()
         }
     }
@@ -167,6 +168,9 @@ import SwiftUI
     private(set) var homeRequests = 0
     /// Bumped when the date changes under a running app (midnight, a time zone change, waking from sleep).
     private(set) var dayChanges = 0
+    /// Bumped when a timed task's time comes, so it moves from Scheduled into the queue on screen.
+    private(set) var scheduleTicks = 0
+    private var scheduleTick: Task<Void, Never>?
     /// Global shortcuts another app already holds; Settings marks them "Used by another app".
     var shortcutConflicts: Set<GlobalShortcut> = []
     /// The Settings window's page (DESIGN_SYSTEM §13.15).
@@ -280,6 +284,7 @@ import SwiftUI
         syncSprint()
         // A break restored from the last quit still says when it's over.
         syncBreakEnd()
+        syncScheduleTick()
     }
 
     // MARK: Storage
@@ -431,6 +436,7 @@ import SwiftUI
     /// (FEATURES §4.7). A wake on the same day finds nothing new, so repeating it is harmless.
     func dayMayHaveChanged() {
         dayChanges += 1
+        syncScheduleTick()
         purgeTrash()
         expandRecurrences()
         scheduleReminderSync()
@@ -457,7 +463,8 @@ import SwiftUI
         WeekRange(containing: today, firstWeekday: settings.weekStart.firstWeekday, calendar: calendar)
     }
     var layout: BoardLayout {
-        BoardLayout(tasks: tasks, listID: selectedListID, week: week, calendar: calendar)
+        _ = scheduleTicks
+        return BoardLayout(tasks: tasks, listID: selectedListID, week: week, now: now, calendar: calendar)
     }
 
     func showList(_ id: String?) {
@@ -1188,6 +1195,35 @@ import SwiftUI
     }
 
     /// The running task's estimate runs out: a sound, and a notification when the panel isn't there to say it.
+    /// Wakes when the next timed task today starts (FEATURES §4.6): it joins the queue, and a Focus Panel waiting
+    /// on the calm card starts it, since the card promises it joins on time.
+    private func syncScheduleTick() {
+        scheduleTick?.cancel()
+        scheduleTick = nil
+        let now = self.now
+        let today = self.today
+        let starts = tasks.compactMap { task -> Date? in
+            guard !task.isDone, task.scheduledDate == today, let start = task.scheduledStart(calendar: calendar),
+                start > now
+            else { return nil }
+            return start
+        }
+        guard let next = starts.min() else { return }
+        scheduleTick = Task { [weak self] in
+            guard (try? await Task.sleep(for: .seconds(next.timeIntervalSince(now)))) != nil, let self else { return }
+            scheduleTicks += 1
+            startWaitingTask()
+            syncScheduleTick()
+        }
+    }
+
+    private func startWaitingTask() {
+        guard focusSurface != nil, focus.taskID == nil, focus.breakEndsAt == nil, focus.celebration == nil,
+            !focus.isDayWon, let next = layout.upNext.first
+        else { return }
+        begin(next.id)
+    }
+
     private func syncTimesUp() {
         timesUpAlert?.cancel()
         timesUpAlert = nil
