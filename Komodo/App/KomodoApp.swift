@@ -20,6 +20,7 @@ struct KomodoApp: App {
         .commands {
             SettingsCommand(store: store)
             FileCommands(store: store)
+            HelpCommands(store: store)
             SidebarCommand()
             FocusCommands(store: store)
             #if DEBUG
