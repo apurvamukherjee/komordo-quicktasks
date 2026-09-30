@@ -16,16 +16,11 @@ enum ReportsFormat {
         }
     }
 
-    /// "Sep 21 – 27" within a month, "Aug 28 – Sep 26" across two.
+    /// "Sep 21 – 27" within a month and "Aug 28 – Sep 26" across two, in the order the locale writes dates.
     static func span(_ range: ReportRange, calendar: Calendar) -> String {
         let start = range.first.startOfDay(in: calendar)
-        let end = range.last.startOfDay(in: calendar)
-        let first = start.formatted(.dateTime.month(.abbreviated).day())
-        if range.first == range.last { return first }
-        let last =
-            range.first.month == range.last.month
-            ? end.formatted(.dateTime.day()) : end.formatted(.dateTime.month(.abbreviated).day())
-        return "\(first) – \(last)"
+        if range.first == range.last { return start.formatted(.dateTime.month(.abbreviated).day()) }
+        return (start..<range.last.startOfDay(in: calendar)).formatted(.interval.month(.abbreviated).day())
     }
 
     /// What a tile's chip compares with: "last week", "last Sat", "prior 30 days", or the span itself.
