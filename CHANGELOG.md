@@ -8,6 +8,34 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Idle CPU and Reports (Phase 1 begins) — 2026-10-01
+
+#### Fixed
+- **Idle CPU:** the Board, Focus Panel and floating timer idled near 50% because the timer's digit spring and
+  colon beat kept SwiftUI laying out the window every frame. Both now run on Core Animation (`HostedLayer`), and
+  an optimized build idles around 3–4%.
+
+#### Added
+- **Reports (⌘2, the sidebar, View ▸ Reports, and See reports on the day summary):** a list filter, Today /
+  7 days / 30 days / Custom, and four tabs.
+  - **Overview:** work days, tasks done, hours and average per task, each with a sparkline and a chip against
+    the range before; Daily productivity bars (task hours, breaks, total session) with a hover readout; the most
+    productive hour, weekday and month.
+  - **Punctuality:** early / on time (±10%) / late with counts and shares, eight weeks of accuracy, and every
+    measured task's estimate against its actual time, largest overrun first.
+  - **Time spent:** a donut of hours by list and a table whose lists open to show their tasks.
+  - **Sessions:** every work session and break a day at a time, with Breaks, Add, Edit, Delete (with Undo) and
+    Export PDF / Export CSV.
+- **Breaks are recorded** (schema v4, `breaks` table), for the Breaks series and the Sessions log.
+- View menu: Board ⌘1 and Reports ⌘2.
+- `ReportRange`, `ReportData`, `ReportOverview`, `Productivity`, `Punctuality`, `TimeSpent`, `SessionLog` (with
+  CSV) in KomodoCore, with tests. Debug flags `-openReports <tab>` and `-exportSessions <file>`. Sample data
+  carries nine months of archived history for Reports.
+
+#### Changed
+- Home tracks one page (Board, Trash, Reports) instead of a Trash flag.
+- The backup's CSV timestamp and minutes helpers moved onto `CSV`.
+
 ### P0 polish: lists, timed tasks, sleep and alerts — 2026-10-01
 
 #### Added
