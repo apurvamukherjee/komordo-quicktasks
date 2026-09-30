@@ -260,8 +260,9 @@ public enum Backup {
                 .compactMap { $0 }.joined(separator: " ")
                 return [
                     row["id"], row["list"] ?? "", row["title"], row["bucket"], status, scheduled,
-                    minutes(row["estimate"]), minutes(row["taken"]), stamp(row["completed_at"], calendar),
-                    stamp(row["created_at"], calendar), row["notes"] ?? "",
+                    CSV.minutes(row["estimate"]), CSV.minutes(row["taken"]),
+                    CSV.timestamp(row["completed_at"], calendar: calendar),
+                    CSV.timestamp(row["created_at"], calendar: calendar), row["notes"] ?? "",
                 ]
             })
     }
@@ -280,24 +281,11 @@ public enum Backup {
                 let start: Double = row["started_at"]
                 let end: Double? = row["ended_at"]
                 return [
-                    row["task_id"], row["title"], row["list"] ?? "", stamp(start, calendar), stamp(end, calendar),
-                    minutes(end.map { $0 - start }),
+                    row["task_id"], row["title"], row["list"] ?? "", CSV.timestamp(start, calendar: calendar),
+                    CSV.timestamp(end, calendar: calendar),
+                    CSV.minutes(end.map { $0 - start }),
                 ]
             })
-    }
-
-    private static func minutes(_ seconds: Double?) -> String {
-        seconds.map { String(format: "%.1f", $0 / 60) } ?? ""
-    }
-
-    /// Local time as `2026-09-26 14:05`, which spreadsheets read as a date.
-    private static func stamp(_ seconds: Double?, _ calendar: Calendar) -> String {
-        guard let seconds else { return "" }
-        let parts = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute], from: Date(timeIntervalSince1970: seconds))
-        return String(
-            format: "%04d-%02d-%02d %02d:%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0, parts.hour ?? 0,
-            parts.minute ?? 0)
     }
 
     // MARK: Tools
