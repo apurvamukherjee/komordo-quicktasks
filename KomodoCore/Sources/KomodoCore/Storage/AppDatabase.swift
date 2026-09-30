@@ -3,11 +3,14 @@ import GRDB
 
 /// Everything the board loads at launch.
 public struct StoredBoard: Sendable {
+    /// Every list in order, including those in Trash or archived.
     public var lists: [TaskList]
     public var tasks: [TaskItem]
     /// In Trash, and archived: kept apart so nothing on the Board has to skip them.
     public var trash: [TaskItem]
     public var archived: [TaskItem]
+    /// Open and done tasks of lists in Trash or archived; they come back with their list.
+    public var shelved: [TaskItem]
     public var preferences: [String: String]
 }
 
@@ -80,6 +83,10 @@ public final class AppDatabase: Sendable {
             try db.execute(
                 sql: "ALTER TABLE tasks ADD COLUMN deleted_at REAL; ALTER TABLE tasks ADD COLUMN archived_at REAL")
         }
+        migrator.registerMigration("v3 list trash and archive") { db in
+            try db.execute(
+                sql: "ALTER TABLE lists ADD COLUMN deleted_at REAL; ALTER TABLE lists ADD COLUMN archived_at REAL")
+        }
         return migrator
     }
 
@@ -105,10 +112,14 @@ public final class AppDatabase: Sendable {
             let preferences = try Row.fetchAll(db, sql: "SELECT key, value FROM preferences").reduce(
                 into: [String: String]()
             ) { $0[$1["key"]] = $1["value"] }
+            // A task's own Trash or archive state wins over its list's, so it keeps it when the list comes back.
+            let hidden = Set(lists.filter { !$0.isActive }.map(\.id))
+            let own = tasks.filter { $0.deletedAt == nil && $0.archivedAt == nil }
             return StoredBoard(
-                lists: lists, tasks: tasks.filter { $0.deletedAt == nil && $0.archivedAt == nil },
+                lists: lists, tasks: own.filter { !hidden.contains($0.listID) },
                 trash: tasks.filter { $0.deletedAt != nil },
-                archived: tasks.filter { $0.deletedAt == nil && $0.archivedAt != nil }, preferences: preferences)
+                archived: tasks.filter { $0.deletedAt == nil && $0.archivedAt != nil },
+                shelved: own.filter { hidden.contains($0.listID) }, preferences: preferences)
         }
     }
 
@@ -121,11 +132,16 @@ public final class AppDatabase: Sendable {
             for (position, list) in change.savedLists.enumerated() {
                 try db.execute(
                     sql: """
-                        INSERT INTO lists (id, name, color, letter, position, updated_at) VALUES (?, ?, ?, ?, ?, ?)
+                        INSERT INTO lists (id, name, color, letter, position, deleted_at, archived_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(id) DO UPDATE SET name = excluded.name, color = excluded.color,
-                          letter = excluded.letter, position = excluded.position, updated_at = excluded.updated_at
+                          letter = excluded.letter, position = excluded.position, deleted_at = excluded.deleted_at,
+                          archived_at = excluded.archived_at, updated_at = excluded.updated_at
                         """,
-                    arguments: [list.id, list.name, list.color, list.letter, position, now.timeIntervalSince1970])
+                    arguments: [
+                        list.id, list.name, list.color, list.letter, position, list.deletedAt?.timeIntervalSince1970,
+                        list.archivedAt?.timeIntervalSince1970, now.timeIntervalSince1970,
+                    ])
             }
             for id in change.deletedListIDs { try db.execute(sql: "DELETE FROM lists WHERE id = ?", arguments: [id]) }
             for id in change.deletedTaskIDs { try db.execute(sql: "DELETE FROM tasks WHERE id = ?", arguments: [id]) }
@@ -189,7 +205,9 @@ public final class AppDatabase: Sendable {
     private static func date(_ seconds: Double) -> Date { Date(timeIntervalSince1970: seconds) }
 
     private static func list(_ row: Row) -> TaskList {
-        TaskList(id: row["id"], name: row["name"], color: row["color"], letter: row["letter"])
+        TaskList(
+            id: row["id"], name: row["name"], color: row["color"], letter: row["letter"],
+            deletedAt: (row["deleted_at"] as Double?).map(date), archivedAt: (row["archived_at"] as Double?).map(date))
     }
 
     private static func task(_ row: Row, subtasks: [Subtask], sessions: [WorkSession]) throws -> TaskItem {

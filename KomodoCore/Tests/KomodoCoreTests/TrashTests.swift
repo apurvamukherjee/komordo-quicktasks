@@ -41,4 +41,25 @@ struct TrashTests {
         #expect(board.trash == [trashed])
         #expect(board.archived == [archived])
     }
+
+    @Test func tasksOfAHiddenListLoadShelvedAndKeepTheirOwnState() throws {
+        let database = try AppDatabase.inMemory()
+        let growth = TaskList(id: "growth", name: "Growth", color: "amber", deletedAt: day(9, 24))
+        let work = TaskList(id: "work", name: "Work", color: "lime")
+        var change = BoardChange.lists(from: [], to: [work, growth])
+        let open = TaskItem(id: "open", listID: "work", title: "Open", bucket: .today, rank: 0)
+        var shelved = open
+        shelved.id = "shelved"
+        shelved.listID = "growth"
+        var trashedEarlier = shelved
+        trashedEarlier.id = "trashedEarlier"
+        trashedEarlier.deletedAt = day(9, 20)
+        change.savedTasks = [open, shelved, trashedEarlier]
+        try database.apply(change)
+        let board = try database.load()
+        #expect(board.lists == [work, growth])
+        #expect(board.tasks == [open])
+        #expect(board.shelved == [shelved])
+        #expect(board.trash == [trashedEarlier])
+    }
 }
