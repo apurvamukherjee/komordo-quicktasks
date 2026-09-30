@@ -65,4 +65,34 @@ struct ReportTests {
         #expect(data.tasks.map(\.id) == ["spec"])
         #expect(data.breaks.map(\.id) == ["b"])
     }
+
+    @Test func productivityFindsTheBestHourWeekdayAndMonth() {
+        let tasks = [
+            task("a", estimate: 3600, done: at(day(22), 11), sessions: [(at(day(22), 10), at(day(22), 11))]),
+            task("b", estimate: 3600, done: at(day(22), 12), sessions: [(at(day(22), 11), at(day(22), 12, 30))]),
+            task("c", done: at(day(24), 11), sessions: [(at(day(24), 10, 30), at(day(24), 11))]),
+            task(
+                "august",
+                sessions: [
+                    (at(LocalDate(year: 2026, month: 8, day: 3), 9), at(LocalDate(year: 2026, month: 8, day: 3), 10))
+                ]),
+        ]
+        let productivity = Productivity(
+            ReportData(tasks: tasks, breaks: [], listID: nil, now: now, calendar: calendar), range: week)
+        #expect(productivity.bestHour == 10)
+        #expect(productivity.hours[10] == 5400)
+        #expect(productivity.weekdays.map(\.weekday) == [2, 3, 4, 5, 6, 7, 1])
+        #expect(productivity.bestWeekday?.weekday == 3)
+        #expect(productivity.bestWeekday?.tasksDone == 2)
+        #expect(productivity.bestWeekday?.onEstimate == 0.5)
+        #expect(productivity.weekdays.last?.isAhead == true)
+        #expect(productivity.months.count == 9)
+        #expect(productivity.bestMonth == 9)
+    }
+
+    @Test func todayIsComparedWithTheSameWeekdayLastWeek() {
+        let range = ReportRange(.today, today: today, calendar: calendar)
+        #expect(range.compared(to: .today, calendar: calendar) == ReportRange(first: day(19), last: day(19)))
+        #expect(week.compared(to: .week, calendar: calendar).first == day(14))
+    }
 }
