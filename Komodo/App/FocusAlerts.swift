@@ -5,8 +5,9 @@ import UserNotifications
 
 /// Komodo's notifications (DESIGN_SYSTEM §14.2, FEATURES §4.10–4.12): a sprint's end, a break that's over with
 /// Resume, Time's Up with +5 min and Done while the panel is hidden, and each scheduled task's reminder with Start
-/// now and Snooze 5 min. Reminders are scheduled with the system, so they fire while Komodo is closed. Permission
-/// is asked the first time one is needed, until onboarding asks up front.
+/// now and Snooze 5 min. All of them are scheduled with the system ahead of time, so they fire on time while
+/// Komodo naps, and reminders even while it's closed. Permission is asked the first time one is needed, unless
+/// onboarding asked up front.
 @MainActor final class FocusAlerts: NSObject, UNUserNotificationCenterDelegate {
     private enum ID {
         static let breakOverCategory = "breakOver"
@@ -35,6 +36,7 @@ import UserNotifications
 
     func install() {
         center.delegate = self
+        cancelTimed()
         func action(_ id: String, _ title: String) -> UNNotificationAction {
             UNNotificationAction(identifier: id, title: title, options: [.foreground])
         }
@@ -59,20 +61,42 @@ import UserNotifications
         _ = await Self.isAllowed(UNUserNotificationCenter.current())
     }
 
-    func sprintEnded(sprint: Int, of count: Int, breakLength: TimeInterval, task: String) {
-        post(
-            title: "Sprint \(sprint) of \(count) done",
+    /// The alerts a running timer arms ahead of time (ARCHITECTURE §4.3), so the system delivers them on the
+    /// second even while Komodo naps. Arming one again replaces it.
+    enum Timed: String, CaseIterable {
+        case sprintEnd
+        case breakOver
+        case timesUp
+
+        fileprivate var identifier: String { "focus.\(rawValue)" }
+    }
+
+    func sprintEnds(in delay: TimeInterval, sprint: Int, of count: Int, breakLength: TimeInterval, task: String) {
+        schedule(
+            .sprintEnd, in: delay, title: "Sprint \(sprint) of \(count) done",
             body: "Take \(DurationFormat.short(breakLength)). \(task) is paused.", category: nil)
     }
 
-    func breakOver(task: String) {
-        post(title: "Break's over", body: "Back to \(task)?", category: ID.breakOverCategory)
+    func breakEnds(in delay: TimeInterval, task: String) {
+        schedule(.breakOver, in: delay, title: "Break's over", body: "Back to \(task)?", category: ID.breakOverCategory)
     }
 
-    func timesUp(task: String, estimate: TimeInterval) {
-        post(
-            title: "Time's up", body: "\(task) · \(DurationFormat.short(estimate)) estimate",
+    func timesUp(in delay: TimeInterval, task: String, estimate: TimeInterval) {
+        schedule(
+            .timesUp, in: delay, title: "Time's up", body: "\(task) · \(DurationFormat.short(estimate)) estimate",
             category: ID.timesUpCategory)
+    }
+
+    /// Pause, Done, Skip or a changed estimate: the armed alert no longer applies.
+    func cancel(_ alert: Timed) {
+        let identifier = alert.identifier
+        enqueue { UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier]) }
+    }
+
+    /// Quit and launch: no timer runs across them, so nothing armed may fire. A break that carries on after a
+    /// relaunch arms itself again.
+    func cancelTimed() {
+        center.removePendingNotificationRequests(withIdentifiers: Timed.allCases.map(\.identifier))
     }
 
     /// Replaces every pending reminder with these.
@@ -80,22 +104,39 @@ import UserNotifications
         Task { await Self.replaceReminders(reminders, calendar: calendar) }
     }
 
-    private func post(title: String, body: String, category: String?) {
-        Task { await Self.deliver(title: title, body: body, category: category) }
+    /// Arming and cancelling run in order, so a Pause right after Start can't be overtaken by the arm still asking
+    /// for permission.
+    private var queue: Task<Void, Never>?
+
+    private func enqueue(_ work: @escaping @Sendable () async -> Void) {
+        let previous = queue
+        queue = Task {
+            await previous?.value
+            await work()
+        }
+    }
+
+    private func schedule(_ alert: Timed, in delay: TimeInterval, title: String, body: String, category: String?) {
+        let identifier = alert.identifier
+        enqueue { await Self.deliver(identifier, in: delay, title: title, body: body, category: category) }
     }
 
     // MARK: Delivery
 
     // Requests are built off the main actor, so nothing non-Sendable crosses over.
 
-    private nonisolated static func deliver(title: String, body: String, category: String?) async {
+    private nonisolated static func deliver(
+        _ identifier: String, in delay: TimeInterval, title: String, body: String, category: String?
+    ) async {
         let center = UNUserNotificationCenter.current()
         guard await isAllowed(center) else { return }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         if let category { content.categoryIdentifier = category }
-        await add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil), to: center)
+        // A time-interval trigger needs a positive interval.
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, delay), repeats: false)
+        await add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger), to: center)
     }
 
     private nonisolated static func replaceReminders(_ reminders: [Reminder], calendar: Calendar) async {

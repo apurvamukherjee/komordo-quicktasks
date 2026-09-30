@@ -161,7 +161,10 @@ import SwiftUI
         }
     }
     /// Where Focus mode shows while the Home window steps aside (FEATURES §4.8, §4.9); nil shows Home.
-    var focusSurface: FocusSurface?
+    var focusSurface: FocusSurface? {
+        // Time's Up only notifies while the panel isn't there to say it.
+        didSet { if (focusSurface == .panel) != (oldValue == .panel) { syncTimesUp() } }
+    }
     /// Bumped by ⌘⇧P; the floating timer ripples each time it changes.
     private(set) var locatorPings = 0
     /// Bumped by ⌘⇧B and the menu bar's Open Komodo; the menu bar item reopens Home each time it changes.
@@ -207,11 +210,18 @@ import SwiftUI
     private var timedAlert: Task<Void, Never>?
     /// Sound and notifications; set by the app, absent in previews.
     var alerts: FocusAlerts? {
-        didSet { scheduleReminderSync() }
+        didSet {
+            scheduleReminderSync()
+            // A task or break restored at launch arms its alerts now that there's somewhere to send them.
+            syncSprint()
+            syncBreakEnd()
+        }
     }
     private var heartbeat: Task<Void, Never>?
     /// When the Mac went to sleep with a task running.
     @ObservationIgnored private var sleptAt: Date?
+    /// When each system alert armed for the running timer is due.
+    @ObservationIgnored private var armedAlerts: [FocusAlerts.Timed: Date] = [:]
     /// Keeps App Nap away while a timer runs.
     private var napActivity: (any NSObjectProtocol)?
     /// Time's Up for the running task (DESIGN_SYSTEM §14.2).
@@ -403,6 +413,8 @@ import SwiftUI
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
     func pauseForQuit() {
         if let id = focus.taskID { closeSession(id) }
+        // Directly, since the app may be gone before a queued cancel runs.
+        alerts?.cancelTimed()
         savePreference(focus.taskID ?? "", for: Preference.liveTask)
         savePreference(focusSurface?.rawValue ?? "", for: Preference.liveSurface)
         savePreference(focus.breakEndsAt.map { "\($0.timeIntervalSince1970)" } ?? "", for: Preference.breakEndsAt)
@@ -1164,8 +1176,14 @@ import SwiftUI
         syncTimesUp()
         sprintEnd?.cancel()
         sprintEnd = nil
-        guard isPomodoroOn, focus.taskID != nil, focus.breakEndsAt == nil, let since = focus.sprintSince else { return }
+        guard isPomodoroOn, let id = focus.taskID, focus.breakEndsAt == nil, let since = focus.sprintSince else {
+            disarm(.sprintEnd)
+            return
+        }
         let remaining = focus.pomodoro.remaining(of: sprintLength, at: now, runningSince: since)
+        arming(.sprintEnd, in: remaining)?.sprintEnds(
+            in: remaining, sprint: focus.pomodoro.number, of: PomodoroCycle.sprintsPerSet, breakLength: breakLength,
+            task: tasks.first { $0.id == id }?.title ?? "Your task")
         sprintEnd = Task { [weak self] in
             guard (try? await Task.sleep(for: .seconds(remaining))) != nil else { return }
             self?.endSprint()
@@ -1177,13 +1195,9 @@ import SwiftUI
     private func endSprint() {
         guard let id = focus.taskID, focus.sprintSince != nil else { return }
         closeSession(id)
-        let finished = focus.pomodoro.number
         focus.pomodoro.finishSprint()
         focus.breakEndsAt = now.addingTimeInterval(breakLength)
         focus.breakLength = breakLength
-        alerts?.sprintEnded(
-            sprint: finished, of: PomodoroCycle.sprintsPerSet, breakLength: breakLength,
-            task: tasks.first { $0.id == id }?.title ?? "Your task")
         play(.glass)
     }
 
@@ -1253,14 +1267,36 @@ import SwiftUI
     private func syncTimesUp() {
         timesUpAlert?.cancel()
         timesUpAlert = nil
-        guard let live = liveTask, focusClock(for: live).isRunning, let estimate = live.estimate else { return }
-        let remaining = estimate - live.timeTaken(at: now)
-        guard remaining > 0 else { return }
+        guard let live = liveTask, focusClock(for: live).isRunning, let estimate = live.estimate,
+            case let remaining = estimate - live.timeTaken(at: now), remaining > 0
+        else {
+            disarm(.timesUp)
+            return
+        }
+        if focusSurface == .panel {
+            disarm(.timesUp)
+        } else {
+            arming(.timesUp, in: remaining)?.timesUp(in: remaining, task: live.title, estimate: estimate)
+        }
         timesUpAlert = Task { [weak self] in
             guard (try? await Task.sleep(for: .seconds(remaining))) != nil, let self else { return }
             play(.glass)
-            if focusSurface != .panel { alerts?.timesUp(task: live.title, estimate: estimate) }
         }
+    }
+
+    /// Only a saved board arms system alerts, like reminders: a sample run in a capture must not leave any behind.
+    /// Records when it's due, so `disarm` can tell a withdrawn alert from one arriving now.
+    private func arming(_ alert: FocusAlerts.Timed, in delay: TimeInterval) -> FocusAlerts? {
+        guard database != nil, let alerts else { return nil }
+        armedAlerts[alert] = now.addingTimeInterval(delay)
+        return alerts
+    }
+
+    /// Withdraws an armed alert that's still ahead. One due now is left alone: the in-app timer fires beside the
+    /// system's, and its own sync must not cancel the notification on its way.
+    private func disarm(_ alert: FocusAlerts.Timed) {
+        guard let due = armedAlerts.removeValue(forKey: alert), due > now.addingTimeInterval(1) else { return }
+        alerts?.cancel(alert)
     }
 
     /// Only a saved board reminds; previews and captures hold sample tasks in memory.
@@ -1290,11 +1326,14 @@ import SwiftUI
         syncNapActivity()
         breakEnd?.cancel()
         breakEnd = nil
-        guard let endsAt = focus.breakEndsAt, endsAt > now else { return }
+        guard let endsAt = focus.breakEndsAt, endsAt > now else {
+            disarm(.breakOver)
+            return
+        }
+        let task = focus.taskID.flatMap { id in tasks.first { $0.id == id }?.title } ?? "your task"
+        arming(.breakOver, in: endsAt.timeIntervalSince(now))?.breakEnds(in: endsAt.timeIntervalSince(now), task: task)
         breakEnd = Task { [weak self] in
             guard let self, (try? await Task.sleep(for: .seconds(endsAt.timeIntervalSince(now)))) != nil else { return }
-            let task = focus.taskID.flatMap { id in tasks.first { $0.id == id }?.title } ?? "your task"
-            alerts?.breakOver(task: task)
             play(.glass)
             // The break waits for the next Start, and nothing times meanwhile.
             syncNapActivity()
