@@ -22,9 +22,9 @@ struct SidebarView: View {
             ) {
                 store.showList(nil)
             }
-            NavRow(title: "Reports", symbol: "chart.bar.xaxis", shortcut: "⌘2", isSelected: false) {}
-                .disabled(true)
-                .help("Reports arrive in Phase 1")
+            NavRow(title: "Reports", symbol: "chart.bar.xaxis", shortcut: "⌘2", isSelected: store.page == .reports) {
+                store.showReports()
+            }
 
             HStack {
                 Text("LISTS")
