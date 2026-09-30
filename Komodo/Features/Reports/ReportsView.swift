@@ -43,7 +43,8 @@ struct ReportsView: View {
         case .time:
             ScrollView { TimeSpentReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
         case .sessions:
-            Color.clear
+            ScrollView { SessionsReport(store: store, edit: { _ in }).padding(.bottom, Space.s6) }
+                .scrollIndicators(.never)
         }
     }
 
