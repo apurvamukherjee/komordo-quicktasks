@@ -8,14 +8,17 @@ struct TimeSpentReport: View {
     var store: BoardStore
 
     @State private var highlighted: String?
-    @State private var openListID: String?
+    /// The list opened by a click; until the first click, the top list is open, as on the canvas.
+    @State private var chosenListID: String?
+    @State private var hasChosen = false
 
     var body: some View {
         let spent = TimeSpent(store.reportData, range: store.reportRange)
+        let openListID = hasChosen ? chosenListID : spent.lists.first?.listID
         HStack(alignment: .top, spacing: Space.s4) {
             donutCard(spent)
                 .frame(width: 400)
-            table(spent)
+            table(spent, openListID: openListID)
         }
     }
 
@@ -86,7 +89,7 @@ struct TimeSpentReport: View {
 
     private var columns: [ReportTableColumn] { [.flexible, .fixed(110), .fixed(212)] }
 
-    private func table(_ spent: TimeSpent) -> some View {
+    private func table(_ spent: TimeSpent, openListID: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
@@ -100,7 +103,7 @@ struct TimeSpentReport: View {
             .padding(.bottom, Space.s3)
             ReportTableHeader(columns: columns, titles: ["LIST", "HOURS", "%"])
             ForEach(spent.lists, id: \.listID) { list in
-                listRow(list, spent: spent)
+                listRow(list, spent: spent, isOpen: openListID == list.listID)
                 if openListID == list.listID {
                     VStack(spacing: 0) {
                         ForEach(list.tasks, id: \.id) { task in
@@ -131,10 +134,12 @@ struct TimeSpentReport: View {
         .spotlight(Palette.lime, lifts: false) { CardSurface() }
     }
 
-    private func listRow(_ list: TimeSpent.List, spent: TimeSpent) -> some View {
-        let isOpen = openListID == list.listID
-        return Button {
-            withAnimation(Motion.spring) { openListID = isOpen ? nil : list.listID }
+    private func listRow(_ list: TimeSpent.List, spent: TimeSpent, isOpen: Bool) -> some View {
+        Button {
+            withAnimation(Motion.spring) {
+                hasChosen = true
+                chosenListID = isOpen ? nil : list.listID
+            }
         } label: {
             ReportTableRow(columns: columns, tint: highlighted == list.listID ? color(of: list.listID) : .white) {
                 HStack(spacing: 10) {
