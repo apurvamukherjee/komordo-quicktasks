@@ -1,8 +1,9 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-09-29. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
-archive, focus restore with crash recovery, and 5g without Google (Data & backup, onboarding, celebration GIFs)
-are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
+Last updated: 2026-10-01. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
+archive, focus restore with crash recovery, 5g without Google (Data & backup, onboarding, celebration GIFs), and
+most of the P0 polish (list management, timed tasks joining the queue, sleep and App Nap, scheduled focus alerts,
+the scrolling title, the File and Help menus) are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -24,8 +25,9 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": the P0 polish list, starting with list management
-(create, rename, color, archive, delete to Trash). Gmail → Calendar stays parked until I say so. Try
+Then continue from docs/HANDOFF.md §4 "Next task": finish the P0 polish with the XCUITest smoke tests (ask
+before running them, they drive the pointer), the README screenshots of lists, and the idle CPU check in §4.
+Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
 PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
@@ -55,7 +57,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | — | Trash and archive, focus restore, crash recovery, day rollover | ✅ | Gaps from §5 closed between milestones; Trash checked against `Trash.png` |
 | 5g | Data & backup, Onboarding, celebration GIFs | ✅ | Checked against `DataSheets.png`, `Onboarding.png`, `Celebration.png` |
 | 5g | Gmail → Calendar | ⏸ Parked | The maintainer's call on 2026-09-29; §9 question 1 still open |
-| — | **P0 polish** | ⏭ **Next** | See §4 |
+| — | P0 polish: lists, timed tasks, sleep, App Nap, scheduled alerts, scrolling title, File and Help menus | ✅ | 2026-10-01; tried on a scratch database |
+| — | **P0 polish: XCUITest smoke tests, list screenshots, idle CPU** | ⏭ **Next** | See §4 |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
@@ -72,11 +75,11 @@ Komodo/
   App/                KomodoApp (scenes incl. MenuBarExtra, commands, LaunchOptions), AppDelegate (attaches the
                       store; Dock policy, hotkeys, day rollover, notification actions), FocusAlerts
                       (notifications, reminders), GlobalHotKeys (Carbon), Sounds (KomodoSound.play),
-                      FocusCommands, DebugCommands (Debug menu, gallery)
+                      FocusCommands, FileCommands, HelpCommands, DebugCommands (Debug menu, gallery)
   DesignSystem/       Palette, Typography, Metrics (Space/Radius/Layout), Motion, Elevation,
                       WeightedHStack, FlowLayout
     Effects/          Spotlight, BeamBorder, FocusDial, OdometerText, TimerTone, Ping, Shake, Sheen, Rise, Aurora,
-                      LayerEffect (hosts the Core Animation loops)
+                      Marquee, LayerEffect (hosts the Core Animation loops)
     Components/       Buttons, chips, badges, fields, TaskCard/QueueCard, LiveTaskCard, BreakCard, DayMeter,
                       ControlBar, Toast, Banner, PopoverSurface, CardSurface, KomodoMark
     Gallery/          Debug-only replica of Foundations.png plus a Components section
@@ -92,7 +95,8 @@ Komodo/
                       (group, row, switch, menu picker, duration stepper, sound preview), one file per page:
                       General, Focus, Alerts, Celebration, Shortcuts (key recorder), About
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
-  Features/Trash/     TrashView (shown in place of the Board when store.isShowingTrash)
+  Features/Trash/     TrashView (shown in place of the Board when store.isShowingTrash): task and list rows
+  Features/Lists/     ListEditorSheet (new, rename, color & icon), DeleteListSheet (typed name)
   Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all), BackupSheets (restore
                       confirm, restore errors, typed delete)
   Features/Onboarding/ OnboardingView (sheet, steps, dots), OnboardingStages (plan, focus, win, notification
@@ -111,7 +115,7 @@ KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Backup/             Backup (export zip, open and check, prune, file names), BackupManifest, CSV
   Storage/            AppDatabase (GRDB: v1 + v2 trash/archive migrations, load splits tasks/trash/archived,
                       write-through, preferences), BoardChange (the diff)
-  Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery
+  Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery, AwayTime
   Formatting/         DurationFormat
   Parsing/            EstimateParser
   Recurrence/         RepeatRule (kinds, occurrences, wording), Recurrence (this week's copies)
@@ -156,6 +160,16 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   `syncSprint()`, which every open/close of a session passes through.
 - **Trash and archive:** separate `trash` / `archived` arrays with their own write-through, so `tasks` only
   holds what the Board shows. Delete = move to trash with Undo.
+- **Lists:** `allLists` holds every list in sidebar order with its `deletedAt` / `archivedAt`; `lists` is the
+  active ones, which every picker reads. Tasks of a hidden list sit in `shelved` (loaded apart by
+  `AppDatabase.load`) and come back with the list. Never move a list between arrays: the lists diff deletes rows
+  missing from the array, and the database cascades that to its tasks. The last active list can't be archived or
+  deleted (`canRemoveLists`). Trash reads `trashItems`, where a deleted list is one row holding its tasks.
+- **Time-driven layout:** `layout` passes `now`, so timed tasks whose minute has passed lead Up next.
+  `syncScheduleTick` sleeps until the next start today and bumps `scheduleTicks` so views redraw on time.
+- **Focus alerts:** `arming(_:in:)` schedules sprint end, break over and Time's Up with the system when the
+  in-app timer starts, only for a saved board; `disarm` withdraws one that's still ahead. `FocusAlerts` runs
+  arm and cancel on one serial queue.
 - **Relaunch:** `pauseForQuit()` saves the live task, surface and break as preferences; the init restores
   them, or after a crash closes the open session at the saved heartbeat (`CrashRecovery`).
 - **Backup and restore:** every file in a zip comes from one `VACUUM INTO` snapshot. A restore checks the zip's
@@ -170,19 +184,18 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: P0 polish, starting with list management
+## 4. Next task: finish the P0 polish
 
-Gmail → Calendar is parked (the maintainer's call, 2026-09-29), so the next work is the P0 polish that's left.
-In order:
-1. **List management:** create (the sidebar **+**, disabled today), rename, color, archive, and delete to Trash
-   with list rows in Trash (FEATURES §4.1, §4.20; `Trash.dc.html` has the list rows).
-2. **Timed tasks join the queue** when their time passes (FEATURES §4.6); the calm card waits for them.
-3. **Sleep and App Nap** (ARCHITECTURE §4.3): the "You were away 47 min" question, and an App Nap activity while
-   a timer runs.
-4. **Sprint, break and Time's Up alerts scheduled as notifications**, so they fire while the app naps.
-5. **Scrolling title** in the floating timer (Settings already stores it).
-6. **Help menu items** and **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete
-   all → Restore).
+Done on 2026-10-01: list management, timed tasks joining the queue, the sleep question and App Nap, scheduled
+sprint / break / Time's Up notifications, the scrolling title, and the File and Help menus. Left, in order:
+1. **README screenshots** of the list sheets and Trash with a list row, captured from the running app with
+   `-openListSheet new|edit|delete` and `-openTrash 3 -deleteList growth` (the screen was locked this session).
+2. **Idle CPU:** an optimized build with sample data (`-configuration Release SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`,
+   since Release strips the sample flags and would open the real board) idled near 50% on 2026-10-01, the same
+   before and after this session's changes, while the screen was locked. `sample` shows a SwiftUI animation
+   updating the graph continuously. Measure again with the screen unlocked; if it holds, find the animation.
+3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore). They take
+   over the pointer, so ask the maintainer for the screen before running them.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -213,12 +226,15 @@ In order:
   - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip has no pulsing rings, and the
     illustrations don't float or tick (static drawings, so an open sheet costs nothing).
   - Allow was pressed once in a background test, which may have shown the system notification prompt.
-- **Disabled until their milestones:**
-  - Reports (sidebar)
-  - Create list (sidebar **+**), so list delete, archive and list rows in Trash wait for list management
-
-  Each has a `.help` note.
-- **Archive:** archived tasks are kept for Reports; nothing shows them yet, and Undo is the only way back.
+- **Disabled until its milestone:** Reports in the sidebar, with a `.help` note.
+- **Archive:** archived tasks and lists are kept for Reports; nothing shows them yet, and Undo is the only way
+  back. A task restored from Trash into an archived list goes quietly onto that list's shelf.
+- **Lists:**
+  - No Create List tile on Home (FEATURES §4.1): `Main.png` draws none; the sidebar **+** and File ▸ New List
+    cover it. No palette command either, since DESIGN_SYSTEM §13.7 lists none.
+  - Badges are one letter or emoji; image icons (and `assets/` in the backup zip) wait.
+  - Tried on a scratch database with `-deleteList` and a backdated purge; the sheets, the context menu and
+    dragging weren't driven with the pointer, and nothing was captured because the screen was locked.
 - **Card ⋯ menu:** its items, groups and shortcuts were checked against `BoardStates.dc.html` in code. It's a
   native menu, so it hasn't been captured, and ⌘D / ⌘⌫ on a focused card haven't been tried in the running app.
 - **README recording** has not been re-recorded for 5b to 5e. The screenshots are fresh, but recording needs the
@@ -226,7 +242,7 @@ In order:
 - **Celebration:** the floating card keeps the check, since the 240 × 180 GIF tile doesn't fit a 320 × 240 card.
   No "3 in a row today" chip (needs streak rules).
 - **Floating timer:**
-  - The title doesn't scroll yet. Settings stores Scrolling title, but nothing reads it.
+  - The scrolling title wasn't captured moving (screen locked); the marquee's pause-on-hover is untried.
   - Its window is a fixed 600 × 88 transparent frame. Clicks pass through the transparent part; that was
     reasoned from AppKit's alpha hit-testing, not tried by clicking.
   - Dragging, hover controls and the position memory weren't exercised with the pointer.
@@ -253,8 +269,11 @@ In order:
   - Check for Updates is disabled until the signed release (Sparkle); Release notes isn't linked.
   - The Dock toggle and Open at login weren't flipped on the maintainer's Mac.
 - **Focus restore:** a relaunch brings the live task back paused, in its surface, with an unfinished break;
-  the Pomodoro count starts over. Sleep and the "You were away 47 min" question (ARCHITECTURE §4.3) aren't
-  built, and there's no App Nap activity while a timer runs.
+  the Pomodoro count starts over.
+- **Sleep:** the away toast counts by default and offers Discard; the current sprint isn't shifted by a discard.
+  Not tried with a real sleep yet.
+- **Scheduled focus alerts:** only a saved board arms them. A crash can leave one pending until the next launch
+  clears it. None has been seen firing on the maintainer's Mac.
 - **Focus Panel:**
   - The Scheduled today **+** is disabled with a `.help` note.
   - Rows have Make live, Done, Duplicate and Delete. Schedule, Subtasks, Notes and Move to list open the Home
@@ -262,7 +281,6 @@ In order:
   - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
   - If the Home window was closed before Start, Home has no window to bring back.
   - The won card's twinkling sparks are left out, and See reports is disabled until Reports.
-- **Timed tasks** don't join the queue when their time passes (FEATURES §4.6); the calm card waits for them.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -347,6 +365,17 @@ In order:
 | Onboarding step count | Five, Gmail left out | Gmail → Calendar is parked |
 | ⌘Return in onboarding | Caught with `onKeyPress` on the editor | The text view takes ⌘Return before the button's shortcut |
 | Menu bar and in-app mark | The check replaces the clock hand in the idle and attention states and in `KomodoMarkShape` | Matches the app icon. `System.png` draws a hand. Running keeps the spec's filled wedge |
+| List sheet | One `FormSheet` for New list, Rename and Color & Icon: name, eight swatches, a one-character badge with a preview | No canvas or copy for it; titles "New list" / "Edit list" and the field hints are new strings |
+| Delete list confirm | Type the list's name; "The list and its N tasks move to Trash for 30 days." | FEATURES §4.1 asks for the typed name; the layout follows Delete all data's sheet |
+| Last list | Archive and Delete are off for the last active list | New tasks always need a list to go to |
+| Deleted list in Trash | One row with its badge and a violet List chip, holding its tasks; restoring it brings them back | `Trash.dc.html`'s Growth row; a task deleted before its list keeps its own row |
+| List reorder | A dragged list takes the place of the row it's dropped on | Lets a list reach the bottom without a drop gap |
+| Timed task arrives | Joins the top of Up next in time order; a panel waiting on the calm card starts it | FEATURES §4.6 says it joins the queue; the calm card says it "joins the queue on time", and an empty hero would be blank |
+| Away toast | "You were away 47min." · "Count it or discard it?" with Discard; counting is the default | ARCHITECTURE §4.3's question; `47min` follows DESIGN_SYSTEM §3's duration format |
+| Scheduled alerts | Only for a saved board; cleared at launch and quit | A sample capture must never leave a notification pending on the maintainer's Mac |
+| ⌘⌥T | File ▸ New Task instead of Home's hidden button | DESIGN_SYSTEM §14.3; the menu reaches it from every Komodo window |
+| Restore from Backup… | Opens Settings ▸ Data & backup | The file picker and confirm live there |
+| Diagnostics log | This process's Komodo log entries, up to 500 | DESIGN_SYSTEM §13.15 says "the app's own logs"; the unified log keeps values private |
 
 ---
 
@@ -384,6 +413,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - Settings: `-openSettings general|focus|alerts|celebration|shortcuts|data|about` (window "Settings"). With
     `data`, `-openRestore <zip>` and `-openDeleteAll YES` open the sheets. Trash: `-openTrash <count>` deletes
     that many sample tasks and shows Trash.
+  - Lists: `-openListSheet new|edit|delete` (edit and delete act on the selected list) and `-deleteList <id>`,
+    which pairs with `-openTrash <count>` for a list row in Trash.
   - Onboarding: `-openOnboarding plan|focus|win|notifications|today` and `-openStartTip YES`. The sheet blocks
     Quit, so end those runs with `pkill` (sample data only, never a database).
   - Backups: launch without `-quietCapture` on a scratch database with its `backupFolder` preference pointed at
@@ -443,6 +474,13 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   `" "`.
 - **WeightedHStack** fills a concrete proposed height. Outside a scroll view give it
   `.fixedSize(horizontal: false, vertical: true)`, or it stretches its row.
+- **Release and sample data:** Release strips the Debug launch flags, so `-sampleTime` does nothing and the
+  real board opens. For an optimized sample run, build with `-configuration Release
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG` into its own derived data folder.
+- **Locked screen:** `screencapture -l` fails with "could not create image from window" while the screen is
+  locked; check `CGSSessionScreenIsLocked` in `CGSessionCopyCurrentDictionary()` before retrying.
+- **List arrays:** the lists diff deletes rows missing from the array and SQLite cascades to their tasks, so a
+  list only ever changes flags in `allLists`, never moves to another array.
 - **Parallel sessions:** two sessions editing the same folder overwrote each other once. Run only one working
   session per checkout.
 
