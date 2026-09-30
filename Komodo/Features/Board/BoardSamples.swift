@@ -23,9 +23,11 @@ enum BoardSamples {
     static func store(anchoredAt anchor: Date? = nil, calendar: Calendar = .current) -> BoardStore {
         let launch = Date()
         let start = anchor ?? launch
+        let past = history(now: start, calendar: calendar)
         return BoardStore(
             lists: lists, tasks: tasks(now: start, calendar: calendar), selectedListID: "work", calendar: calendar,
-            clock: { start.addingTimeInterval(Date().timeIntervalSince(launch)) })
+            clock: { start.addingTimeInterval(Date().timeIntervalSince(launch)) }, archived: past.tasks,
+            breaks: past.breaks)
     }
 
     static func tasks(now: Date, calendar: Calendar) -> [TaskItem] {
@@ -149,5 +151,43 @@ enum BoardSamples {
                     sessions: [WorkSession(start: end.addingTimeInterval(-minutes * 60), end: end)]))
         }
         return tasks
+    }
+
+    /// Two months of finished work for Reports, archived so the Board, the sidebar's bars and the streak stay as
+    /// on the Main artboard. Weekdays only, with yesterday left empty as on Reports.png, and estimates that land
+    /// early, on time and late in turn.
+    static func history(now: Date, calendar: Calendar) -> (tasks: [TaskItem], breaks: [BreakSession]) {
+        let today = LocalDate(now, calendar: calendar)
+        let titles = [
+            ("work", "Marketing brief"), ("work", "Review pull requests"), ("side", "Sparkle appcast"),
+            ("launch", "Launch checklist copy"), ("growth", "Onboarding email sequence"),
+            ("work", "Sprint planning notes"), ("side", "Menu bar polish"), ("personal", "Tax paperwork"),
+            ("work", "Customer call follow-ups"), ("launch", "Press kit screenshots"),
+        ]
+        let factors = [1.0, 1.25, 0.8, 1.05, 0.7, 1.3, 0.95]
+        var tasks: [TaskItem] = []
+        var breaks: [BreakSession] = []
+        for daysAgo in 2...60 {
+            let day = today.adding(days: -daysAgo, calendar: calendar)
+            let weekday = calendar.component(.weekday, from: day.startOfDay(in: calendar))
+            guard weekday != 1, weekday != 7 else { continue }
+            var cursor = day.startOfDay(in: calendar).addingTimeInterval(9 * 3600 + Double(daysAgo % 3) * 900)
+            for slot in 0..<(3 + daysAgo * 7 % 4) {
+                let (listID, title) = titles[(daysAgo + slot * 3) % titles.count]
+                let minutes = 35 + Double((daysAgo * 13 + slot * 29) % 85)
+                let end = cursor.addingTimeInterval(minutes * 60)
+                let id = "past-\(daysAgo)-\(slot)"
+                tasks.append(
+                    TaskItem(
+                        id: id, listID: listID, title: title, bucket: .today, rank: 0,
+                        estimate: (minutes / factors[(daysAgo + slot) % factors.count]).rounded() * 60,
+                        completedAt: end, archivedAt: end, sessions: [WorkSession(start: cursor, end: end)]))
+                let pause = Double(5 + (daysAgo + slot) % 3 * 5) * 60
+                breaks.append(
+                    BreakSession(id: id, start: end, end: end.addingTimeInterval(pause), taskID: id))
+                cursor = end.addingTimeInterval(pause)
+            }
+        }
+        return (tasks, breaks)
     }
 }
