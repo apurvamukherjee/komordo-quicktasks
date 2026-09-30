@@ -115,8 +115,16 @@ import SwiftUI
     /// nil shows All lists.
     var selectedListID: String?
     private(set) var focus = Focus() {
-        // Whatever moved the break's end, the break-over alert follows it.
-        didSet { if focus.breakEndsAt != oldValue.breakEndsAt { syncBreakEnd() } }
+        // Whatever moved the break's end, the break-over alert and the break's record follow it.
+        didSet {
+            guard focus.breakEndsAt != oldValue.breakEndsAt else { return }
+            recordBreak(from: oldValue.breakEndsAt, to: focus.breakEndsAt)
+            syncBreakEnd()
+        }
+    }
+    /// Breaks taken in Focus mode, oldest first, for Reports.
+    private(set) var breaks: [BreakSession] {
+        didSet { persist(.breaks(from: oldValue, to: breaks)) }
     }
     var isPomodoroOn = true {
         didSet {
@@ -262,10 +270,11 @@ import SwiftUI
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
         clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         database: AppDatabase? = nil, preferences: [String: String] = [:], trash: [TaskItem] = [],
-        archived: [TaskItem] = [], shelved: [TaskItem] = []
+        archived: [TaskItem] = [], shelved: [TaskItem] = [], breaks: [BreakSession] = []
     ) {
         self.allLists = lists
         self.shelved = shelved
+        self.breaks = breaks
         self.tasks = tasks
         self.trash = trash
         self.archived = archived
@@ -386,6 +395,7 @@ import SwiftUI
         allLists = lists
         tasks = stored.tasks
         shelved = stored.shelved
+        breaks = stored.breaks
         trash = stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now }
         archived = stored.archived
         selectedListID = self.lists.first?.id
@@ -1261,6 +1271,22 @@ import SwiftUI
             !focus.isDayWon, let next = layout.upNext.first
         else { return }
         begin(next.id)
+    }
+
+    /// A break starting, moving or ending (FEATURES §4.15): a start adds a record due at its end, +2 min moves it,
+    /// and Skip ends it now. A break restored at launch already has its record.
+    private func recordBreak(from oldEnd: Date?, to newEnd: Date?) {
+        switch (oldEnd, newEnd) {
+        case (nil, let end?):
+            guard breaks.last?.end != end else { return }
+            breaks.append(BreakSession(id: UUID().uuidString, start: now, end: end, taskID: focus.taskID))
+        case (_?, let end?):
+            if let index = breaks.indices.last { breaks[index].end = end }
+        case (let end?, nil):
+            if let index = breaks.indices.last { breaks[index].end = min(end, now) }
+        case (nil, nil):
+            break
+        }
     }
 
     /// The running task's estimate runs out: a sound, and a notification when the panel isn't there to say it.

@@ -28,7 +28,7 @@ extension BoardStore {
                 lists: lists, tasks: stored.tasks, selectedListID: lists.first(where: \.isActive)?.id,
                 database: database, preferences: stored.preferences,
                 trash: stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now },
-                archived: stored.archived, shelved: stored.shelved)
+                archived: stored.archived, shelved: stored.shelved, breaks: stored.breaks)
             store.persist(.lists(from: stored.lists, to: lists))
             return store
         } catch {
