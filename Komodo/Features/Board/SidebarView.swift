@@ -45,6 +45,7 @@ struct SidebarView: View {
                 ) {
                     store.showList(list.id)
                 }
+                .contextMenu { listMenu(list) }
             }
 
             Spacer(minLength: Space.s4)
@@ -73,6 +74,18 @@ struct SidebarView: View {
                 .overlay(alignment: .trailing) { Rectangle().fill(Color.white.opacity(0.06)).frame(width: 1) }
                 .ignoresSafeArea()
         }
+    }
+
+    /// DESIGN_SYSTEM §12: Rename · Color & Icon · Archive · Delete. The last list stays, since tasks need one.
+    @ViewBuilder
+    private func listMenu(_ list: TaskList) -> some View {
+        Button("Rename", systemImage: "pencil") { store.listSheet = .edit(list.id) }
+        Button("Color & Icon", systemImage: "paintpalette") { store.listSheet = .edit(list.id) }
+        Divider()
+        Button("Archive", systemImage: "archivebox") { store.archiveList(list.id) }
+            .disabled(!store.canRemoveLists)
+        Button("Delete", systemImage: "trash", role: .destructive) { store.listSheet = .delete(list.id) }
+            .disabled(!store.canRemoveLists)
     }
 
     private var brand: some View {
