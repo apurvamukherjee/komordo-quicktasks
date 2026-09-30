@@ -106,9 +106,11 @@ import SwiftUI
     enum Page: Sendable {
         case board
         case trash
+        case reports
     }
 
     var page = Page.board
+    var reports = ReportsState()
     private(set) var tasks: [TaskItem] {
         didSet {
             persist(.tasks(from: oldValue, to: tasks))
@@ -549,6 +551,9 @@ import SwiftUI
     func openCount(listID: String?) -> Int {
         tasks.filter { !$0.isDone && (listID == nil || $0.listID == listID) }.count
     }
+
+    /// Everything Reports counts: Trash aside, every task, archived ones and those of hidden lists included.
+    var reportTasks: [TaskItem] { tasks + archived + shelved }
 
     /// Any list, including one in Trash, so a trashed task can still name where it came from.
     func list(for task: TaskItem) -> TaskList? { allLists.first { $0.id == task.listID } }
