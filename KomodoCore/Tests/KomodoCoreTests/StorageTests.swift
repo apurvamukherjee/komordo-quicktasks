@@ -62,6 +62,18 @@ struct StorageTests {
         #expect(board.tasks.isEmpty)
     }
 
+    @Test func breaksRoundTripAndUpdateInPlace() throws {
+        let database = try AppDatabase.inMemory()
+        let taken = BreakSession(id: "b1", start: start, end: start.addingTimeInterval(300), taskID: "weekly")
+        try database.apply(.breaks(from: [], to: [taken]))
+        var skipped = taken
+        skipped.end = start.addingTimeInterval(120)
+        try database.apply(.breaks(from: [taken], to: [skipped]))
+        #expect(try database.load().breaks == [skipped])
+        try database.apply(.breaks(from: [skipped], to: []))
+        #expect(try database.load().breaks.isEmpty)
+    }
+
     @Test func theDiffWritesOnlyWhatChanged() {
         var moved = rich
         moved.bucket = .today

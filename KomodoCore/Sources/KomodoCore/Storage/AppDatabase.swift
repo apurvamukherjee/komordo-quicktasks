@@ -11,6 +11,8 @@ public struct StoredBoard: Sendable {
     public var archived: [TaskItem]
     /// Open and done tasks of lists in Trash or archived; they come back with their list.
     public var shelved: [TaskItem]
+    /// Breaks taken in Focus mode, oldest first.
+    public var breaks: [BreakSession]
     public var preferences: [String: String]
 }
 
@@ -87,6 +89,16 @@ public final class AppDatabase: Sendable {
             try db.execute(
                 sql: "ALTER TABLE lists ADD COLUMN deleted_at REAL; ALTER TABLE lists ADD COLUMN archived_at REAL")
         }
+        // No foreign key on the task: moving a task to Trash rewrites its row, which would unlink the break.
+        migrator.registerMigration("v4 breaks") { db in
+            try db.execute(
+                sql: """
+                    CREATE TABLE breaks (
+                      id TEXT PRIMARY KEY, task_id TEXT, started_at REAL NOT NULL, ended_at REAL NOT NULL
+                    );
+                    CREATE INDEX breaks_start ON breaks(started_at);
+                    """)
+        }
         return migrator
     }
 
@@ -119,7 +131,13 @@ public final class AppDatabase: Sendable {
                 lists: lists, tasks: own.filter { !hidden.contains($0.listID) },
                 trash: tasks.filter { $0.deletedAt != nil },
                 archived: tasks.filter { $0.deletedAt == nil && $0.archivedAt != nil },
-                shelved: own.filter { hidden.contains($0.listID) }, preferences: preferences)
+                shelved: own.filter { hidden.contains($0.listID) },
+                breaks: try Row.fetchAll(db, sql: "SELECT * FROM breaks ORDER BY started_at").map { row in
+                    BreakSession(
+                        id: row["id"], start: Self.date(row["started_at"]), end: Self.date(row["ended_at"]),
+                        taskID: row["task_id"])
+                },
+                preferences: preferences)
         }
     }
 
@@ -146,6 +164,20 @@ public final class AppDatabase: Sendable {
             for id in change.deletedListIDs { try db.execute(sql: "DELETE FROM lists WHERE id = ?", arguments: [id]) }
             for id in change.deletedTaskIDs { try db.execute(sql: "DELETE FROM tasks WHERE id = ?", arguments: [id]) }
             for task in change.savedTasks { try Self.save(task, in: db, at: now) }
+            for id in change.deletedBreakIDs {
+                try db.execute(sql: "DELETE FROM breaks WHERE id = ?", arguments: [id])
+            }
+            for item in change.savedBreaks {
+                try db.execute(
+                    sql: """
+                        INSERT INTO breaks (id, task_id, started_at, ended_at) VALUES (?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET task_id = excluded.task_id, started_at = excluded.started_at,
+                          ended_at = excluded.ended_at
+                        """,
+                    arguments: [
+                        item.id, item.taskID, item.start.timeIntervalSince1970, item.end.timeIntervalSince1970,
+                    ])
+            }
         }
     }
 
