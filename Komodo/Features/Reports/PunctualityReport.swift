@@ -295,15 +295,14 @@ private struct EstimateTable: View {
                 ForEach(rows, id: \.taskID) { row in
                     ReportTableRow(columns: columns) {
                         Text(row.title)
-                            .font(.system(size: 13.5, weight: .semibold))
-                            .foregroundStyle(Palette.textPrimary)
+                            .font(.system(size: 13.5, weight: .medium))
                             .lineLimit(1)
                         ReportListLabel(list: store.allLists.first { $0.id == row.listID })
-                        Text(DurationFormat.short(row.estimate))
+                        Text(DurationFormat.short(row.estimate)).foregroundStyle(Palette.textSecondary)
                         Text(DurationFormat.short(row.actual))
                         DeltaCell(row: row)
                     }
-                    .frame(height: 44)
+                    .frame(height: 42)
                 }
             }
         }
@@ -339,7 +338,7 @@ private struct DeltaCell: View {
                 "\(delta > 0 ? "+" : delta < 0 ? "−" : "±")\(DurationFormat.short(abs(delta)))"
                     + (outcome == .onTime ? " · on time" : "")
             )
-            .font(.system(size: 12.5, weight: .semibold).monospacedDigit())
+            .font(.system(size: 13, weight: .bold).monospacedDigit())
             .foregroundStyle(outcome.text)
             .lineLimit(1)
         }
