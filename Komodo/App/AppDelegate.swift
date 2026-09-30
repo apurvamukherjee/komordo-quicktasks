@@ -17,6 +17,7 @@ import AppKit
         settingsWindow.attach(store)
         guard store.alerts == nil else { return }
         watchForNewDay(store)
+        watchForSleep(store)
         scheduleBackups(store)
         followDockSetting()
         installHotKeys(store)
@@ -103,6 +104,17 @@ import AppKit
             center.addObserver(forName: name, object: nil, queue: .main) { _ in
                 MainActor.assumeIsolated { store.dayMayHaveChanged() }
             }
+        }
+    }
+
+    /// ARCHITECTURE §4.3's sleep question: sleep notes the time, and waking asks about a long gap.
+    private func watchForSleep(_ store: BoardStore) {
+        let center = NSWorkspace.shared.notificationCenter
+        center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { store.willSleep() }
+        }
+        center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { store.didWake() }
         }
     }
 
