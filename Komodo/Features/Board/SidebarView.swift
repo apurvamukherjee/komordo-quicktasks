@@ -30,10 +30,9 @@ struct SidebarView: View {
                     .tracking(Typography.Tracking.label)
                     .foregroundStyle(Palette.textMuted)
                 Spacer()
-                Button("Create list", systemImage: "plus") {}
+                Button("Create list", systemImage: "plus") { store.listSheet = .create }
                     .buttonStyle(.icon(.compact))
-                    .disabled(true)
-                    .help("Creating lists comes with list management")
+                    .help("Create new list")
             }
             .padding(.horizontal, 10)
             .padding(.top, 18)
