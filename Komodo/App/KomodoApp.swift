@@ -1,3 +1,4 @@
+import OSLog
 import SwiftUI
 
 @main
@@ -73,6 +74,7 @@ struct SettingsCommand: Commands {
 ///   a list there first.
 /// - `-openListSheet new|edit|delete` opens the list sheet, on the selected list for edit and delete.
 /// - `-openReports overview|punctuality|time|sessions` shows Reports on that tab.
+/// - `-exportSessions <file.pdf|file.csv>` writes Sessions' export there at launch, to check it without the panel.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, data or about. With
 ///   `data`, `-openRestore <zip>` checks that backup and shows its sheet, and `-openDeleteAll YES` the typed confirm.
 enum LaunchOptions {
@@ -96,6 +98,14 @@ enum LaunchOptions {
             if let id = defaults.string(forKey: "deleteList") { store.deleteList(id) }
             if let tab = defaults.string(forKey: "openReports").flatMap(ReportsState.Tab.init) {
                 store.showReports(tab)
+            }
+            if let path = defaults.string(forKey: "exportSessions") {
+                let url = URL(filePath: path)
+                do {
+                    try url.pathExtension == "pdf" ? store.writeSessionsPDF(to: url) : store.writeSessionsCSV(to: url)
+                } catch {
+                    Logger(subsystem: "app.komodo.Komodo", category: "reports").error("Export failed: \(error)")
+                }
             }
             switch defaults.string(forKey: "openListSheet") {
             case "new": store.listSheet = .create
