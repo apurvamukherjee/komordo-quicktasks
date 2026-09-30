@@ -1,8 +1,8 @@
 import KomodoCore
 import SwiftUI
 
-/// Trash (DESIGN_SYSTEM §13.14, Trash.png): deleted tasks for 30 days, newest first, each with Restore and
-/// Delete now on hover or right-click. Items with three days or fewer left say so in amber.
+/// Trash (DESIGN_SYSTEM §13.14, Trash.png): deleted lists and tasks for 30 days, newest first, each with Restore
+/// and Delete now on hover or right-click. Items with three days or fewer left say so in amber.
 struct TrashView: View {
     @Bindable var store: BoardStore
 
@@ -27,9 +27,9 @@ struct TrashView: View {
                     Label("Empty Trash", systemImage: "trash")
                 }
                 .buttonStyle(KomodoButtonStyle(kind: .dangerOutline))
-                .disabled(store.trash.isEmpty)
+                .disabled(store.trashItems.isEmpty)
             }
-            if store.trash.isEmpty {
+            if store.trashItems.isEmpty {
                 empty
             } else {
                 table
@@ -41,7 +41,7 @@ struct TrashView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Palette.bg)
         .confirmationDialog(
-            "Delete \(store.trash.count == 1 ? "this item" : "all \(store.trash.count) items") for good?",
+            "Delete \(itemCount == 1 ? "this item" : "all \(itemCount) items") for good?",
             isPresented: $isConfirmingEmpty
         ) {
             Button("Empty Trash", role: .destructive, action: store.emptyTrash)
@@ -49,6 +49,8 @@ struct TrashView: View {
             Text("This can't be undone.")
         }
     }
+
+    private var itemCount: Int { store.trashItems.count }
 
     private var table: some View {
         let shape = RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
@@ -60,8 +62,8 @@ struct TrashView: View {
             .frame(height: 36)
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(store.trash) { task in
-                        TrashRow(store: store, task: task)
+                    ForEach(store.trashItems) { item in
+                        TrashRow(store: store, item: item)
                     }
                 }
             }
@@ -127,28 +129,31 @@ private struct TrashColumns<Item: View, Kind: View, List: View, Deleted: View, A
 
 private struct TrashRow: View {
     var store: BoardStore
-    var task: TaskItem
+    var item: BoardStore.TrashItem
 
     @State private var isHovered = false
 
     var body: some View {
-        let list = store.list(for: task)
-        let color = list.flatMap { ListColor(rawValue: $0.color) } ?? .lime
-        let left = task.deletedAt.map { Trash.daysLeft(deletedAt: $0, now: store.now, calendar: store.calendar) } ?? 0
+        let left = Trash.daysLeft(deletedAt: item.deletedAt, now: store.now, calendar: store.calendar)
         TrashColumns(
             item: HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 6)
-                    .strokeBorder(Color.white.opacity(0.25), lineWidth: 1.5)
-                    .frame(width: 18, height: 18)
-                Text(task.title)
+                switch item {
+                case .list(let list):
+                    ListBadge(letter: list.letter, color: color(of: list))
+                case .task:
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(Color.white.opacity(0.25), lineWidth: 1.5)
+                        .frame(width: 18, height: 18)
+                }
+                Text(title)
                     .font(.system(size: 13.5, weight: .semibold))
                     .foregroundStyle(Palette.textPrimary)
                     .lineLimit(1)
             },
-            type: Chip("Task", size: .compact),
+            type: isList ? Chip("List", tint: .violet, size: .compact) : Chip("Task", size: .compact),
             list: HStack(spacing: Space.s2) {
-                if let list {
-                    ListBadge(letter: list.letter, color: color, side: 18)
+                if let list = fromList {
+                    ListBadge(letter: list.letter, color: color(of: list), side: 18)
                     Text(list.name).font(.system(size: 12.5)).foregroundStyle(Palette.textBody).lineLimit(1)
                 }
             },
@@ -159,9 +164,9 @@ private struct TrashRow: View {
                     .foregroundStyle(left <= 3 ? Palette.amberText : Palette.textMuted)
             },
             actions: HStack(spacing: 6) {
-                Button("Restore") { store.restore(task.id) }
+                Button("Restore", action: restore)
                     .buttonStyle(KomodoButtonStyle(kind: .secondary, size: .small))
-                Button("Delete now") { store.deleteForever(task.id) }
+                Button("Delete now", action: deleteNow)
                     .buttonStyle(KomodoButtonStyle(kind: .dangerOutline, size: .small))
             }
             .opacity(isHovered ? 1 : 0)
@@ -174,15 +179,51 @@ private struct TrashRow: View {
         .onHover { isHovered = $0 }
         .animation(Motion.fast, value: isHovered)
         .contextMenu {
-            Button("Restore", systemImage: "arrow.uturn.backward") { store.restore(task.id) }
-            Button("Delete now", systemImage: "trash", role: .destructive) { store.deleteForever(task.id) }
+            Button("Restore", systemImage: "arrow.uturn.backward", action: restore)
+            Button("Delete now", systemImage: "trash", role: .destructive, action: deleteNow)
         }
         .accessibilityElement(children: .contain)
     }
 
+    private var isList: Bool {
+        if case .list = item { return true }
+        return false
+    }
+
+    private var title: String {
+        switch item {
+        case .task(let task): task.title
+        case .list(let list): list.name
+        }
+    }
+
+    /// A list comes from itself, as on the canvas.
+    private var fromList: TaskList? {
+        switch item {
+        case .task(let task): store.list(for: task)
+        case .list(let list): list
+        }
+    }
+
+    private func color(of list: TaskList) -> ListColor { ListColor(rawValue: list.color) ?? .lime }
+
+    private func restore() {
+        switch item {
+        case .task(let task): store.restore(task.id)
+        case .list(let list): store.restoreList(list.id)
+        }
+    }
+
+    private func deleteNow() {
+        switch item {
+        case .task(let task): store.deleteForever(task.id)
+        case .list(let list): store.deleteListForever(list.id)
+        }
+    }
+
     /// "Today, 11:02 AM" for today, otherwise "Sep 24".
     private var deletedLabel: String {
-        guard let date = task.deletedAt else { return "" }
+        let date = item.deletedAt
         if store.calendar.isDate(date, inSameDayAs: store.now) {
             return "Today, " + date.formatted(date: .omitted, time: .shortened)
         }
@@ -193,6 +234,7 @@ private struct TrashRow: View {
 #Preview("Trash") {
     let store = BoardSamples.store(anchoredAt: BoardSamples.artboardMoment)
     for id in store.tasks.prefix(4).map(\.id) { store.delete(id) }
+    store.deleteList("growth")
     return TrashView(store: store).frame(width: 1100, height: 700)
 }
 
