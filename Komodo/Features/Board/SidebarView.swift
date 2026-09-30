@@ -55,7 +55,7 @@ struct SidebarView: View {
                 .padding(.bottom, 10)
 
             NavRow(
-                title: "Trash", symbol: "trash", count: store.trash.isEmpty ? nil : store.trash.count,
+                title: "Trash", symbol: "trash", count: store.trashItems.isEmpty ? nil : store.trashItems.count,
                 isSelected: store.isShowingTrash, height: 32
             ) {
                 store.inspect(nil)

@@ -30,6 +30,26 @@ import SwiftUI
         var nextTitle: String?
     }
 
+    /// One row in Trash (FEATURES §4.20).
+    enum TrashItem: Identifiable {
+        case task(TaskItem)
+        case list(TaskList)
+
+        var id: String {
+            switch self {
+            case .task(let task): "task:\(task.id)"
+            case .list(let list): "list:\(list.id)"
+            }
+        }
+
+        var deletedAt: Date {
+            switch self {
+            case .task(let task): task.deletedAt ?? .distantPast
+            case .list(let list): list.deletedAt ?? .distantPast
+            }
+        }
+    }
+
     enum FocusSurface: String, Sendable {
         case panel
         case floatingTimer
@@ -674,7 +694,18 @@ import SwiftUI
         trash.removeAll { $0.id == id }
     }
 
-    func emptyTrash() { trash = [] }
+    func emptyTrash() {
+        for list in allLists where list.deletedAt != nil { deleteListForever(list.id) }
+        trash = []
+    }
+
+    /// Trash's rows, newest first. A deleted list is one row; tasks it took along are inside it, not beside it.
+    var trashItems: [TrashItem] {
+        let lists = allLists.filter { $0.deletedAt != nil }
+        let listIDs = Set(lists.map(\.id))
+        let items = lists.map(TrashItem.list) + trash.filter { !listIDs.contains($0.listID) }.map(TrashItem.task)
+        return items.sorted { $0.deletedAt > $1.deletedAt }
+    }
 
     /// Items past their 30 days leave for good; checked at launch and each new day.
     private func purgeTrash() {
