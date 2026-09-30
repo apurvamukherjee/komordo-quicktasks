@@ -780,13 +780,14 @@ import SwiftUI
         allLists[index].letter = Self.badge(letter) ?? TaskList.defaultLetter(for: name)
     }
 
-    /// Dragging in the sidebar: the list lands just above `beforeID`, or at the bottom.
-    func moveList(_ id: String, before beforeID: String?) {
-        guard id != beforeID, let index = allLists.firstIndex(where: { $0.id == id }) else { return }
+    /// Dragging in the sidebar: the list takes the place of the one it's dropped on, so dragging down lands below
+    /// it and dragging up lands above it.
+    func moveList(_ id: String, to targetID: String) {
+        guard id != targetID, let from = allLists.firstIndex(where: { $0.id == id }),
+            let to = allLists.firstIndex(where: { $0.id == targetID })
+        else { return }
         var reordered = allLists
-        let list = reordered.remove(at: index)
-        let target = beforeID.flatMap { before in reordered.firstIndex { $0.id == before } } ?? reordered.endIndex
-        reordered.insert(list, at: target)
+        reordered.move(fromOffsets: [from], toOffset: to > from ? to + 1 : to)
         allLists = reordered
     }
 

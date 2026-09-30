@@ -4,6 +4,8 @@ import SwiftUI
 /// The Home window's sidebar (DESIGN_SYSTEM §12): brand, navigation, lists with open counts, and today's focus.
 struct SidebarView: View {
     @Bindable var store: BoardStore
+    /// The list row a dragged list is over.
+    @State private var dropTarget: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -46,6 +48,22 @@ struct SidebarView: View {
                     store.showList(list.id)
                 }
                 .contextMenu { listMenu(list) }
+                .draggable(list.id)
+                // Text dragged in from elsewhere isn't a list id, so it's refused.
+                .dropDestination(for: String.self) { dropped, _ in
+                    guard let dragged = dropped.first, store.lists.contains(where: { $0.id == dragged }) else {
+                        return false
+                    }
+                    withAnimation(Motion.base) { store.moveList(dragged, to: list.id) }
+                    return true
+                } isTargeted: { isTargeted in
+                    dropTarget = isTargeted ? list.id : dropTarget == list.id ? nil : dropTarget
+                }
+                .overlay {
+                    if dropTarget == list.id {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Palette.lime.opacity(0.5))
+                    }
+                }
             }
 
             Spacer(minLength: Space.s4)
