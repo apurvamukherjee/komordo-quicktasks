@@ -51,7 +51,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
 | ⚙️ | **Settings** | Every preference in one window that applies as you change it: the Dock, the panel's screen, Pomodoros, alerts and sounds, celebrations and shortcuts | ✅ Available |
 | 🗑️ | **Trash and archive** | Deleted lists and tasks wait 30 days with Restore, and archived ones leave the Board but stay in your history | ✅ Available |
-| 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
+| 📊 | **Reports** | Work days, hours and your most productive hour, day and month; estimate accuracy week by week; hours by list; and every session and break, editable and exportable to PDF or CSV | ✅ Available |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
 | 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
@@ -187,6 +187,25 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Right-click to manage.** Rename, change the color and badge, archive a finished project, or delete it.
 - **Drag to reorder.** The sidebar keeps whatever order you give it.
 
+## Reports
+
+<p align="center"><img src="docs/media/reports-overview.png" alt="Reports Overview: work days, tasks done, hours and average per task with sparklines and comparisons, daily productivity bars for task hours, breaks and total session, and the most productive hour, day and month" width="100%"></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/reports-punctuality.png" alt="Punctuality: estimate accuracy split into early, on time and late, weekly accuracy over eight weeks, and every task's estimate against its actual time"></td>
+    <td width="50%"><img src="docs/media/reports-time.png" alt="Time spent: a donut of hours by list beside a table of lists, the top one open to show its tasks"></td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/media/reports-sessions.png" alt="Sessions: every work session and break a day at a time, with the live one marked, and Breaks, Add and Export above" width="100%"></p>
+
+- **See where the week went.** Work days, tasks done, hours and time per task, each against the week before, with the day-by-day bars behind them.
+- **Know your best hours.** Your most productive hour, day and month, from the time you actually focused.
+- **Get better at estimates.** How many tasks landed early, on time or late, how that's trending over eight weeks, and which tasks ran over most.
+- **Every session, on the record.** Work and breaks a day at a time. Fix a session, log work you did away from your Mac, and export to PDF or CSV.
+- **Filter anything.** One list or all of them, today, this week, the last 30 days or any range. Open with ⌘2.
+
 ## Trash
 
 <p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks and a deleted Growth list with its badge and List chip, where each came from, when it was deleted and the days left" width="100%"></p>
@@ -274,7 +293,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Trash and archive
 - [x] Lists: create, rename, color and badge, reorder, archive, delete to Trash
 - [x] Timed tasks join the queue on time, alerts that survive App Nap, and the away-from-your-Mac question
-- [ ] Reports
+- [x] Reports and sessions
 
 ## Contributing
 
