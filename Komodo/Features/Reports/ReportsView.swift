@@ -7,6 +7,8 @@ struct ReportsView: View {
     @Bindable var store: BoardStore
 
     @State private var isPickingDates = false
+    /// The session being added or edited.
+    @State private var sessionSheet: SessionSheetRequest?
     @Namespace private var ink
 
     var body: some View {
@@ -32,6 +34,9 @@ struct ReportsView: View {
         .padding(.horizontal, Space.s6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background { background }
+        .sheet(item: $sessionSheet) { request in
+            SessionSheet(store: store, entry: request.entry) { sessionSheet = nil }
+        }
     }
 
     @ViewBuilder private var content: some View {
@@ -43,8 +48,11 @@ struct ReportsView: View {
         case .time:
             ScrollView { TimeSpentReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
         case .sessions:
-            ScrollView { SessionsReport(store: store, edit: { _ in }).padding(.bottom, Space.s6) }
-                .scrollIndicators(.never)
+            ScrollView {
+                SessionsReport(store: store) { sessionSheet = SessionSheetRequest(entry: $0) }
+                    .padding(.bottom, Space.s6)
+            }
+            .scrollIndicators(.never)
         }
     }
 
@@ -216,6 +224,12 @@ struct ReportsView: View {
         }
         .ignoresSafeArea()
     }
+}
+
+/// Sessions' + Add (no entry) or Edit.
+private struct SessionSheetRequest: Identifiable {
+    var entry: SessionLog.Entry?
+    var id: String { entry?.id ?? "new" }
 }
 
 /// Custom's start and end, as native date fields.
