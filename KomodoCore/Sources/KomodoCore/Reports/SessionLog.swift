@@ -80,4 +80,24 @@ public struct SessionLog: Equatable, Sendable {
             }
         ).count
     }
+
+    /// Sessions' Export CSV: the rows as shown, oldest first, with list names looked up by id.
+    public func csv(listNames: [String: String], now: Date, calendar: Calendar) -> String {
+        let entries = days.reversed().flatMap(\.entries)
+        return CSV.document(
+            header: ["type", "task", "list", "session", "started_at", "ended_at", "minutes"],
+            rows: entries.map { entry in
+                let times = [
+                    CSV.timestamp(entry.start.timeIntervalSince1970, calendar: calendar),
+                    CSV.timestamp(entry.end?.timeIntervalSince1970, calendar: calendar),
+                    CSV.minutes(entry.duration(until: now)),
+                ]
+                switch entry.kind {
+                case .work(_, let listID, let title, let number):
+                    return ["work", title, listNames[listID] ?? "", "\(number)"] + times
+                case .breakTime:
+                    return ["break", "", "", ""] + times
+                }
+            })
+    }
 }

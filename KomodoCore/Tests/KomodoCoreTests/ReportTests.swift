@@ -156,4 +156,16 @@ struct ReportTests {
         #expect(log.taskCount == 2)
         #expect(SessionLog(data, range: week, includesBreaks: false).entryCount == 3)
     }
+
+    @Test func sessionLogExportsCSVOldestFirst() {
+        let tasks = [task("Brief, final", sessions: [(at(day(22), 9), at(day(22), 9, 45))])]
+        let breaks = [BreakSession(id: "b", start: at(day(23), 10), end: at(day(23), 10, 5))]
+        let log = SessionLog(
+            ReportData(tasks: tasks, breaks: breaks, listID: nil, now: now, calendar: calendar), range: week)
+        let csv = log.csv(listNames: ["work": "Work"], now: now, calendar: calendar)
+        #expect(
+            csv == "type,task,list,session,started_at,ended_at,minutes\r\n"
+                + "work,\"Brief, final\",Work,1,2026-09-22 09:00,2026-09-22 09:45,45.0\r\n"
+                + "break,,,,2026-09-23 10:00,2026-09-23 10:05,5.0\r\n")
+    }
 }
