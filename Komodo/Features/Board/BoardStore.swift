@@ -210,6 +210,8 @@ import SwiftUI
         didSet { scheduleReminderSync() }
     }
     private var heartbeat: Task<Void, Never>?
+    /// Keeps App Nap away while a timer runs.
+    private var napActivity: (any NSObjectProtocol)?
     /// Time's Up for the running task (DESIGN_SYSTEM §14.2).
     private var timesUpAlert: Task<Void, Never>?
     /// Reminders go to the system a moment after edits settle, so typing a title doesn't resubmit them each key.
@@ -1134,6 +1136,7 @@ import SwiftUI
     /// Schedules the end of the running sprint, or cancels it when nothing runs or Pomodoros are off.
     private func syncSprint() {
         syncHeartbeat()
+        syncNapActivity()
         syncTimedAlert()
         syncTimesUp()
         sprintEnd?.cancel()
@@ -1247,7 +1250,21 @@ import SwiftUI
         }
     }
 
+    /// ARCHITECTURE §4.3: while work or a break is timing, App Nap would stretch the sprint, break and Time's Up
+    /// sleeps, so an activity holds it off. Idle system sleep is still allowed.
+    private func syncNapActivity() {
+        let isTiming = focus.sprintSince != nil || focus.breakEndsAt.map { $0 > now } == true
+        if isTiming, napActivity == nil {
+            napActivity = ProcessInfo.processInfo.beginActivity(
+                options: .userInitiatedAllowingIdleSystemSleep, reason: "A focus timer is running")
+        } else if !isTiming, let napActivity {
+            ProcessInfo.processInfo.endActivity(napActivity)
+            self.napActivity = nil
+        }
+    }
+
     private func syncBreakEnd() {
+        syncNapActivity()
         breakEnd?.cancel()
         breakEnd = nil
         guard let endsAt = focus.breakEndsAt, endsAt > now else { return }
@@ -1256,6 +1273,8 @@ import SwiftUI
             let task = focus.taskID.flatMap { id in tasks.first { $0.id == id }?.title } ?? "your task"
             alerts?.breakOver(task: task)
             play(.glass)
+            // The break waits for the next Start, and nothing times meanwhile.
+            syncNapActivity()
         }
     }
 
