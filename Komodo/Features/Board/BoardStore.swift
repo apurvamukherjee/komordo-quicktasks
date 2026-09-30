@@ -30,6 +30,21 @@ import SwiftUI
         var nextTitle: String?
     }
 
+    /// The list sheet over Home: New list, Rename or Color & Icon, or Delete's typed confirm.
+    enum ListSheet: Identifiable, Equatable {
+        case create
+        case edit(String)
+        case delete(String)
+
+        var id: String {
+            switch self {
+            case .create: "create"
+            case .edit(let id): "edit:\(id)"
+            case .delete(let id): "delete:\(id)"
+            }
+        }
+    }
+
     /// One row in Trash (FEATURES §4.20).
     enum TrashItem: Identifiable {
         case task(TaskItem)
@@ -164,6 +179,8 @@ import SwiftUI
     var inspectedTaskID: String?
     /// The card showing the Schedule popover, whether it was opened from the hover row, ⋯ or right-click.
     var schedulingTaskID: String?
+    /// The sidebar's +, a row's menu, File ▸ New List and the palette open it.
+    var listSheet: ListSheet?
     /// The ⌘⌥T quick add panel (DESIGN_SYSTEM §13.4).
     var isQuickAddOpen = false
     /// The list to return to from All lists.
@@ -346,6 +363,7 @@ import SwiftUI
         isShowingTrash = false
         isPaletteOpen = false
         isQuickAddOpen = false
+        listSheet = nil
         allLists = lists
         tasks = stored.tasks
         shelved = stored.shelved

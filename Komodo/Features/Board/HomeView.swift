@@ -18,6 +18,7 @@ struct HomeView: View {
             Group {
                 if store.isShowingTrash { TrashView(store: store) } else { BoardView(store: store) }
             }
+            .sheet(item: $store.listSheet) { sheet in listSheet(sheet) }
             .inspector(isPresented: isInspectorPresented) {
                 InspectorView(store: store)
                     .inspectorColumnWidth(
@@ -56,6 +57,36 @@ struct HomeView: View {
                 .keyboardShortcut("f", modifiers: .command)
         }
         .hidden()
+    }
+
+    @ViewBuilder
+    private func listSheet(_ sheet: BoardStore.ListSheet) -> some View {
+        let close = { store.listSheet = nil }
+        switch sheet {
+        case .create:
+            ListEditorSheet(
+                list: nil,
+                save: {
+                    store.createList(name: $0, color: $1, letter: $2)
+                    close()
+                }, cancel: close)
+        case .edit(let id):
+            ListEditorSheet(
+                list: store.lists.first { $0.id == id },
+                save: {
+                    store.updateList(id, name: $0, color: $1, letter: $2)
+                    close()
+                }, cancel: close)
+        case .delete(let id):
+            if let list = store.lists.first(where: { $0.id == id }) {
+                DeleteListSheet(
+                    list: list, taskCount: store.tasks.filter { $0.listID == id }.count, cancel: close,
+                    delete: {
+                        store.deleteList(id)
+                        close()
+                    })
+            }
+        }
     }
 
     private var isInspectorPresented: Binding<Bool> {
