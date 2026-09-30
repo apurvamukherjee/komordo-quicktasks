@@ -179,6 +179,7 @@ struct FocusWonCard: View {
     var summary: DaySummary
     /// Consecutive days with a task done, today included.
     var streak: Int
+    var onSeeReports: () -> Void
     var onDone: () -> Void
 
     var body: some View {
@@ -221,13 +222,10 @@ struct FocusWonCard: View {
                 .foregroundStyle(Palette.textTertiary)
             }
             HStack(spacing: Space.s2) {
-                Button {
-                } label: {
+                Button(action: onSeeReports) {
                     Text("See reports").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.komodo(.secondary, size: .large))
-                .disabled(true)
-                .help("Reports arrive in a later milestone")
                 Button(action: onDone) { Text("Done").frame(maxWidth: .infinity) }
                     .buttonStyle(.komodo(.primary, size: .large))
                     .help("Close the summary")
@@ -527,7 +525,8 @@ private final class OrbitLayerView: EffectLayerView {
                 endsAt: .now.addingTimeInterval(252), length: 300, upNext: "Design review prep with Apurva",
                 onSkip: {}, onAddTwoMinutes: {})
             FocusScheduledCard(title: "Wireframes", time: "11:00 AM", onStartEarly: {})
-            FocusWonCard(date: .now, done: 7, focused: 20_400, summary: sampleSummary, streak: 4, onDone: {})
+            FocusWonCard(
+                date: .now, done: 7, focused: 20_400, summary: sampleSummary, streak: 4, onSeeReports: {}, onDone: {})
         }
         .frame(width: 3 * 312 + 2 * Space.s5)
         .padding(Space.s6)
