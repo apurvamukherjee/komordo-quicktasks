@@ -821,6 +821,64 @@ import SwiftUI
         if !tasks.contains(where: { $0.id == task.id }) { tasks.append(task) }
     }
 
+    // MARK: Sessions (FEATURES §4.15)
+
+    /// A task wherever Reports sees it: on the Board, archived, or shelved with its list.
+    func reportTask(_ id: String) -> TaskItem? {
+        tasks.first { $0.id == id } ?? archived.first { $0.id == id } ?? shelved.first { $0.id == id }
+    }
+
+    /// Replaces a task's work sessions, keeping them in time order. The running session can't be edited from
+    /// Reports, so callers pass closed ones only.
+    func setSessions(of id: String, _ sessions: [WorkSession]) {
+        let sorted = sessions.sorted { $0.start < $1.start }
+        if let index = tasks.firstIndex(where: { $0.id == id }) {
+            tasks[index].sessions = sorted
+        } else if let index = archived.firstIndex(where: { $0.id == id }) {
+            archived[index].sessions = sorted
+        } else if let index = shelved.firstIndex(where: { $0.id == id }) {
+            shelved[index].sessions = sorted
+        }
+    }
+
+    /// Sessions' + Add and Edit for work: the session numbered `number` (1 is the first) is replaced, or a new one
+    /// is added when `number` is nil.
+    func saveSession(_ session: WorkSession, of id: String, replacing number: Int? = nil) {
+        guard var sessions = reportTask(id)?.sessions.sorted(by: { $0.start < $1.start }) else { return }
+        if let number, sessions.indices.contains(number - 1) {
+            sessions[number - 1] = session
+        } else {
+            sessions.append(session)
+        }
+        setSessions(of: id, sessions)
+    }
+
+    /// Deletes a task's session, with Undo.
+    func deleteSession(_ number: Int, of id: String) {
+        guard let task = reportTask(id) else { return }
+        var sessions = task.sessions.sorted { $0.start < $1.start }
+        guard sessions.indices.contains(number - 1), sessions[number - 1].end != nil else { return }
+        sessions.remove(at: number - 1)
+        setSessions(of: id, sessions)
+        offerUndo("Session deleted", detail: task.title) { store in store.setSessions(of: id, task.sessions) }
+    }
+
+    /// Adds a break, or replaces the one with the same id.
+    func saveBreak(_ item: BreakSession) {
+        if let index = breaks.firstIndex(where: { $0.id == item.id }) {
+            breaks[index] = item
+        } else {
+            breaks.append(item)
+            breaks.sort { $0.start < $1.start }
+        }
+    }
+
+    func deleteBreak(_ id: String) {
+        guard let index = breaks.firstIndex(where: { $0.id == id }) else { return }
+        let removed = breaks.remove(at: index)
+        offerUndo("Break deleted", detail: nil) { store in store.saveBreak(removed) }
+    }
+
     // MARK: Lists (FEATURES §4.1)
 
     /// A new list goes to the bottom of the sidebar and opens with three empty columns. Nil when the name isn't
