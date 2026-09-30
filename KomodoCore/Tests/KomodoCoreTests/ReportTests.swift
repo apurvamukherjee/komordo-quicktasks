@@ -117,4 +117,43 @@ struct ReportTests {
         #expect(punctuality.weeks[5].accuracy == 0)
         #expect(punctuality.weeks[6].accuracy == nil)
     }
+
+    @Test func timeSpentGroupsByListMostFirst() {
+        let tasks = [
+            task("brief", sessions: [(at(day(22), 9), at(day(22), 11))]),
+            task("review", sessions: [(at(day(23), 9), at(day(23), 10))]),
+            task("spec", list: "side", sessions: [(at(day(22), 12), at(day(22), 16))]),
+            task("idle", list: "personal"),
+        ]
+        let spent = TimeSpent(
+            ReportData(tasks: tasks, breaks: [], listID: nil, now: now, calendar: calendar), range: week)
+        #expect(spent.lists.map(\.listID) == ["side", "work"])
+        #expect(spent.lists[1].tasks.map(\.id) == ["brief", "review"])
+        #expect(spent.total == 7 * 3600)
+        #expect(spent.taskCount == 3)
+        #expect(spent.share(of: spent.lists[0].time) == 4.0 / 7)
+    }
+
+    @Test func sessionLogListsNewestDayFirstWithNumbersAndBreaks() {
+        let tasks = [
+            task("brief", sessions: [(at(day(22), 9), at(day(22), 10)), (at(day(24), 9), at(day(24), 9, 30))]),
+            task("live", sessions: [(at(today, 14), nil)]),
+        ]
+        let breaks = [
+            BreakSession(id: "b1", start: at(day(24), 9, 30), end: at(day(24), 9, 35), taskID: "brief"),
+            BreakSession(id: "b2", start: at(today, 14, 10), end: at(today, 14, 20), taskID: "live"),
+        ]
+        let data = ReportData(tasks: tasks, breaks: breaks, listID: nil, now: now, calendar: calendar)
+        let log = SessionLog(data, range: week)
+        #expect(log.days.map(\.date) == [today, day(24), day(22)])
+        #expect(log.days[1].entries.map(\.id) == ["brief#2", "break:b1"])
+        #expect(log.days[1].work == 1800)
+        #expect(log.days[1].breaks == 300)
+        // The running break counts up to now and shows no end.
+        #expect(log.days[0].breaks == 240)
+        #expect(log.days[0].entries.last?.end == nil)
+        #expect(log.entryCount == 5)
+        #expect(log.taskCount == 2)
+        #expect(SessionLog(data, range: week, includesBreaks: false).entryCount == 3)
+    }
 }
