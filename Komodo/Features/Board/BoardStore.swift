@@ -698,6 +698,44 @@ import SwiftUI
         if !tasks.contains(where: { $0.id == task.id }) { tasks.append(task) }
     }
 
+    // MARK: Lists (FEATURES §4.1)
+
+    /// A new list goes to the bottom of the sidebar and opens with three empty columns. Nil when the name isn't
+    /// valid, which the sheet already prevents.
+    @discardableResult
+    func createList(name: String, color: ListColor, letter: String?) -> String? {
+        guard let name = TaskList.validName(name) else { return nil }
+        let list = TaskList(id: UUID().uuidString, name: name, color: color.rawValue, letter: Self.badge(letter))
+        allLists.append(list)
+        showList(list.id)
+        return list.id
+    }
+
+    /// Rename and Color & Icon. An empty badge goes back to the name's first letter.
+    func updateList(_ id: String, name: String, color: ListColor, letter: String?) {
+        guard let name = TaskList.validName(name), let index = allLists.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+        allLists[index].name = name
+        allLists[index].color = color.rawValue
+        allLists[index].letter = Self.badge(letter) ?? TaskList.defaultLetter(for: name)
+    }
+
+    /// Dragging in the sidebar: the list lands just above `beforeID`, or at the bottom.
+    func moveList(_ id: String, before beforeID: String?) {
+        guard id != beforeID, let index = allLists.firstIndex(where: { $0.id == id }) else { return }
+        var reordered = allLists
+        let list = reordered.remove(at: index)
+        let target = beforeID.flatMap { before in reordered.firstIndex { $0.id == before } } ?? reordered.endIndex
+        reordered.insert(list, at: target)
+        allLists = reordered
+    }
+
+    /// One character, a letter or an emoji; nil when nothing was typed.
+    private static func badge(_ raw: String?) -> String? {
+        raw?.trimmingCharacters(in: .whitespaces).first.map { String($0).uppercased() }
+    }
+
     // MARK: Schedule and repeat (FEATURES §4.6–4.7)
 
     /// What the Schedule popover saves: a day, an optional time, an optional repeat and the reminder switch.
