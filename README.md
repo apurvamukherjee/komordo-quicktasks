@@ -174,9 +174,22 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Notifications, asked once.** Allow them up front and choose Alerts so reminders keep their Start now and Snooze buttons.
 - **Today, typed.** One task per line with a time like "45m". Each line shows its estimate as you type, and ⌘Return puts them all in Today with a tip pointing at Start.
 
+## Lists
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/lists.png" alt="The New list sheet over the Board: a name field, eight color swatches and a badge that takes a letter or an emoji"></td>
+    <td width="50%"><img src="docs/media/list-delete.png" alt="Delete Work: the list and its 19 tasks move to Trash for 30 days, confirmed by typing the list's name"></td>
+  </tr>
+</table>
+
+- **A list per project.** Give it a name, one of eight colors and a badge: its first letter, or any emoji.
+- **Right-click to manage.** Rename, change the color and badge, archive a finished project, or delete it.
+- **Drag to reorder.** The sidebar keeps whatever order you give it.
+
 ## Trash
 
-<p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks with their list, when they were deleted and the days left" width="100%"></p>
+<p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks and a deleted Growth list with its badge and List chip, where each came from, when it was deleted and the days left" width="100%"></p>
 
 - **Nothing is gone by accident.** Deleted lists and tasks wait 30 days, with the last three days in amber. Restore puts a task back where it was, and a list back in its place with all its tasks.
 - **Deleting a list asks twice.** Type the list's name to confirm, then Undo is still one click away.
