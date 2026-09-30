@@ -1194,7 +1194,6 @@ import SwiftUI
         }
     }
 
-    /// The running task's estimate runs out: a sound, and a notification when the panel isn't there to say it.
     /// Wakes when the next timed task today starts (FEATURES §4.6): it joins the queue, and a Focus Panel waiting
     /// on the calm card starts it, since the card promises it joins on time.
     private func syncScheduleTick() {
@@ -1224,6 +1223,7 @@ import SwiftUI
         begin(next.id)
     }
 
+    /// The running task's estimate runs out: a sound, and a notification when the panel isn't there to say it.
     private func syncTimesUp() {
         timesUpAlert?.cancel()
         timesUpAlert = nil
