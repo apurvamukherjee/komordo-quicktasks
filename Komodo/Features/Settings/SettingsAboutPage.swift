@@ -1,8 +1,5 @@
-import AppKit
 import KomodoCore
-import OSLog
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// About (Settings.dc.html): the app icon, version and the local-only promise. Updates arrive with the signed
 /// release (ARCHITECTURE §15), so Check for Updates waits for it.
@@ -12,7 +9,7 @@ struct SettingsAboutPage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var floats = false
 
-    private static var version: String {
+    static var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     }
 
@@ -39,7 +36,7 @@ struct SettingsAboutPage: View {
             .help("Updates arrive with the first signed release")
             .padding(.top, 22)
             Button {
-                saveDiagnostics()
+                store.saveDiagnostics()
             } label: {
                 Label("Save Diagnostics…", systemImage: "doc.text")
             }
@@ -84,26 +81,6 @@ struct SettingsAboutPage: View {
             .offset(y: floats ? -4 : 0)
             .animation(reduceMotion ? nil : .easeInOut(duration: 3).repeatForever(), value: floats)
             .accessibilityHidden(true)
-    }
-
-    /// Version, macOS and settings in a text file to attach to a bug report; no tasks or notes leave the Mac.
-    private func saveDiagnostics() {
-        let panel = NSSavePanel()
-        panel.nameFieldStringValue = "Komodo Diagnostics.txt"
-        panel.allowedContentTypes = [.plainText]
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        let lines =
-            [
-                "Komodo \(Self.version)",
-                "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
-                "Tasks: \(store.tasks.count)",
-            ] + store.settings.stored.sorted { $0.key < $1.key }.map { "\($0.key) = \($0.value)" }
-        do {
-            try lines.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
-        } catch {
-            Logger(subsystem: "app.komodo.Komodo", category: "settings").error("Diagnostics: \(error)")
-            store.toasts.show(Toast(kind: .error, message: "Couldn't save diagnostics", detail: url.lastPathComponent))
-        }
     }
 }
 
