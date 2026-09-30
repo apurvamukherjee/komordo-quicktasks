@@ -3,7 +3,7 @@
 Last updated: 2026-10-01. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
 archive, focus restore with crash recovery, 5g without Google (Data & backup, onboarding, celebration GIFs), and
 most of the P0 polish (list management, timed tasks joining the queue, sleep and App Nap, scheduled focus alerts,
-the scrolling title, the File and Help menus) are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
+the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -25,8 +25,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": fix the Board's ~50% idle CPU (§4), then the XCUITest smoke
-tests (ask before running them, they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 1's end-of-day review and streak rules, then the next
+Phase 1 item. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -58,12 +58,16 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | 5g | Data & backup, Onboarding, celebration GIFs | ✅ | Checked against `DataSheets.png`, `Onboarding.png`, `Celebration.png` |
 | 5g | Gmail → Calendar | ⏸ Parked | The maintainer's call on 2026-09-29; §9 question 1 still open |
 | — | P0 polish: lists, timed tasks, sleep, App Nap, scheduled alerts, scrolling title, File and Help menus | ✅ | 2026-10-01; tried on a scratch database |
-| — | **Idle CPU, then XCUITest smoke tests** | ⏭ **Next** | See §4 |
+| — | Idle CPU | ✅ | Timer digits and colon on Core Animation; ~3–4% idle in an optimized build |
+| P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
+| P1 | **End-of-day review and streak rules** | ⏭ **Next** | See §4 |
+| — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
 Palette, Settings (seven pages), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5
-and the Start tip). Screens left: Gmail and onboarding step 6 (parked); Reports (P1); Assistant (P2). Settings
+and the Start tip). Screens left: Gmail and onboarding step 6 (parked); Assistant (P2). Reports states left: loading (nothing loads
+slowly on a local database). Settings
 pages left: Gmail → Calendar, Integrations, AI, Local MCP server (disabled in the sidebar with `.help` notes).
 
 ---
@@ -79,7 +83,8 @@ Komodo/
   DesignSystem/       Palette, Typography, Metrics (Space/Radius/Layout), Motion, Elevation,
                       WeightedHStack, FlowLayout
     Effects/          Spotlight, BeamBorder, FocusDial, OdometerText, TimerTone, Ping, Shake, Sheen, Rise, Aurora,
-                      Marquee, LayerEffect (hosts the Core Animation loops)
+                      Marquee, HostedLayer (SwiftUI content Core Animation slides or fades), LayerEffect (hosts the
+                      Core Animation loops)
     Components/       Buttons, chips, badges, fields, TaskCard/QueueCard, LiveTaskCard, BreakCard, DayMeter,
                       ControlBar, Toast, Banner, PopoverSurface, CardSurface, KomodoMark
     Gallery/          Debug-only replica of Foundations.png plus a Components section
@@ -97,6 +102,9 @@ Komodo/
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
   Features/Trash/     TrashView (shown in place of the Board when store.page is .trash): task and list rows
   Features/Lists/     ListEditorSheet (new, rename, color & icon), DeleteListSheet (typed name)
+  Features/Reports/   ReportsView (header, filters, tabs), OverviewReport, PunctualityReport, TimeSpentReport,
+                      SessionsReport, SessionSheet, SessionsExport (PDF, CSV), ReportTable, ReportsFormat,
+                      BoardStore+Reports (ReportsState)
   Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all), BackupSheets (restore
                       confirm, restore errors, typed delete)
   Features/Onboarding/ OnboardingView (sheet, steps, dots), OnboardingStages (plan, focus, win, notification
@@ -116,6 +124,7 @@ KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Storage/            AppDatabase (GRDB: v1 + v2 trash/archive migrations, load splits tasks/trash/archived,
                       write-through, preferences), BoardChange (the diff)
   Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery, AwayTime
+  Reports/            ReportRange, ReportData + ReportOverview, Productivity, Punctuality, TimeSpent, SessionLog
   Formatting/         DurationFormat
   Parsing/            EstimateParser
   Recurrence/         RepeatRule (kinds, occurrences, wording), Recurrence (this week's copies)
@@ -170,6 +179,13 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Focus alerts:** `arming(_:in:)` schedules sprint end, break over and Time's Up with the system when the
   in-app timer starts, only for a saved board; `disarm` withdraws one that's still ahead. `FocusAlerts` runs
   arm and cancel on one serial queue.
+- **No SwiftUI animation that never settles.** A looping `phaseAnimator` or a spring retriggered every second
+  makes SwiftUI lay out the whole window each frame (that was the 50% idle). Loop with `LayerEffect`, and move
+  SwiftUI content with `HostedLayer` (its own hosting view, animated through its layer).
+- **Reports:** `store.reportData` narrows `reportTasks` (Board, archived and shelved tasks; never Trash) and
+  `breaks` to the chosen list; each tab builds its KomodoCore report from it during render. Filters live in
+  `store.reports`. Breaks are recorded from `focus.breakEndsAt` changes in `recordBreak`. Sessions edits go through
+  `saveSession` / `setSessions` / `saveBreak`, which find a task wherever Reports sees it.
 - **Relaunch:** `pauseForQuit()` saves the live task, surface and break as preferences; the init restores
   them, or after a crash closes the open session at the saved heartbeat (`CrashRecovery`).
 - **Backup and restore:** every file in a zip comes from one `VACUUM INTO` snapshot. A restore checks the zip's
@@ -184,25 +200,24 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: finish the P0 polish
+## 4. Next task: end-of-day review and streak rules
 
-Done on 2026-10-01: list management, timed tasks joining the queue, the sleep question and App Nap, scheduled
-sprint / break / Time's Up notifications, the scrolling title, and the File and Help menus. Left, in order:
-1. **Idle CPU:** an optimized build with sample data (`-configuration Release SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`,
-   since Release strips the sample flags and would open the real board) idled near 50% on 2026-10-01, the same
-   at `fb2f43b` and after this session's changes, locked or unlocked. `sample` shows the main thread busy in
-   AttributeGraph updates with `CollectAnimationsData`, so a SwiftUI animation on the Board keeps running. Find
-   it and move it to Core Animation (`LayerEffect`) before new features.
-2. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore). They take
-   over the pointer, so ask the maintainer for the screen before running them.
+Done on 2026-10-01: the idle CPU fix (the odometer's spring and the colon's beat now run on Core Animation
+through `HostedLayer`; an optimized sample build idles at 3–4% on the Board, Focus Panel and floating timer, and
+under 1% on Reports once Charts settle) and Reports with all four tabs, session editing, export and recorded
+breaks. Next, in order:
+1. **End-of-day review** (FEATURES §6.4, DESIGN_SYSTEM §13.11): the day summary's NOT FINISHED list with
+   Tomorrow (default) / This week per task, and streak rules (the "3 in a row today" chip on the celebration).
+2. **Calendar import**, then **Claude mode**, **Local MCP server** (needs `ValueObservation`), **password-protected
+   backups** and the **Integrations** page.
+3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
+   maintainer gives the screen; they take over the pointer.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
   It brings onboarding step 6, the menu bar's Gmail rows, the sidebar status row, "and disconnects Google" in
   Delete all data, and the restore success sheet's Reconnect.
 - **Release:** signing, notarizing and a DMG (ARCHITECTURE §15), then Sparkle for Check for Updates.
-- **Phase 1:** Reports and Sessions, end-of-day review and streak rules, calendar import, Claude mode, Local MCP
-  server (it will need `ValueObservation`), password-protected backups, Integrations page.
 - **Phase 2:** Komodo Assistant, voice notes, Notion · Todoist · Linear · ClickUp · Asana.
 - **Maintainer-only steps:** re-record the README demo video (the maintainer will offer the screen later; ask
   first), foreground captures with green switches, and trying notifications, global shortcuts and the menu bar
@@ -225,7 +240,12 @@ sprint / break / Time's Up notifications, the scrolling title, and the File and 
   - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip has no pulsing rings, and the
     illustrations don't float or tick (static drawings, so an open sheet costs nothing).
   - Allow was pressed once in a background test, which may have shown the system notification prompt.
-- **Disabled until its milestone:** Reports in the sidebar, with a `.help` note.
+- **Reports:**
+  - Sessions uses the header's list filter rather than its own multi-select Lists menu, and has no "Load earlier"
+    paging; the whole range renders in a lazy stack.
+  - The custom range popover, the session sheet, hover readouts and export panels weren't driven with the pointer;
+    exports were checked through `-exportSessions`, and breaks on a scratch database with `-focusState break`.
+  - PDF pages are Letter. The loading state isn't built, since a local database answers at once.
 - **Archive:** archived tasks and lists are kept for Reports; nothing shows them yet, and Undo is the only way
   back. A task restored from Trash into an archived list goes quietly onto that list's shelf.
 - **Lists:**
@@ -279,7 +299,7 @@ sprint / break / Time's Up notifications, the scrolling title, and the File and 
     window, so they're left out of the panel's menu, and rows can't be dragged to reorder yet.
   - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
   - If the Home window was closed before Start, Home has no window to bring back.
-  - The won card's twinkling sparks are left out, and See reports is disabled until Reports.
+  - The won card's twinkling sparks are left out.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -375,6 +395,19 @@ sprint / break / Time's Up notifications, the scrolling title, and the File and 
 | ⌘⌥T | File ▸ New Task instead of Home's hidden button | DESIGN_SYSTEM §14.3; the menu reaches it from every Komodo window |
 | Restore from Backup… | Opens Settings ▸ Data & backup | The file picker and confirm live there |
 | Diagnostics log | This process's Komodo log entries, up to 500 | DESIGN_SYSTEM §13.15 says "the app's own logs"; the unified log keeps values private |
+| Odometer and colon | Core Animation through `HostedLayer`, same spring (response 0.4, bounce 0.38), beat and blink | The SwiftUI versions kept the window laying out every frame |
+| Reports "7 days" | The current week, Monday to Sunday by default | `Reports.png` draws Mon–Sun with today on Saturday; its subtitle says "Last 7 days", kept as copy |
+| Tile sparklines | The same metric over the last seven ranges | The canvas's spark arrays are weekly values |
+| Tile chips | Counts for work days and tasks, % for hours, minutes for average; a longer average is amber | Canvas copy per range ("vs last Sat", "vs prior 30 days", "vs Aug 1 – 26") |
+| Date spans | The system's date-interval format | "Sep 21 – 27" in US English, "21–27 Sep" in British English |
+| Most productive day | The weekday with most tasks done in the range, work breaking ties | The canvas's chips count tasks per weekday |
+| Charts | Swift Charts (system framework, no bundle cost) | DESIGN_SYSTEM §13.12 names `BarMark`, `LineMark`, `SectorMark` |
+| Segmented range control | Native `.segmented`; Custom opens two date fields | "Native first", as for other segmented pickers |
+| Sessions list filter | The header's list filter | The canvas also has a Lists multi-select on Sessions; one filter for all tabs is simpler |
+| Running session | Read-only in Sessions (no Edit or Delete) | Editing the live session would fight the running clock |
+| Added break | Not tied to a task | The canvas: "Break · not tied to a task" |
+| Time spent | The top list starts open | The canvas's `openList: 'W'` |
+| Report sample history | Nine months of archived weekday tasks and breaks | Reports need history; archived keeps the Board, bars and streak as on `Main.png` |
 
 ---
 
