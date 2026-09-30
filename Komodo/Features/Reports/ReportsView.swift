@@ -40,7 +40,9 @@ struct ReportsView: View {
             ScrollView { OverviewReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
         case .punctuality:
             ScrollView { PunctualityReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
-        case .time, .sessions:
+        case .time:
+            ScrollView { TimeSpentReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
+        case .sessions:
             Color.clear
         }
     }
