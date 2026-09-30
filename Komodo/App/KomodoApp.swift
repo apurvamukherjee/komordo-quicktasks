@@ -72,6 +72,7 @@ struct SettingsCommand: Commands {
 /// - `-openTrash <count>` moves that many sample tasks to Trash and shows it; `-deleteList <list id>` also puts
 ///   a list there first.
 /// - `-openListSheet new|edit|delete` opens the list sheet, on the selected list for edit and delete.
+/// - `-openReports overview|punctuality|time|sessions` shows Reports on that tab.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, data or about. With
 ///   `data`, `-openRestore <zip>` checks that backup and shows its sheet, and `-openDeleteAll YES` the typed confirm.
 enum LaunchOptions {
@@ -93,6 +94,9 @@ enum LaunchOptions {
             // `-openTrash <count>` deletes that many sample tasks and shows Trash.
             let trashed = defaults.integer(forKey: "openTrash")
             if let id = defaults.string(forKey: "deleteList") { store.deleteList(id) }
+            if let tab = defaults.string(forKey: "openReports").flatMap(ReportsState.Tab.init) {
+                store.showReports(tab)
+            }
             switch defaults.string(forKey: "openListSheet") {
             case "new": store.listSheet = .create
             case "edit": store.listSheet = store.selectedListID.map(BoardStore.ListSheet.edit)
