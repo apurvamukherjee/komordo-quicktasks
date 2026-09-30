@@ -26,7 +26,8 @@ struct ReportsView: View {
             .padding(.top, 22)
             .frame(maxHeight: .infinity, alignment: .top)
         }
-        .padding(.top, 36)
+        // The canvas's 36 pt, less the hidden title bar's safe area that Home already leaves above.
+        .padding(.top, Space.s2)
         .frame(maxWidth: Layout.reportsMaxWidth)
         .padding(.horizontal, Space.s6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -35,7 +36,9 @@ struct ReportsView: View {
 
     @ViewBuilder private var content: some View {
         switch store.reports.tab {
-        case .overview, .punctuality, .time, .sessions:
+        case .overview:
+            ScrollView { OverviewReport(store: store).padding(.bottom, Space.s6) }.scrollIndicators(.never)
+        case .punctuality, .time, .sessions:
             Color.clear
         }
     }
