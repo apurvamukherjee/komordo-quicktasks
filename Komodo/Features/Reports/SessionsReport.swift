@@ -48,6 +48,19 @@ struct SessionsReport: View {
                             .strokeBorder(Color.white.opacity(0.08)))
                 Button("Add", systemImage: "plus") { edit(nil) }
                     .buttonStyle(.komodo(.secondary))
+                Menu {
+                    Button("Export PDF", action: store.exportSessionsPDF)
+                        .keyboardShortcut("p", modifiers: .command)
+                    Button("Export CSV", action: store.exportSessionsCSV)
+                    Divider()
+                    Text("Uses the current filters")
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .menuStyle(.button)
+                .buttonStyle(.komodo(.secondary))
+                .fixedSize()
+                .disabled(log.entryCount == 0)
             }
         }
         .frame(height: 40)
