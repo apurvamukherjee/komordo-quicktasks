@@ -210,6 +210,8 @@ import SwiftUI
         didSet { scheduleReminderSync() }
     }
     private var heartbeat: Task<Void, Never>?
+    /// When the Mac went to sleep with a task running.
+    @ObservationIgnored private var sleptAt: Date?
     /// Keeps App Nap away while a timer runs.
     private var napActivity: (any NSObjectProtocol)?
     /// Time's Up for the running task (DESIGN_SYSTEM §14.2).
@@ -442,6 +444,27 @@ import SwiftUI
         purgeTrash()
         expandRecurrences()
         scheduleReminderSync()
+    }
+
+    /// The Mac is going to sleep: note when, if a task is running through it.
+    func willSleep() {
+        sleptAt = liveTask.map { focusClock(for: $0).isRunning } == true ? now : nil
+    }
+
+    /// Back from sleep: after more than five minutes away, the toast asks whether to count it. Counting is the
+    /// default, since the session carried on; Discard takes the gap out (ARCHITECTURE §4.3).
+    func didWake() {
+        guard let sleptAt, let id = focus.taskID else { return }
+        self.sleptAt = nil
+        let wokeAt = now
+        guard AwayTime.shouldAsk(sleptAt: sleptAt, wokeAt: wokeAt) else { return }
+        toasts.show(
+            Toast(
+                kind: .info, message: "You were away \(DurationFormat.short(wokeAt.timeIntervalSince(sleptAt))).",
+                detail: "Count it or discard it?",
+                action: .init(title: "Discard") { [weak self] in
+                    self?.update(id) { task in task = AwayTime.discarding(from: sleptAt, to: wokeAt, in: task) }
+                }))
     }
 
     /// Show Komodo: Home comes forward, reopened if it was closed.
