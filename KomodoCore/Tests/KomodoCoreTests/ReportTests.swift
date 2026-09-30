@@ -95,4 +95,26 @@ struct ReportTests {
         #expect(range.compared(to: .today, calendar: calendar) == ReportRange(first: day(19), last: day(19)))
         #expect(week.compared(to: .week, calendar: calendar).first == day(14))
     }
+
+    @Test func punctualitySortsByOverrunAndTracksEightWeeks() {
+        let tasks = [
+            task("early", estimate: 3600, done: at(day(22), 11), sessions: [(at(day(22), 10), at(day(22), 10, 40))]),
+            task("late", estimate: 1800, done: at(day(23), 11), sessions: [(at(day(23), 10), at(day(23), 11))]),
+            task("on time", estimate: 3600, done: at(day(24), 11), sessions: [(at(day(24), 10), at(day(24), 11, 3))]),
+            task("no estimate", done: at(day(24), 12), sessions: [(at(day(24), 11), at(day(24), 12))]),
+            task("earlier", estimate: 600, done: at(day(8), 11), sessions: [(at(day(8), 10), at(day(8), 10, 30))]),
+        ]
+        let punctuality = Punctuality(
+            ReportData(tasks: tasks, breaks: [], listID: nil, now: now, calendar: calendar), range: week)
+        #expect(punctuality.summary.early == 1)
+        #expect(punctuality.summary.onTime == 1)
+        #expect(punctuality.summary.late == 1)
+        #expect(punctuality.rows.map(\.taskID) == ["late", "on time", "early"])
+        #expect(punctuality.rows.first?.delta == 1800)
+        #expect(punctuality.weeks.count == 8)
+        #expect(punctuality.weeks.last?.start == day(21))
+        #expect(punctuality.weeks.last?.accuracy == 2.0 / 3)
+        #expect(punctuality.weeks[5].accuracy == 0)
+        #expect(punctuality.weeks[6].accuracy == nil)
+    }
 }
