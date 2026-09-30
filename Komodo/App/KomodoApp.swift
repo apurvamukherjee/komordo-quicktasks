@@ -67,7 +67,9 @@ struct SettingsCommand: Commands {
 ///   shortens sprints to watch one end.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
 ///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
-/// - `-openTrash <count>` moves that many sample tasks to Trash and shows it.
+/// - `-openTrash <count>` moves that many sample tasks to Trash and shows it; `-deleteList <list id>` also puts
+///   a list there first.
+/// - `-openListSheet new|edit|delete` opens the list sheet, on the selected list for edit and delete.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, data or about. With
 ///   `data`, `-openRestore <zip>` checks that backup and shows its sheet, and `-openDeleteAll YES` the typed confirm.
 enum LaunchOptions {
@@ -88,6 +90,13 @@ enum LaunchOptions {
             if defaults.bool(forKey: "openFloatingTimer") { store.focusSurface = .floatingTimer }
             // `-openTrash <count>` deletes that many sample tasks and shows Trash.
             let trashed = defaults.integer(forKey: "openTrash")
+            if let id = defaults.string(forKey: "deleteList") { store.deleteList(id) }
+            switch defaults.string(forKey: "openListSheet") {
+            case "new": store.listSheet = .create
+            case "edit": store.listSheet = store.selectedListID.map(BoardStore.ListSheet.edit)
+            case "delete": store.listSheet = store.selectedListID.map(BoardStore.ListSheet.delete)
+            default: break
+            }
             if defaults.string(forKey: "openOnboarding") != nil { store.isOnboarding = true }
             store.showsStartTip = defaults.bool(forKey: "openStartTip")
             if trashed > 0 {
