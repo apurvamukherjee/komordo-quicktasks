@@ -16,9 +16,7 @@ public enum Reminders {
     public static func upcoming(in tasks: [TaskItem], after now: Date, calendar: Calendar) -> [Reminder] {
         let reminders = tasks.compactMap { task -> Reminder? in
             guard task.remindsAtStart, task.completedAt == nil, task.repeatRule == nil,
-                let day = task.scheduledDate, let minute = task.scheduledMinute,
-                let date = calendar.date(byAdding: .minute, value: minute, to: day.startOfDay(in: calendar)),
-                date > now
+                let date = task.scheduledStart(calendar: calendar), date > now
             else { return nil }
             return Reminder(taskID: task.id, title: task.title, date: date)
         }

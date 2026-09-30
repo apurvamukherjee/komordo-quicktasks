@@ -160,6 +160,12 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
         return max(0, estimate - timeTaken(at: now))
     }
 
+    /// When a task with a time starts; nil for tasks without a day or a time.
+    public func scheduledStart(calendar: Calendar) -> Date? {
+        guard let day = scheduledDate, let minute = scheduledMinute else { return nil }
+        return calendar.date(byAdding: .minute, value: minute, to: day.startOfDay(in: calendar))
+    }
+
     /// The column a scheduled task derives from its date (FEATURES §4.2): today or earlier → Today,
     /// this week → This week, later → Backlog. Unscheduled tasks stay where they were put.
     public func column(in week: WeekRange) -> Bucket {
