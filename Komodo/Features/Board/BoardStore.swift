@@ -874,10 +874,13 @@ import SwiftUI
     }
 
     func deleteBreak(_ id: String) {
-        guard let index = breaks.firstIndex(where: { $0.id == id }) else { return }
-        let removed = breaks.remove(at: index)
+        guard let removed = breaks.first(where: { $0.id == id }) else { return }
+        removeBreak(id)
         offerUndo("Break deleted", detail: nil) { store in store.saveBreak(removed) }
     }
+
+    /// Without Undo, for an edit that turns a break into work.
+    func removeBreak(_ id: String) { breaks.removeAll { $0.id == id } }
 
     // MARK: Lists (FEATURES §4.1)
 
