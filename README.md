@@ -41,15 +41,16 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 🎨 | **Obsidian Spectrum design system** | True-black canvas, cursor spotlight on every surface, border beam, focus dial and odometer digits, all honoring Reduce Motion | ✅ Available |
 | 🧩 | **Component library** | Buttons, chips, fields, task and queue cards, the live task card with its control bar, break card, day meter, toasts and banners | ✅ Available |
 | 🗂️ | **Board with time temperature** | Backlog (cold), This week (warm) and Today (hot) on its own glowing stage. Drag and drop, quick add that reads estimates like `Write spec 45m`, a live task with projected start times, and Undo. Everything is saved on your Mac | ✅ Available |
+| 🏷️ | **Lists** | Make a list for every project with its own name, color and letter or emoji badge. Drag to reorder, rename or recolor it, archive it when it's done, or delete it to Trash with everything in it | ✅ Available |
 | 🔎 | **Task inspector** | Everything about a task in one side panel: list, estimate, time taken, schedule, repeat, subtasks, rich-text notes and every focus session | ✅ Available |
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
-| 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, and expands on hover | ✅ Available |
+| 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, expands on hover, and scrolls long titles | ✅ Available |
 | 🎉 | **Celebrations and day summary** | A burst, a chime and a random animated GIF on every Done, and "You won the day." when the queue is clear | ✅ Available |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
 | 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available |
 | 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
 | ⚙️ | **Settings** | Every preference in one window that applies as you change it: the Dock, the panel's screen, Pomodoros, alerts and sounds, celebrations and shortcuts | ✅ Available |
-| 🗑️ | **Trash and archive** | Deleted tasks wait 30 days with Restore, and archived tasks leave the Board but stay in your history | ✅ Available |
+| 🗑️ | **Trash and archive** | Deleted lists and tasks wait 30 days with Restore, and archived ones leave the Board but stay in your history | ✅ Available |
 | 📊 | **Reports** | Estimated vs. actual time, punctuality, time spent and full session history | 🚧 In development |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
@@ -100,7 +101,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **One press to focus.** Start docks the Focus Panel to the edge of your screen and steps the Board aside. Home brings it back, with the task still running.
 - **Every state at a glance.** The dial glows lime while you work, turns grey when paused and red with a shake when the estimate runs out, with +5 and +15 min one click away.
 - **Breaks that breathe.** A green circle breathes four seconds in and four out while the break counts down. Nothing restarts until you say so.
-- **The queue stays yours.** Add a task, finish one, or bolt any task live from the panel. When only timed tasks are left it waits calmly, and when the queue is clear you've won the day.
+- **The queue stays yours.** Add a task, finish one, or bolt any task live from the panel. When only timed tasks are left it waits calmly and starts each one on the minute, and when the queue is clear you've won the day.
 - **Pomodoro sprints, your way.** Work counts toward 25-minute sprints and a break starts when one ends. Keep the task's estimate as the big number with the sprint beside it, or switch Sprint display to count the sprint itself in pink.
 - **Quick Settings.** Sprint and break lengths, sprint display, the panel's side and sounds, from the gear.
 
@@ -177,8 +178,9 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 
 <p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks with their list, when they were deleted and the days left" width="100%"></p>
 
-- **Nothing is gone by accident.** Deleted tasks wait 30 days, with the last three days in amber. Restore puts a task back where it was.
-- **Archive, don't delete.** Archive a finished project task and it leaves the Board but stays in your history.
+- **Nothing is gone by accident.** Deleted lists and tasks wait 30 days, with the last three days in amber. Restore puts a task back where it was, and a list back in its place with all its tasks.
+- **Deleting a list asks twice.** Type the list's name to confirm, then Undo is still one click away.
+- **Archive, don't delete.** Archive a finished project, or a single task, and it leaves the Board but stays in your history.
 
 ## The design system
 
@@ -257,6 +259,8 @@ open Komodo.app --args -sampleTime artboard
 - [x] Focus Panel and its states
 - [x] Floating timer, celebrations, day summary, command palette
 - [x] Trash and archive
+- [x] Lists: create, rename, color and badge, reorder, archive, delete to Trash
+- [x] Timed tasks join the queue on time, alerts that survive App Nap, and the away-from-your-Mac question
 - [ ] Reports
 
 ## Contributing
