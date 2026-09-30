@@ -8,6 +8,32 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### P0 polish: lists, timed tasks, sleep and alerts — 2026-10-01
+
+#### Added
+- **Lists:** the sidebar's **+** and File ▸ New List open a sheet with a name (1–60 characters), the eight list
+  colors and a one-character badge (a letter or an emoji; empty follows the name's first letter). Right-click a
+  list for Rename, Color & Icon, Archive and Delete. Drag lists to reorder them.
+- **Archive a list:** it leaves the sidebar, All lists and search with its tasks, stays for reports, with Undo.
+- **Delete a list:** type its name to confirm; the list and its tasks go to Trash for 30 days, with Undo. Trash
+  shows it as one row with its badge and a violet List chip; Restore puts it back in its place with its tasks,
+  and Delete now or the 30th day removes it with everything in it.
+- **Timed tasks join the queue on time** (FEATURES §4.6): at their minute they move from Scheduled to the top of
+  Up next, and a Focus Panel waiting on the calm card starts them.
+- **Away from your Mac:** after sleeping more than five minutes with a task running, a toast asks "You were away
+  47min." with Discard to take the gap out of the task's time.
+- **File menu:** New Task ⌘⌥T, New List, Export Backup… and Restore from Backup…. **Help menu:** Keyboard
+  Shortcuts and Save Diagnostics….
+- **Scrolling title** in the floating timer: long titles scroll back and forth in a Core Animation marquee,
+  pausing on hover.
+- `TaskList` trash and archive dates (schema v3), `AwayTime`, `TaskItem.scheduledStart` and the queue rule in
+  `BoardLayout`, with tests. Debug flags `-openListSheet new|edit|delete` and `-deleteList <id>`.
+
+#### Changed
+- Sprint end, break over and Time's Up are scheduled as system notifications when their timer starts, so they
+  arrive on time while Komodo naps; Pause and Done withdraw them. A running timer also holds off App Nap.
+- Save Diagnostics… adds this run's Komodo log and the list count.
+
 ### Data & backup, onboarding and celebration GIFs (5g without Google) — 2026-09-29
 
 #### Added
