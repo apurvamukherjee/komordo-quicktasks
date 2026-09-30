@@ -132,7 +132,7 @@ private struct TrashRow: View {
     @State private var isHovered = false
 
     var body: some View {
-        let list = store.lists.first { $0.id == task.listID }
+        let list = store.list(for: task)
         let color = list.flatMap { ListColor(rawValue: $0.color) } ?? .lime
         let left = task.deletedAt.map { Trash.daysLeft(deletedAt: $0, now: store.now, calendar: store.calendar) } ?? 0
         TrashColumns(

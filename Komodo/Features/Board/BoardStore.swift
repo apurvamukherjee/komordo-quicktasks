@@ -48,8 +48,15 @@ import SwiftUI
         case right
     }
 
-    var lists: [TaskList] {
-        didSet { persist(.lists(from: oldValue, to: lists)) }
+    /// Every list in sidebar order, including those in Trash or archived; they keep their place for a restore.
+    private(set) var allLists: [TaskList] {
+        didSet { persist(.lists(from: oldValue, to: allLists)) }
+    }
+    /// The lists in the sidebar and every picker.
+    var lists: [TaskList] { allLists.filter(\.isActive) }
+    /// Tasks of lists in Trash or archived, off the Board until their list comes back.
+    private var shelved: [TaskItem] {
+        didSet { persist(.tasks(from: oldValue, to: shelved)) }
     }
     /// Deleted tasks for 30 days (FEATURES §4.20), newest first in the Trash view. Apart from `tasks`, so
     /// nothing on the Board, in search or in reminders has to skip them.
@@ -200,9 +207,10 @@ import SwiftUI
         lists: [TaskList], tasks: [TaskItem], selectedListID: String?, calendar: Calendar = .current,
         clock: @escaping () -> Date = { Date() }, openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         database: AppDatabase? = nil, preferences: [String: String] = [:], trash: [TaskItem] = [],
-        archived: [TaskItem] = []
+        archived: [TaskItem] = [], shelved: [TaskItem] = []
     ) {
-        self.lists = lists
+        self.allLists = lists
+        self.shelved = shelved
         self.tasks = tasks
         self.trash = trash
         self.archived = archived
@@ -282,7 +290,7 @@ import SwiftUI
     /// onboarding, or Delete all data. A board that already has tasks never sees it, whatever its preferences say.
     private func needsOnboarding(_ preferences: [String: String]) -> Bool {
         database != nil && preferences[Preference.onboarded] == nil && tasks.isEmpty && trash.isEmpty
-            && archived.isEmpty
+            && archived.isEmpty && shelved.isEmpty
     }
 
     /// Onboarding's Continue or Skip: each line typed on the Today step becomes a Today task, and the Start tip
@@ -309,7 +317,7 @@ import SwiftUI
                 Toast(kind: .error, message: "Couldn't open your tasks", detail: "Restart Komodo to try again."))
             return
         }
-        let lists = stored.lists.isEmpty ? [Self.firstList] : stored.lists
+        let lists = stored.lists.contains(where: \.isActive) ? stored.lists : stored.lists + [Self.firstList]
         isReloading = true
         focus = Focus()
         focusSurface = nil
@@ -318,11 +326,12 @@ import SwiftUI
         isShowingTrash = false
         isPaletteOpen = false
         isQuickAddOpen = false
-        self.lists = lists
+        allLists = lists
         tasks = stored.tasks
+        shelved = stored.shelved
         trash = stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now }
         archived = stored.archived
-        selectedListID = lists.first?.id
+        selectedListID = self.lists.first?.id
         lastListID = selectedListID
         // Anything the file doesn't mention goes back to its default, as on a first launch.
         isPomodoroOn = true
@@ -444,7 +453,8 @@ import SwiftUI
         tasks.filter { !$0.isDone && (listID == nil || $0.listID == listID) }.count
     }
 
-    func list(for task: TaskItem) -> TaskList? { lists.first { $0.id == task.listID } }
+    /// Any list, including one in Trash, so a trashed task can still name where it came from.
+    func list(for task: TaskItem) -> TaskList? { allLists.first { $0.id == task.listID } }
 
     /// How far the Board's clock runs ahead of the wall clock. Zero in normal use; sample data anchored to the
     /// artboard's afternoon sets it, and timelines that read the wall clock subtract it.

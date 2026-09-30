@@ -22,12 +22,13 @@ extension BoardStore {
         do {
             let database = try AppDatabase.open(at: databaseURL)
             let stored = try database.load()
-            let lists = stored.lists.isEmpty ? [firstList] : stored.lists
+            // Every list may be archived or in Trash, and the Board always needs one to add to.
+            let lists = stored.lists.contains(where: \.isActive) ? stored.lists : stored.lists + [firstList]
             let store = BoardStore(
-                lists: lists, tasks: stored.tasks, selectedListID: lists.first?.id, database: database,
-                preferences: stored.preferences,
+                lists: lists, tasks: stored.tasks, selectedListID: lists.first(where: \.isActive)?.id,
+                database: database, preferences: stored.preferences,
                 trash: stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now },
-                archived: stored.archived)
+                archived: stored.archived, shelved: stored.shelved)
             store.persist(.lists(from: stored.lists, to: lists))
             return store
         } catch {
