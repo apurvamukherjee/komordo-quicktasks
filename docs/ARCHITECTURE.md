@@ -393,8 +393,9 @@ protocol ProviderAdapter: Sendable {
 - **Voice notes and voice input:** `SFSpeechRecognizer` with `requiresOnDeviceRecognition = true`, so audio never leaves the Mac. Needs the microphone and speech-recognition permissions.
 
 ## 10. Local MCP server (P1)
-- `komodo-mcp` is a command-line target embedded at `Komodo.app/Contents/Helpers/komodo-mcp`. It uses the MCP Swift SDK's stdio transport. Claude Desktop, Claude Code, and Raycast launch it from their MCP config.
-- It opens the same SQLite file (a GRDB `DatabasePool` in WAL mode). After each write it posts a Darwin notification (`app.komodo.db-changed`), and the app refreshes its observations.
+- `komodo-mcp` is a command-line target (`KomodoMCP/`) embedded at `Komodo.app/Contents/Helpers/komodo-mcp`. Claude Desktop, Claude Code, and Raycast launch it from their MCP config. It speaks JSON-RPC 2.0 over stdio, one message per line, written by hand in `KomodoCore` (`MCPServer`, `KomodoTools`, `JSONValue`): four methods (`initialize`, `ping`, `tools/list`, `tools/call`) don't justify the MCP Swift SDK (about 1 MB).
+- It opens the same SQLite file (a GRDB `DatabasePool` in WAL mode); `KOMODO_DATABASE` points it elsewhere for testing. After each write it posts a Darwin notification (`app.komodo.db-changed`, `notify_post`), and the app reads the rows again in place (`BoardStore.absorbOutsideChanges`), keeping the page, sheets and live task. No `ValueObservation`: the notification is cheaper and only the helper writes from outside.
+- Every tool checks the `mcpEnabled` preference first, so the Settings switch works without the app running.
 - `start_focus` opens `komodo://start?task=<id>`, so the running app starts the timer.
 - MCP clients ask the user before each tool call. Komodo only has an on/off switch in Settings.
 
