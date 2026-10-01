@@ -283,7 +283,8 @@ struct FocusWonCard: View {
         let day = date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
         guard !isQueueEmpty, let firstStart, let lastFinish else { return "\(day) · the Focus queue is empty." }
         let time = Date.FormatStyle.dateTime.hour().minute()
-        return "\(day) · first task \(firstStart.formatted(time)) · last \(lastFinish.formatted(time))"
+        // The panel is too narrow for Celebration.png ④'s single line, so the span takes a line of its own.
+        return "\(day)\nfirst task \(firstStart.formatted(time)) · last \(lastFinish.formatted(time))"
     }
 
     /// Celebration.png ⑤: nothing carried over.
