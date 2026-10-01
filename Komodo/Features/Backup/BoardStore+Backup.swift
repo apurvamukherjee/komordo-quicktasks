@@ -133,9 +133,9 @@ extension BoardStore {
 
     // MARK: Restore and delete
 
-    /// Checks a chosen zip without touching the current data.
-    static func openBackup(_ zip: URL) async -> Result<BackupArchive, BackupError> {
-        await Task.detached { Result { () throws(BackupError) in try Backup.open(zip) } }.value
+    /// Checks a chosen zip or `.kbak` without touching the current data.
+    static func openBackup(_ file: URL, password: String? = nil) async -> Result<BackupArchive, BackupError> {
+        await Task.detached { Result { () throws(BackupError) in try Backup.open(file, password: password) } }.value
     }
 
     /// Backs the current data up next to the automatic ones, then copies the backup in. Nothing is replaced if
