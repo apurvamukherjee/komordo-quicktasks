@@ -56,6 +56,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
 | 🗓️ | **Calendar import** | Meetings from any calendar on your Mac, iCloud, Google or Outlook, show up as tasks on the right day, with their time, length, reminder and call link | ✅ Available |
+| ✨ | **Komodo Assistant** | Brain dump your day or say "move @Task to tomorrow", and see every change in an editable preview first. Runs on Apple's on-device model, or Claude with your own key | ✅ Available |
 | 🤖 | **Local MCP server** | Let Claude Desktop, Claude Code or Raycast read and plan your lists, add and finish tasks, log time and start a focus session. Runs on your Mac, with no login and no server | ✅ Available |
 | 🔐 | **Password-protected backups** | Seal every export and daily backup with a password of your own, kept in your Keychain and never inside the backup | ✅ Available |
 | 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
@@ -202,6 +203,15 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Meetings land where they belong.** Each event becomes a task on its day and time, with its length as the estimate and a reminder when it starts. Starting it opens the call link.
 - **Always in step.** When an event moves in Calendar, its task moves too, the moment Calendar changes. Anything you deleted in Komodo stays deleted, and your notes are never overwritten.
 
+## Komodo Assistant
+
+<p align="center"><img src="docs/media/assistant.png" alt="Three Assistant popovers: the welcome with suggestions, a brain dump previewed as Gym tomorrow at 7 for 1 hour, Deck today for 3 hours and Call Apurva today, and the same three tasks added with Undo" width="100%"></p>
+
+- **Brain dump, then breathe.** Type "tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva" and get three tasks with their days, times and lengths. Untick or retitle anything before it's added.
+- **Talk to your tasks.** "Move @Draft launch email to tomorrow and log 30min on @Plan the offsite" does exactly that, and nothing else.
+- **On your Mac first.** It runs on Apple's on-device model, so your words stay on your Mac. Without Apple Intelligence, it uses Claude with your own key.
+- **Nothing changes until you say so.** Every change waits in the preview, and one Undo takes it all back. ⌘J opens it from anywhere in Home.
+
 ## Work with AI apps
 
 <p align="center"><img src="docs/media/settings-mcp.png" alt="Settings on the Local MCP server page: the switch that lets AI apps on this Mac use Komodo, the Claude Desktop setup snippet with Copy, and the eight tools" width="100%"></p>
@@ -342,6 +352,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Password-protected backups
 - [x] Local MCP server
 - [x] Calendar import
+- [x] Komodo Assistant
 
 ## Contributing
 
