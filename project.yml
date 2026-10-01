@@ -69,6 +69,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "-"
         ENABLE_PREVIEWS: YES
+        # FoundationModels exists from macOS 26; weak, so Komodo still opens on 14 and 15.
+        OTHER_LDFLAGS: ["-weak_framework", "FoundationModels"]
 
   komodo-mcp:
     type: tool
