@@ -23,6 +23,39 @@ extension BoardStore {
 
     private static let log = Logger(subsystem: "app.komodo.Komodo", category: "backup")
 
+    // MARK: Password
+
+    /// Password-protect backups: saves the password in the Keychain first, so the switch only turns on once a
+    /// backup can really be sealed.
+    func protectBackups(with password: String) -> Bool {
+        do {
+            try BackupPassword.save(password)
+        } catch {
+            Self.log.error("Couldn't save the backup password: \(error)")
+            toasts.show(Toast(kind: .error, message: "Couldn't save the password in your Keychain"))
+            return false
+        }
+        settings.protectsBackups = true
+        return true
+    }
+
+    func stopProtectingBackups() {
+        settings.protectsBackups = false
+        do {
+            try BackupPassword.remove()
+        } catch {
+            // Harmless left behind: nothing reads it while protection is off, and turning it on replaces it.
+            Self.log.error("Couldn't remove the backup password: \(error)")
+        }
+    }
+
+    /// The password backups are sealed with, or nil while protection is off.
+    private func sealingPassword() throws -> String? {
+        guard settings.protectsBackups else { return nil }
+        guard let password = try BackupPassword.read() else { throw MissingBackupPassword() }
+        return password
+    }
+
     // MARK: Export
 
     /// Export zip: the spinner, then "Backup saved" with Show in Finder.
@@ -31,7 +64,8 @@ extension BoardStore {
         isExporting = true
         defer { isExporting = false }
         do {
-            try await Self.write(database, to: destination)
+            let password = try sealingPassword()
+            try await Self.write(database, to: destination, password: password)
             settings.lastExportAt = now
             toasts.show(
                 Toast(
@@ -49,12 +83,14 @@ extension BoardStore {
     func chooseExportDestination() {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = suggestedBackupName
-        panel.allowedContentTypes = [.zip]
+        panel.allowedContentTypes = [settings.protectsBackups ? .komodoBackup : .zip]
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Task { await exportBackup(to: url) }
     }
 
-    var suggestedBackupName: String { Backup.fileName(on: now, calendar: calendar) }
+    var suggestedBackupName: String {
+        Backup.fileName(on: now, calendar: calendar, isProtected: settings.protectsBackups)
+    }
 
     // MARK: Automatic
 
@@ -72,9 +108,11 @@ extension BoardStore {
         let folder = backupFolder
         let kept = settings.backupsKept
         do {
+            let password = try sealingPassword()
             try await Task.detached {
                 try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-                try Backup.export(database, appVersion: Self.appVersion, to: folder.appending(path: name))
+                try Backup.export(
+                    database, appVersion: Self.appVersion, to: folder.appending(path: name), password: password)
                 try Backup.prune(folder, keeping: kept)
             }.value
             settings.lastBackupAt = now
@@ -82,6 +120,10 @@ extension BoardStore {
             return true
         } catch {
             Self.log.error("Automatic backup failed: \(error)")
+            if error is MissingBackupPassword || error is KeychainError {
+                settings.lastBackupFailure = "the password isn't in your Keychain"
+                return false
+            }
             // The folder is made when missing, so a missing parent means an unplugged drive or a moved folder.
             let isMissing = !FileManager.default.fileExists(atPath: folder.deletingLastPathComponent().path)
             settings.lastBackupFailure = isMissing ? "folder not found" : "couldn't write to the folder"
@@ -148,7 +190,17 @@ extension BoardStore {
         reload()
     }
 
-    private static func write(_ database: AppDatabase, to destination: URL) async throws {
-        try await Task.detached { try Backup.export(database, appVersion: appVersion, to: destination) }.value
+    private static func write(_ database: AppDatabase, to destination: URL, password: String?) async throws {
+        try await Task.detached {
+            try Backup.export(database, appVersion: appVersion, to: destination, password: password)
+        }.value
     }
+}
+
+/// Protection is on but the Keychain has no password, as after it was deleted in Keychain Access.
+private struct MissingBackupPassword: Error {}
+
+extension UTType {
+    /// `.kbak`, a password-protected backup.
+    static let komodoBackup = UTType(filenameExtension: BackupCrypto.fileExtension) ?? .data
 }
