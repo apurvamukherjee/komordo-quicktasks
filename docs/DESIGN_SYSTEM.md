@@ -257,6 +257,8 @@ Short, playful, second person, and never guilt-tripping. Emoji at most once, in 
 | Gmail reconnect | "Google disconnected. Reconnect to keep adding events." |
 | Backup done | "Backup saved: komodo-backup-2026-09-26.zip" |
 | Restore confirm | "Your current data is backed up first, then replaced." |
+| Backup password | **Set a backup password** · "Backups are saved as encrypted .kbak files. Komodo keeps the password in your Keychain for the daily backup." · "Without this password, a protected backup can't be opened, on this Mac or any other." [Cancel] [Turn on] · "The passwords don't match." |
+| Protected restore | **Enter the backup's password** · "komodo-backup-2026-09-24.kbak is password-protected." [Cancel] [Open] · "Wrong password." |
 | Delete all | "This deletes every list, task, and session on this Mac. Type DELETE to confirm." |
 
 ## 8. Accessibility
@@ -1017,7 +1019,8 @@ A list of suggestion cards (§10.11) sorted by event date, with **Add all** and 
 │ Keep last  [14 ▾]            Last backup: Today 9:05 AM ✓                           │
 │ Tip: choose an iCloud Drive or Dropbox folder for a copy off this Mac.              │
 │ ─────────────────────────────────────────────────────────────────────────────────── │
-│ Password-protect backups                                                [off] P1    │
+│ Password-protect backups                                                    [off]   │
+│ Saved as an encrypted .kbak file.                                                   │
 │ ─────────────────────────────────────────────────────────────────────────────────── │
 │ Restore from backup                                               [Choose file…]    │
 │ Replaces all current data. Your current data is backed up first.                    │
@@ -1028,7 +1031,8 @@ A list of suggestion cards (§10.11) sorted by event date, with **Add all** and 
 ```
 
 - **Export** opens the standard Save panel with `komodo-backup-YYYY-MM-DD.zip` filled in. The button shows a spinner, then a toast: "Backup saved" [Show in Finder].
-- **Automatic backup failed:** "Last backup failed: folder not found" in danger text, with [Change].
+- **Automatic backup failed:** "Last backup failed: folder not found" in danger text, with [Change]. A protected backup whose password has left the Keychain reads "Last backup failed: the password isn't in your Keychain".
+- **Password-protect backups:** turning it on opens the Set a backup password sheet (§7) and the switch flips only once the password is saved; off removes it. With it on, Export fills in `komodo-backup-YYYY-MM-DD.kbak`.
 
 ### 13.22 Restore and delete sheets (P0)
 
@@ -1052,6 +1056,7 @@ A list of suggestion cards (§10.11) sorted by event date, with **Add all** and 
   - "This file isn't a Komodo backup."
   - "The backup is damaged."
 - **Delete all** stays disabled until the field reads exactly DELETE.
+- **Protected restore:** a `.kbak` opens the password sheet (§7) in the form sheet style, lock icon in teal, before Restore this backup?. A wrong password marks the field in danger until it's edited.
 
 ### 13.23 Settings: AI (P1)
 
