@@ -48,6 +48,16 @@ public struct AppSettings: Equatable, Sendable {
     /// Backups are sealed as `.kbak`; the password itself is in the Keychain, never here.
     public var protectsBackups = false
 
+    // Calendar import (FEATURES §5, through macOS Calendar)
+    public var importsCalendars = false
+    /// macOS Calendar's identifiers for the calendars to import; they're particular to this Mac.
+    public var calendarIDs: [String] = []
+    /// The list imported events join; nil means the first list.
+    public var calendarListID: String?
+    public var calendarWeeks = 2
+    public var calendarAcceptedOnly = false
+    public var lastCalendarSync: Date?
+
     // Local MCP server
     /// Let AI apps on this Mac use Komodo (DESIGN_SYSTEM §13.24); `komodo-mcp` refuses every tool while it's off.
     public var allowsMCP = false
@@ -58,6 +68,8 @@ public struct AppSettings: Equatable, Sendable {
 
     public static let presetLimit = 5
     public static let backupsKeptChoices = [7, 14, 30]
+    /// FEATURES §5: a range of up to 3 weeks.
+    public static let calendarWeekChoices = [1, 2, 3]
     public static let timedAlertIntervals: [TimeInterval] = [5, 10, 15, 30].map { $0 * 60 }
 
     public init() {}
@@ -95,6 +107,12 @@ public struct AppSettings: Equatable, Sendable {
         static let backupFailure = "lastBackupFailure"
         static let protectsBackups = "protectsBackups"
         static let mcp = "mcpEnabled"
+        static let importsCalendars = "importsCalendars"
+        static let calendarIDs = "calendarIDs"
+        static let calendarList = "calendarListID"
+        static let calendarWeeks = "calendarWeeks"
+        static let calendarAccepted = "calendarAcceptedOnly"
+        static let calendarSync = "lastCalendarSync"
         static let shortcutPrefix = "shortcut."
     }
 
@@ -136,6 +154,16 @@ public struct AppSettings: Equatable, Sendable {
         if let text = stored[Key.backupFailure], !text.isEmpty { lastBackupFailure = text }
         bool(Key.protectsBackups, &protectsBackups)
         bool(Key.mcp, &allowsMCP)
+        bool(Key.importsCalendars, &importsCalendars)
+        if let text = stored[Key.calendarIDs] {
+            calendarIDs = text.split(separator: "\n").map(String.init)
+        }
+        if let text = stored[Key.calendarList], !text.isEmpty { calendarListID = text }
+        if let value = stored[Key.calendarWeeks].flatMap(Int.init), Self.calendarWeekChoices.contains(value) {
+            calendarWeeks = value
+        }
+        bool(Key.calendarAccepted, &calendarAcceptedOnly)
+        lastCalendarSync = stored[Key.calendarSync].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
         for action in GlobalShortcut.allCases {
             if let combo = stored[Key.shortcutPrefix + action.rawValue].flatMap(KeyCombo.init(stored:)) {
                 shortcuts[action] = combo
@@ -176,6 +204,12 @@ public struct AppSettings: Equatable, Sendable {
             Key.backupFailure: lastBackupFailure ?? "",
             Key.protectsBackups: flag(protectsBackups),
             Key.mcp: flag(allowsMCP),
+            Key.importsCalendars: flag(importsCalendars),
+            Key.calendarIDs: calendarIDs.joined(separator: "\n"),
+            Key.calendarList: calendarListID ?? "",
+            Key.calendarWeeks: String(calendarWeeks),
+            Key.calendarAccepted: flag(calendarAcceptedOnly),
+            Key.calendarSync: lastCalendarSync.map { String($0.timeIntervalSince1970) } ?? "",
         ]
         for action in GlobalShortcut.allCases {
             result[Key.shortcutPrefix + action.rawValue] = shortcuts[action]?.storedValue ?? ""

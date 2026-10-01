@@ -46,6 +46,12 @@ struct AppSettingsTests {
         settings.lastBackupFailure = "folder not found"
         settings.protectsBackups = true
         settings.allowsMCP = true
+        settings.importsCalendars = true
+        settings.calendarIDs = ["A1B2-work", "C3D4-family"]
+        settings.calendarListID = "work"
+        settings.calendarWeeks = 3
+        settings.calendarAcceptedOnly = true
+        settings.lastCalendarSync = Date(timeIntervalSince1970: 1_790_090_000)
         settings.shortcuts[.findTimer] = KeyCombo(keyCode: 3, modifiers: [.control, .option], key: "f")
         #expect(AppSettings(stored: settings.stored) == settings)
     }
