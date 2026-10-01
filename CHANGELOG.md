@@ -8,6 +8,17 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Voice input and voice notes (Phase 2) — 2026-10-02
+
+#### Added
+- **Hold the mic to talk** in the Assistant (Assistant.png ②): timer, live waveform, transcript, and release to
+  send.
+- **Voice notes** in the inspector (FEATURES §4.5): Voice note listens, Add to notes appends the words as a new
+  paragraph, undoable like typing.
+- `SpeechTranscriber`: `SFSpeechRecognizer` with on-device recognition required, through `AVAudioEngine`. The
+  audio-input entitlement and the microphone and speech usage strings. Debug flags `-voiceSample`,
+  `-assistantListening` and `-voiceNote`.
+
 ### Komodo Assistant (Phase 2) — 2026-10-02
 
 #### Added
