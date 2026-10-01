@@ -99,7 +99,7 @@ Komodo is a to-do list that collapses into a floating countdown timer. The curre
 - **No past events:** an event that has already started is never added.
 - **No email is stored:** Komodo keeps only the message ID, received time, outcome, and the IDs of events it created.
 - **Reschedules and cancellations (P1):** a later email in the same thread that moves or cancels the meeting updates or removes the event.
-- **As tasks:** once calendar import is on (§5, P1), events from both Komodo calendars appear in Today and This week with reminders.
+- **As tasks:** once calendar import is on (§5, P1) and the Komodo calendars are chosen, their events appear in Today and This week with reminders.
 
 **Settings**
 
@@ -424,8 +424,7 @@ Every integration runs inside the app, and tokens are kept in the macOS Keychain
 | Provider | Direction | What syncs | Connect with | Priority |
 | --- | --- | --- | --- | --- |
 | **Gmail** | Reads Gmail, writes to Komodo's own calendars | Meetings and deadlines from email (§4.0) | Google sign-in | **P0** |
-| Google Calendar | Calendar → Komodo | Events become tasks with title, time, description, and Meet link. Choice of calendars, range (up to 3 weeks), all or accepted events | Google sign-in | P1 |
-| Microsoft Calendar | Calendar → Komodo | Same as Google Calendar | Microsoft sign-in | P1 |
+| Calendars (Google, Microsoft, iCloud) | Calendar → Komodo | Events become tasks with title, time, description, and meeting link. Choice of calendars, range (up to 3 weeks), all or accepted events | macOS Calendar access (the accounts already in System Settings ▸ Internet Accounts) | P1 |
 | Notion | Two-way | A database. Title, date, Status → column, checkbox properties → subtasks | Personal token | P2 |
 | Todoist | Two-way | One project | Personal token | P2 |
 | Linear | Linear → Komodo | A team's issues, optionally one project | Personal token | P2 |
@@ -444,6 +443,16 @@ Every integration runs inside the app, and tokens are kept in the macOS Keychain
 | **Status mapping** | Which provider statuses map to which column, and to Done |
 
 Imported tasks are placed by date: none or beyond this week → Backlog, this week → This week, today → Today.
+
+**Calendar import** reads macOS Calendar, so any account the Mac has (iCloud, Google, Exchange, Outlook.com) works with no sign-in inside Komodo. Settings → Integrations → **Connect** asks macOS for access once and selects every calendar; the Calendar import group then picks calendars by account, the list events join (default: the first list), the range (next 1, 2 or 3 weeks, default 2), and **Only accepted events**.
+- Each occurrence becomes one task: title, date, start time (all-day events have none), the event's length as the estimate, its notes, and the meeting link (the event's URL, or the first Meet, Zoom, Teams or Webex link in its location or notes) as the task's source link. Cancelled events are skipped.
+- Syncs run at launch, whenever Calendar's data changes, at day rollover, and on **Sync now**; there's no polling.
+- A moved or renamed event updates its open task; notes added in Komodo are kept. A finished task isn't touched. A task deleted in Komodo isn't imported again. An event that disappears only unlinks its task.
+- **Disconnect** stops importing; imported tasks stay.
+
+**Acceptance**
+- [ ] An event in a chosen calendar appears as a task within seconds of being added in Calendar, on the right day and time, with its reminder.
+- [ ] Syncing twice never duplicates, and a task moved to Trash stays there.
 
 ### 5.1 Local MCP server (P1)
 
