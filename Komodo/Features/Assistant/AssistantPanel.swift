@@ -148,7 +148,8 @@ struct AssistantPanel: View {
 
     /// Assistant.png's three, naming real tasks when the board has them.
     private var suggestions: [(label: AttributedString, text: String, symbol: String)] {
-        let open = store.tasks.filter { !$0.isDone }
+        // The shortest titles keep each suggestion on one line.
+        let open = store.tasks.filter { !$0.isDone }.sorted { $0.title.count < $1.title.count }
         var items: [(AttributedString, String, String)] = [
             (AttributedString("Brain dump my day"), "", "line.3.horizontal")
         ]
