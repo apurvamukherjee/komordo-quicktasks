@@ -317,14 +317,14 @@ struct FocusPanelView: View {
         VStack(spacing: 10) {
             FocusWonCard(
                 date: store.now, done: plan.done, focused: plan.focused,
-                summary: DaySummary(doneToday: store.layout.doneToday, now: store.now),
-                streak: store.streak,
-                onSeeReports: {
+                summary: DaySummary(doneToday: store.layout.doneToday, now: store.now), streak: store.streak,
+                unfinished: store.unfinishedToday.map(store.cardModel(for:)),
+                onSeeReports: { choices in
                     // The summary closes and Home comes back on Reports.
-                    store.closeDaySummary()
+                    store.closeDaySummary(carrying: choices)
                     store.showReports()
                 },
-                onDone: store.closeDaySummary
+                onDone: { store.closeDaySummary(carrying: $0) }
             )
             .transition(.rise(reduceMotion: reduceMotion))
             doneSection(store.layout.doneToday)

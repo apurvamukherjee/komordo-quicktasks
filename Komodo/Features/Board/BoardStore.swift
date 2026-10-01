@@ -1125,8 +1125,10 @@ import SwiftUI
         locatorPings += 1
     }
 
-    /// Done on the day summary: nothing is left to focus on, so Focus mode ends and Home comes back.
-    func closeDaySummary() {
+    /// Done or See reports on the day summary: unfinished tasks move as reviewed, Focus mode ends and Home comes
+    /// back.
+    func closeDaySummary(carrying choices: [String: CarryOver]) {
+        carryOver(choices)
         focus.isDayWon = false
         focusSurface = nil
     }

@@ -170,8 +170,9 @@ struct FocusScheduledCard: View {
     }
 }
 
-/// The end of the queue (FocusStates ⑦, DESIGN_SYSTEM §13.11): "You won the day." with tasks done, time focused,
-/// how the estimates held up and the streak. Moving unfinished tasks is the P1 end-of-day review (FEATURES §6.4).
+/// The day summary (FocusStates ⑦, Celebration.png ④ and ⑤, DESIGN_SYSTEM §13.11): "You won the day." with tasks
+/// done, time focused, how the estimates held up and the streak, then the end-of-day review (FEATURES §6.4):
+/// each unfinished task goes to Tomorrow or This week when the summary closes.
 struct FocusWonCard: View {
     var date: Date
     var done: Int
@@ -179,8 +180,11 @@ struct FocusWonCard: View {
     var summary: DaySummary
     /// Consecutive days with a task done, today included.
     var streak: Int
-    var onSeeReports: () -> Void
-    var onDone: () -> Void
+    var unfinished: [TaskCardModel] = []
+    var onSeeReports: ([String: CarryOver]) -> Void
+    var onDone: ([String: CarryOver]) -> Void
+
+    @State private var choices: [String: CarryOver] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s4) {
@@ -221,14 +225,24 @@ struct FocusWonCard: View {
                 .font(.system(size: 12.5))
                 .foregroundStyle(Palette.textTertiary)
             }
+            if !unfinished.isEmpty {
+                Divider().overlay(Palette.border)
+                notFinished
+            }
             HStack(spacing: Space.s2) {
-                Button(action: onSeeReports) {
+                Button {
+                    onSeeReports(choices)
+                } label: {
                     Text("See reports").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.komodo(.secondary, size: .large))
-                Button(action: onDone) { Text("Done").frame(maxWidth: .infinity) }
-                    .buttonStyle(.komodo(.primary, size: .large))
-                    .help("Close the summary")
+                Button {
+                    onDone(choices)
+                } label: {
+                    Text("Done").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.komodo(.primary, size: .large))
+                .help("Close the summary")
             }
             .padding(.top, 2)
         }
@@ -257,6 +271,56 @@ struct FocusWonCard: View {
         )
         .shadow(color: Palette.amber.opacity(0.35), radius: 40)
         .spotlight(SpotlightTint.review, radius: 24, lifts: false)
+    }
+
+    /// FocusStates ⑦'s NOT FINISHED rows, each with its Tomorrow / This week menu.
+    private var notFinished: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Text("NOT FINISHED (\(unfinished.count))")
+                .font(.system(size: 10.5, weight: .heavy))
+                .tracking(0.84)
+                .foregroundStyle(Palette.textMuted)
+            ForEach(unfinished) { task in
+                HStack(spacing: Space.s2) {
+                    ListBadge(letter: task.listLetter, color: task.listColor, side: 19)
+                    Text(task.title)
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(Palette.textBody)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    carryMenu(for: task)
+                }
+            }
+        }
+    }
+
+    private func carryMenu(for task: TaskCardModel) -> some View {
+        let choice = choices[task.id] ?? .tomorrow
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        return Menu {
+            ForEach(CarryOver.allCases, id: \.self) { option in
+                Button(option.title) { choices[task.id] = option }
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Text(choice.title)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(Palette.textMuted)
+            }
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(Palette.textBody)
+            .padding(.horizontal, Space.s2)
+            .frame(height: 24)
+            .background(Color.white.opacity(0.06), in: shape)
+            .overlay(shape.strokeBorder(Color.white.opacity(0.09), lineWidth: 1))
+            .contentShape(shape)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Where \(task.title) goes when the summary closes")
     }
 
     private func stat(_ value: String, _ label: String, tint: Color, isHighlighted: Bool = false) -> some View {
@@ -309,6 +373,15 @@ struct FocusWonCard: View {
             .foregroundStyle(Palette.textTertiary)
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension CarryOver {
+    var title: String {
+        switch self {
+        case .tomorrow: "Tomorrow"
+        case .thisWeek: "This week"
+        }
     }
 }
 
@@ -526,7 +599,11 @@ private final class OrbitLayerView: EffectLayerView {
                 onSkip: {}, onAddTwoMinutes: {})
             FocusScheduledCard(title: "Wireframes", time: "11:00 AM", onStartEarly: {})
             FocusWonCard(
-                date: .now, done: 7, focused: 20_400, summary: sampleSummary, streak: 4, onSeeReports: {}, onDone: {})
+                date: .now, done: 7, focused: 20_400, summary: sampleSummary, streak: 4,
+                unfinished: [
+                    TaskCardModel(id: "hire", title: "Hire a product designer", listLetter: "W", listColor: .lime),
+                    TaskCardModel(id: "roadmap", title: "Q4 engineering roadmap", listLetter: "W", listColor: .lime),
+                ], onSeeReports: { _ in }, onDone: { _ in })
         }
         .frame(width: 3 * 312 + 2 * Space.s5)
         .padding(Space.s6)
