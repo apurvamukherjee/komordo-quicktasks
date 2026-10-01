@@ -21,6 +21,9 @@ public enum BackupError: Error, Equatable, Sendable {
     case notABackup
     case newerVersion
     case damaged
+    /// A `.kbak` was opened without a password.
+    case passwordRequired
+    case wrongPassword
 }
 
 /// A backup unzipped into a temporary folder and checked: its manifest reads, its database passes SQLite's

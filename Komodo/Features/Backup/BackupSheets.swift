@@ -95,6 +95,7 @@ struct RestoreErrorSheet: View {
         case .newerVersion: "This backup is from a newer version of Komodo. Update the app first."
         case .notABackup: "This file isn't a Komodo backup."
         case .damaged: "The backup is damaged."
+        case .passwordRequired, .wrongPassword: "That password doesn't open this backup."
         }
     }
 
@@ -103,6 +104,7 @@ struct RestoreErrorSheet: View {
         case .newerVersion: "exclamationmark.circle"
         case .notABackup: "doc.badge.ellipsis"
         case .damaged: "exclamationmark.triangle"
+        case .passwordRequired, .wrongPassword: "lock"
         }
     }
 }
