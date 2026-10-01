@@ -407,12 +407,13 @@ There is no Komodo account or server. Everything lives in one SQLite database on
 - **Restore:** Settings → Data & backup → **Restore from backup**. Komodo checks the file, backs up the current data, then replaces it.
 - **New Mac:** export on the old Mac and restore on the new one.
 - **Delete all data:** type DELETE to confirm. This wipes the database and disconnects Google.
-- **Password-protected backups** (P1).
+- **Password-protected backups** (P1): Settings → Data & backup → **Password-protect backups** asks for a password twice, keeps it in the macOS Keychain (never in the database or any backup), and then saves every export and daily backup as an encrypted `.kbak` instead of a zip. **Restore from backup** accepts `.kbak` files and asks for the password first; a wrong one can be retried. Turning protection off, or Delete all data, removes the password from the Keychain. There is no recovery: a `.kbak` can't be opened without its password.
 
 **Acceptance**
 - [ ] Export → Delete all data → Restore gives back identical lists, tasks, sessions, and settings.
 - [ ] The zip contains no token or API key.
 - [ ] An automatic backup runs within 5 minutes of the first launch each day, and only 14 are kept.
+- [ ] With protection on, Export → Delete all data → Restore from the `.kbak` with its password gives back the same data, and a wrong password replaces nothing.
 
 ---
 
