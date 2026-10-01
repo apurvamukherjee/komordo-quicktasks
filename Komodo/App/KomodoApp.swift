@@ -77,7 +77,9 @@ struct SettingsCommand: Commands {
 /// - `-openReports overview|punctuality|time|sessions` shows Reports on that tab.
 /// - `-exportSessions <file.pdf|file.csv>` writes Sessions' export there at launch, to check it without the panel.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, data or about. With
-///   `data`, `-openRestore <zip>` checks that backup and shows its sheet, and `-openDeleteAll YES` the typed confirm.
+///   `data`, `-openRestore <zip|kbak>` checks that backup and shows its sheet (the password first for a .kbak),
+///   `-openDeleteAll YES` the typed confirm, and `-openBackupPassword YES` the sheet that sets a backup password.
+/// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG
