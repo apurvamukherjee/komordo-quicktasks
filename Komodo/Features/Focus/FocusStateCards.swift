@@ -172,7 +172,7 @@ struct FocusScheduledCard: View {
 
 /// The day summary (FocusStates ⑦, Celebration.png ④ and ⑤, DESIGN_SYSTEM §13.11): "You won the day." with tasks
 /// done, time focused, how the estimates held up and the streak, then the end-of-day review (FEATURES §6.4):
-/// each unfinished task goes to Tomorrow or This week when the summary closes.
+/// each unfinished task goes to Tomorrow or This week when the summary closes, or a clean sweep says none are left.
 struct FocusWonCard: View {
     var date: Date
     var done: Int
@@ -185,6 +185,8 @@ struct FocusWonCard: View {
     var firstStart: Date?
     var lastFinish: Date?
     var unfinished: [TaskCardModel] = []
+    /// Nothing is left in Today at all, timed tasks included.
+    var isCleanSweep = false
     var onSeeReports: ([String: CarryOver]) -> Void
     var onDone: ([String: CarryOver]) -> Void
 
@@ -220,6 +222,7 @@ struct FocusWonCard: View {
                     tint: SpotlightTint.today, isHighlighted: true)
             }
             if summary.measured > 0 { accuracy }
+            if isCleanSweep { cleanSweep }
             if streak > 0 {
                 HStack(spacing: 7) {
                     Image(systemName: "flame.fill").font(.system(size: 13)).foregroundStyle(Palette.amber)
@@ -281,6 +284,33 @@ struct FocusWonCard: View {
         guard !isQueueEmpty, let firstStart, let lastFinish else { return "\(day) · the Focus queue is empty." }
         let time = Date.FormatStyle.dateTime.hour().minute()
         return "\(day) · first task \(firstStart.formatted(time)) · last \(lastFinish.formatted(time))"
+    }
+
+    /// Celebration.png ⑤: nothing carried over.
+    private var cleanSweep: some View {
+        HStack(spacing: Space.s3) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Palette.greenText)
+                .frame(width: 34, height: 34)
+                .background(Palette.green.opacity(0.18), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Clean sweep. Nothing carried over.")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Palette.textPrimary)
+                Text("Every Today task is done. Tomorrow starts empty.")
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(Space.s3)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .spotlight(SpotlightTint.success, radius: Radius.tile, lifts: false) {
+            let shape = RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
+            shape.fill(Palette.green.opacity(0.08)).overlay(shape.strokeBorder(Palette.green.opacity(0.18)))
+        }
+        .accessibilityElement(children: .combine)
     }
 
     /// FocusStates ⑦'s NOT FINISHED rows, each with its Tomorrow / This week menu.
