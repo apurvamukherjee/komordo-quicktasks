@@ -9,6 +9,7 @@ import notify
     let alerts = FocusAlerts()
     let settingsWindow = SettingsWindowController()
     let hotKeys = GlobalHotKeys()
+    let calendarSync = CalendarSync()
 
     private var store: BoardStore?
     /// A `komodo://start` that arrived before Home handed over the store, as when it launched Komodo.
@@ -38,6 +39,7 @@ import notify
         }
         store.alerts = alerts
         watchForOutsideWrites(store)
+        calendarSync.attach(store)
         if let id = pendingStart {
             pendingStart = nil
             start(id, in: store)

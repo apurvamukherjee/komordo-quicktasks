@@ -225,6 +225,8 @@ import SwiftUI
     private var breakEnd: Task<Void, Never>?
     /// Timed alerts' nudge while the live task runs (FEATURES §4.18).
     private var timedAlert: Task<Void, Never>?
+    /// macOS Calendar for calendar import; set by the app, absent in previews.
+    var calendarSync: CalendarSync?
     /// Sound and notifications; set by the app, absent in previews.
     var alerts: FocusAlerts? {
         didSet {

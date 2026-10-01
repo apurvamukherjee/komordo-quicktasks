@@ -44,10 +44,16 @@ targets:
       properties:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSCalendarsFullAccessUsageDescription: Komodo shows events from the calendars you choose as tasks.
         # komodo://start?task=<id>, which the MCP helper's start_focus opens (ARCHITECTURE §4.1).
         CFBundleURLTypes:
           - CFBundleURLName: app.komodo.Komodo
             CFBundleURLSchemes: [komodo]
+    # The hardened runtime blocks Calendar unless the app asks for it (calendar import, FEATURES §5).
+    entitlements:
+      path: Komodo/Komodo.entitlements
+      properties:
+        com.apple.security.personal-information.calendars: true
     settings:
       base:
         PRODUCT_NAME: Komodo
