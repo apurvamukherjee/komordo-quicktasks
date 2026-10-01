@@ -31,6 +31,10 @@ struct FocusCommands: Commands {
             Button("Done", action: store.completeLive)
                 .keyboardShortcut("f", modifiers: [.command, .option])
                 .disabled(!isLive)
+            Divider()
+            // FEATURES §6.4's review, whenever the day ends, not only when the queue runs out.
+            Button("End Day", action: store.endDay)
+                .disabled(store.focus.isDayWon)
         }
     }
 }
