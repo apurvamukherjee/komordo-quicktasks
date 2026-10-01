@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The Settings window's pages, in sidebar order (Settings.dc.html). Gmail → Calendar through Local MCP server
-/// wait for their milestones and show dimmed.
+/// The Settings window's pages, in sidebar order (Settings.dc.html). Pages whose milestone hasn't landed show
+/// dimmed.
 enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     case general
     case focus
@@ -85,7 +85,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .gmail: "Gmail → Calendar arrives in the next milestone"
         case .integrations: "Integrations arrive in Phase 1"
-        case .ai, .mcp: "Arrives in Phase 1"
+        case .ai: "Arrives in Phase 1"
         default: nil
         }
     }

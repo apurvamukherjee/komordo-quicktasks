@@ -53,8 +53,9 @@ struct SettingsView: View {
         case .celebration: SettingsCelebrationPage(store: store)
         case .shortcuts: SettingsShortcutsPage(store: store)
         case .data: SettingsDataPage(store: store)
+        case .mcp: SettingsMCPPage(store: store)
         case .about: SettingsAboutPage(store: store)
-        case .gmail, .integrations, .ai, .mcp: EmptyView()
+        case .gmail, .integrations, .ai: EmptyView()
         }
     }
 }
