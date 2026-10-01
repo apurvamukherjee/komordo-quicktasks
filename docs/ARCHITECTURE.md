@@ -146,7 +146,7 @@ enum TimerState: Equatable, Sendable {
 | --- | --- | --- |
 | Day rollover | `.NSCalendarDayChanged`, `.NSSystemTimeZoneDidChange`, and wake notifications | On event |
 | Gmail scan | A loop in the `GmailService` actor: `Task.sleep(for: .seconds(120), tolerance: .seconds(20))`, plus an immediate run on wake and app activation | 2 min (macOS may stretch this while the app is idle) |
-| Calendar import (P1) | Same loop pattern | 5 min |
+| Calendar import (P1) | EventKit: `.EKEventStoreChanged`, `.NSCalendarDayChanged`, launch, and Sync now (`CalendarSync`) | On event |
 | Integration polls (P2) | Same loop pattern | 5–10 min per connection |
 | Daily backup, Trash purge | `NSBackgroundActivityScheduler` | 24 h |
 | Reminders | `UNCalendarNotificationTrigger` for the next 50 scheduled tasks, rescheduled on every change and at day rollover | Exact, even while the app isn't running |
@@ -385,7 +385,8 @@ protocol ProviderAdapter: Sendable {
 ```
 
 - **Polling only:** without a server there are no webhooks. Intervals are in §4.4.
-- **Auth:** Google and Microsoft sign in through `ASWebAuthenticationSession` with PKCE. Notion, Todoist, Linear, ClickUp, and Asana use a **personal API token** pasted in Settings, because their OAuth requires a client secret that can't be kept in an app. Every token lives in the Keychain.
+- **Calendars:** calendar import reads macOS Calendar through EventKit (`requestFullAccessToEvents`, the `com.apple.security.personal-information.calendars` entitlement, `NSCalendarsFullAccessUsageDescription`) instead of a Google or Microsoft adapter, so it needs no OAuth client or tokens. `CalendarImport` in KomodoCore turns events into tasks with IDs `calendar:<external ID>@<start>`.
+- **Auth:** Google (for Gmail) and Microsoft sign in through `ASWebAuthenticationSession` with PKCE. Notion, Todoist, Linear, ClickUp, and Asana use a **personal API token** pasted in Settings, because their OAuth requires a client secret that can't be kept in an app. Every token lives in the Keychain.
 - **Mapping and conflicts:** items map to tasks through `external_links`. The newer `updated_at` wins, and a remote delete only unlinks (FEATURES §5).
 
 ## 9. On-device assistant and voice (P2)
