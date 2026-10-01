@@ -154,12 +154,16 @@ struct BackupTests {
     @Test func pruningKeepsTheNewest() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let names = (20...25).map { "komodo-backup-2026-09-\($0).zip" } + ["holiday.zip"]
+        let names =
+            (20...24).map { "komodo-backup-2026-09-\($0).zip" } + ["komodo-backup-2026-09-25.kbak", "holiday.zip"]
         for name in names { try Data().write(to: folder.appending(path: name)) }
         let removed = try Backup.prune(folder, keeping: 3).map(\.lastPathComponent).sorted()
         #expect(removed == (20...22).map { "komodo-backup-2026-09-\($0).zip" })
         let left = try FileManager.default.contentsOfDirectory(atPath: folder.path).sorted()
-        #expect(left == ["holiday.zip"] + (23...25).map { "komodo-backup-2026-09-\($0).zip" })
+        #expect(
+            left == ["holiday.zip"] + (23...24).map { "komodo-backup-2026-09-\($0).zip" } + [
+                "komodo-backup-2026-09-25.kbak"
+            ])
     }
 
     private func run(_ tool: String, _ arguments: String...) throws {

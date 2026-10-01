@@ -198,12 +198,15 @@ public enum Backup {
 
     // MARK: Automatic backups
 
-    /// Keeps the newest `count` of Komodo's zips in `folder` and deletes the rest. The date in the name sorts
-    /// them, so a file copied in later can't jump the queue. Other files in the folder are left alone.
+    /// Keeps the newest `count` of Komodo's zips and `.kbak`s in `folder` and deletes the rest. The date in the
+    /// name sorts them, so a file copied in later can't jump the queue. Other files in the folder are left alone.
     @discardableResult
     public static func prune(_ folder: URL, keeping count: Int) throws -> [URL] {
         let zips = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.hasPrefix(prefix) && $0.pathExtension == "zip" }
+            .filter {
+                $0.lastPathComponent.hasPrefix(prefix)
+                    && ["zip", BackupCrypto.fileExtension].contains($0.pathExtension)
+            }
             .sorted { $0.lastPathComponent > $1.lastPathComponent }
         let old = Array(zips.dropFirst(max(0, count)))
         for url in old { try FileManager.default.removeItem(at: url) }
