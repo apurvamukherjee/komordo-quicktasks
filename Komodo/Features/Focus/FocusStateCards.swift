@@ -645,10 +645,20 @@ private final class OrbitLayerView: EffectLayerView {
                     TaskCardModel(id: "hire", title: "Hire a product designer", listLetter: "W", listColor: .lime),
                     TaskCardModel(id: "roadmap", title: "Q4 engineering roadmap", listLetter: "W", listColor: .lime),
                 ], onSeeReports: { _ in }, onDone: { _ in })
+            // After End Day at 4 PM: the span replaces "the Focus queue is empty."
+            FocusWonCard(
+                date: .now, done: 3, focused: 9_900, summary: sampleSummary, streak: 4, isQueueEmpty: false,
+                firstStart: now - 25_000, lastFinish: now - 1_200,
+                unfinished: [
+                    TaskCardModel(id: "prep", title: "Prep 1:1 with Apurva", listLetter: "L", listColor: .pink)
+                ], onSeeReports: { _ in }, onDone: { _ in })
+            FocusWonCard(
+                date: .now, done: 6, focused: 17_700, summary: sampleSummary, streak: 3, isCleanSweep: true,
+                onSeeReports: { _ in }, onDone: { _ in })
         }
-        .frame(width: 3 * 312 + 2 * Space.s5)
+        .frame(width: 5 * 312 + 4 * Space.s5)
         .padding(Space.s6)
     }
-    .frame(width: 1060, height: 560)
+    .frame(width: 1720, height: 640)
     .background(Palette.bg)
 }
