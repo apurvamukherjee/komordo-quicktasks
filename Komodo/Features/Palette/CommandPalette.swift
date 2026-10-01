@@ -388,7 +388,8 @@ private enum PaletteRow: Equatable {
     case command(PaletteCommand)
 }
 
-/// DESIGN_SYSTEM §13.7's commands. Gmail shows but waits for its milestone.
+/// DESIGN_SYSTEM §13.7's commands, plus End Day for the end-of-day review. Gmail shows but waits for its
+/// milestone.
 private struct PaletteCommand: Equatable {
     var title: String
     var symbol: String
@@ -411,6 +412,10 @@ private struct PaletteCommand: Equatable {
                 title: "Start", symbol: "play.fill", tint: Palette.lime, glyph: Palette.onAccent,
                 detail: "Focus mode · top of the queue", isEnabled: !store.isFocusing && !store.layout.upNext.isEmpty
             ) { store.start() },
+            PaletteCommand(
+                title: "End Day", symbol: "moon.stars", tint: Palette.amber.opacity(0.14), glyph: Palette.amberText,
+                detail: "Day summary · move what's left", isEnabled: !store.focus.isDayWon
+            ) { store.endDay() },
             PaletteCommand(
                 title: "Export Backup", symbol: "archivebox", tint: Palette.green.opacity(0.14),
                 glyph: Palette.greenText, isEnabled: store.database != nil && !store.isExporting
