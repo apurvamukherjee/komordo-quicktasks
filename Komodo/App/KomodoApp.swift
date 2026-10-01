@@ -83,7 +83,7 @@ struct SettingsCommand: Commands {
 ///   can be tried and captured without the system asking for access.
 /// - `-assistantPrompt "<text>"` opens the Assistant and sends the text; add `-assistantApply YES` to press Add
 ///   once the preview arrives. `-assistantListening YES` opens it listening; `-voiceSample "<text>"` speaks
-///   that text instead of the microphone.
+///   that text instead of the microphone, and `-voiceNote <seconds>` with `-openInspector` records a voice note.
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {
