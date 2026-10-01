@@ -16,6 +16,8 @@ struct CelebrationCard: View {
     var nextTitle: String?
     var size: Size = .hero
     var showsGIF = false
+    /// Tasks finished early or on time in a row today; the hero card shows "3 in a row today" from three.
+    var inARow = 0
     var onFinish: () -> Void
 
     static let duration: TimeInterval = 2.5
@@ -53,6 +55,7 @@ struct CelebrationCard: View {
                     .foregroundStyle(Palette.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+                if isHero && inARow >= 3 { runChip }
                 Group {
                     if let nextTitle {
                         Text("Next up: ") + Text(nextTitle).bold().foregroundColor(Palette.textPrimary)
@@ -98,6 +101,19 @@ struct CelebrationCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityHint("Starts the next task")
+    }
+
+    /// The amber pill under the message (Celebration.png ①).
+    private var runChip: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "flame.fill").font(.system(size: 11)).foregroundStyle(Palette.amber)
+            Text("\(inARow) in a row today")
+        }
+        .font(.system(size: 12, weight: .bold).monospacedDigit())
+        .foregroundStyle(Palette.amberText)
+        .padding(.horizontal, 10)
+        .frame(height: 26)
+        .background(Palette.amber.opacity(0.12), in: Capsule())
     }
 
     /// A line under "Next up" that fills over the 2.5 s before the next task starts.
@@ -217,7 +233,7 @@ struct CelebrationBurst: View {
 
 #Preview("Celebration") {
     HStack(alignment: .top, spacing: Space.s6) {
-        CelebrationCard(message: "Nailed it. 12min early.", nextTitle: "Review accounts") {}
+        CelebrationCard(message: "Nailed it. 12min early.", nextTitle: "Review accounts", inARow: 3) {}
             .frame(width: 312)
         CelebrationCard(message: "Done. Right on time.", nextTitle: "Prep 1:1 with Apurva", showsGIF: true) {}
             .frame(width: 312)
