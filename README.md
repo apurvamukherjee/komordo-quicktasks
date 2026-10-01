@@ -55,6 +55,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 📊 | **Reports** | Work days, hours and your most productive hour, day and month; estimate accuracy week by week; hours by list; and every session and break, editable and exportable to PDF or CSV | ✅ Available |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
+| 🔐 | **Password-protected backups** | Seal every export and daily backup with a password of your own, kept in your Keychain and never inside the backup | ✅ Available |
 | 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
 
 ## The Board
@@ -183,6 +184,11 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **A backup every day.** Within minutes of the first launch each day, Komodo zips your data into a folder you choose and keeps the last 7, 14 or 30. Pick an iCloud Drive or Dropbox folder for a copy off your Mac.
 - **Restores you can trust.** Komodo checks the zip before touching anything, refuses one from a newer version, and saves your current data first. The board comes back exactly as it was.
 - **No accidents.** Delete all data waits until you type DELETE, and a restore from your last zip brings it all back.
+
+<p align="center"><img src="docs/media/backup-password.png" alt="Two sheets over Data and backup: Set a backup password with the password typed twice, and Enter the backup's password for a protected .kbak file" width="100%"></p>
+
+- **Lock it with a password.** Turn on Password-protect backups and every export and daily backup is sealed with AES-GCM as a `.kbak`. The password lives in your Keychain, so the daily backup still runs on its own, and it never goes inside a backup.
+- **Only you can open it.** Restoring a `.kbak` asks for its password first, and a wrong one changes nothing. There's no recovery, so keep the password somewhere safe.
 
 ## First launch
 
@@ -313,6 +319,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Timed tasks join the queue on time, alerts that survive App Nap, and the away-from-your-Mac question
 - [x] Reports and sessions
 - [x] End-of-day review and streaks
+- [x] Password-protected backups
 
 ## Contributing
 
