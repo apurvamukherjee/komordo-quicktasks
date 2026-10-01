@@ -31,5 +31,9 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Komodo shows events from the calendars you choose as tasks.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Komodo listens while you hold the mic and turns your words into text on this Mac.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech is transcribed on this Mac and never leaves it.</string>
 </dict>
 </plist>

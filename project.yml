@@ -45,6 +45,8 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSCalendarsFullAccessUsageDescription: Komodo shows events from the calendars you choose as tasks.
+        NSMicrophoneUsageDescription: Komodo listens while you hold the mic and turns your words into text on this Mac.
+        NSSpeechRecognitionUsageDescription: Speech is transcribed on this Mac and never leaves it.
         # komodo://start?task=<id>, which the MCP helper's start_focus opens (ARCHITECTURE §4.1).
         CFBundleURLTypes:
           - CFBundleURLName: app.komodo.Komodo
@@ -54,6 +56,8 @@ targets:
       path: Komodo/Komodo.entitlements
       properties:
         com.apple.security.personal-information.calendars: true
+        # Voice input and voice notes (ARCHITECTURE §9).
+        com.apple.security.device.audio-input: true
     settings:
       base:
         PRODUCT_NAME: Komodo
