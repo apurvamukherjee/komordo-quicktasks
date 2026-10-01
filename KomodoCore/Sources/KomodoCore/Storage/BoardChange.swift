@@ -13,6 +13,9 @@ public struct BoardChange: Equatable, Sendable {
 
     public init() {}
 
+    /// Posted by `komodo-mcp` after it writes, so the running app reloads what changed (ARCHITECTURE §10).
+    public static let darwinNotification = "app.komodo.db-changed"
+
     public var isEmpty: Bool {
         savedTasks.isEmpty && deletedTaskIDs.isEmpty && savedLists.isEmpty && deletedListIDs.isEmpty
             && savedBreaks.isEmpty && deletedBreakIDs.isEmpty
