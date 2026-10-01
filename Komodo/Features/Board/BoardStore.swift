@@ -227,6 +227,8 @@ import SwiftUI
     private var timedAlert: Task<Void, Never>?
     /// macOS Calendar for calendar import; set by the app, absent in previews.
     var calendarSync: CalendarSync?
+    /// Komodo Assistant's conversation, kept while its popover is closed.
+    let assistant = AssistantModel()
     /// Sound and notifications; set by the app, absent in previews.
     var alerts: FocusAlerts? {
         didSet {
