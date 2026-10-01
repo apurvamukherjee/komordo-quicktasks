@@ -75,9 +75,11 @@ struct SettingsDataPage: View {
         .animation(Motion.base, value: store.settings.backsUpDaily)
         .task {
             #if DEBUG
-                // `-openRestore <zip>` and `-openDeleteAll YES` show the sheets for captures without the pointer.
+                // `-openRestore <file>`, `-openDeleteAll YES` and `-openBackupPassword YES` show the sheets for
+                // captures without the pointer.
                 if let path = UserDefaults.standard.string(forKey: "openRestore") { await open(URL(filePath: path)) }
                 isConfirmingDelete = UserDefaults.standard.bool(forKey: "openDeleteAll")
+                isSettingPassword = UserDefaults.standard.bool(forKey: "openBackupPassword")
             #endif
         }
         .sheet(isPresented: Binding(get: { archive != nil }, set: { if !$0 { cancelRestore() } })) {
