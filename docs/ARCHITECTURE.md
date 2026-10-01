@@ -371,7 +371,7 @@ Email bodies exist only in memory while an email is processed. They're never wri
 | Automatic | A daily `NSBackgroundActivityScheduler` job writes to the chosen folder and keeps the newest 14 |
 | Restore | `ditto -x -k` into a temp folder, accepting only known file names. Validate the manifest (a newer `schemaVersion` is refused). Back up the current data, close the pool, swap the file, reopen, and run migrations |
 | Secrets | Tokens and keys live in the Keychain, not the database, so exports hold no secrets |
-| Password protection (P1) | AES-GCM (CryptoKit) over the zip, with a key derived from the password (`CCKeyDerivationPBKDF`, 600k rounds), saved as `.kbak` |
+| Password protection (P1) | AES-GCM (CryptoKit) over the zip, with a key derived from the password (`CCKeyDerivationPBKDF`, SHA-256, 600k rounds), saved as `.kbak`: `KBAK`, a format byte, the rounds (UInt32 big-endian), a 16-byte salt, then the nonce, ciphertext and tag. The header is the seal's associated data. A restore recognizes a `.kbak` by its first bytes, not its name. The password is a Keychain item (`app.komodo.backup`, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`) |
 
 ## 8. Integrations (P1 calendars, P2 task tools)
 
