@@ -55,6 +55,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 📊 | **Reports** | Work days, hours and your most productive hour, day and month; estimate accuracy week by week; hours by list; and every session and break, editable and exportable to PDF or CSV | ✅ Available |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
+| 🤖 | **Local MCP server** | Let Claude Desktop, Claude Code or Raycast read and plan your lists, add and finish tasks, log time and start a focus session. Runs on your Mac, with no login and no server | ✅ Available |
 | 🔐 | **Password-protected backups** | Seal every export and daily backup with a password of your own, kept in your Keychain and never inside the backup | ✅ Available |
 | 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
 
@@ -190,6 +191,14 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Lock it with a password.** Turn on Password-protect backups and every export and daily backup is sealed with AES-GCM as a `.kbak`. The password lives in your Keychain, so the daily backup still runs on its own, and it never goes inside a backup.
 - **Only you can open it.** Restoring a `.kbak` asks for its password first, and a wrong one changes nothing. There's no recovery, so keep the password somewhere safe.
 
+## Work with AI apps
+
+<p align="center"><img src="docs/media/settings-mcp.png" alt="Settings on the Local MCP server page: the switch that lets AI apps on this Mac use Komodo, the Claude Desktop setup snippet with Copy, and the eight tools" width="100%"></p>
+
+- **Your AI app, your tasks.** Turn on Local MCP server and paste the snippet into Claude Desktop, Claude Code or Raycast. They can list your lists and tasks, add and update tasks, tick off subtasks, log time and start a focus session.
+- **Nothing leaves your Mac.** The server is a small helper inside Komodo that the AI app launches itself. There's no login and no Komodo server, and the AI app asks you before every tool call.
+- **Live on the Board.** A task an AI app adds or finishes shows up in Komodo straight away, without closing what you have open.
+
 ## First launch
 
 <p align="center"><img src="docs/media/onboarding.png" alt="Three onboarding steps: Plan your day in minutes over a mini board, One task at a time with the floating timer over a mail window, and What do you want to finish today with an estimate chip on each line" width="100%"></p>
@@ -320,6 +329,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Reports and sessions
 - [x] End-of-day review and streaks
 - [x] Password-protected backups
+- [x] Local MCP server
 
 ## Contributing
 
