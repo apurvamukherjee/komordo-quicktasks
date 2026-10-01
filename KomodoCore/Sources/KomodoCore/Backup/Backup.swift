@@ -100,9 +100,23 @@ public enum Backup {
 
     // MARK: Restore
 
-    /// Checks a zip without touching the current data. The file list is read before anything is unzipped, and
-    /// only Komodo's own file names are accepted, so a crafted zip can't write outside the temporary folder.
-    public static func open(_ zip: URL) throws(BackupError) -> BackupArchive {
+    /// Checks a zip or `.kbak` without touching the current data. The file list is read before anything is
+    /// unzipped, and only Komodo's own file names are accepted, so a crafted zip can't write outside the
+    /// temporary folder.
+    public static func open(_ file: URL, password: String? = nil) throws(BackupError) -> BackupArchive {
+        var zip = file
+        // Judged by its first bytes rather than its name, so a renamed .kbak still asks for the password.
+        if let data = try? Data(contentsOf: file, options: .mappedIfSafe), BackupCrypto.isSealed(data) {
+            guard let password else { throw .passwordRequired }
+            zip = FileManager.default.temporaryDirectory.appending(path: "komodo-unsealed-\(UUID().uuidString).zip")
+            let unsealed = try BackupCrypto.open(data, password: password)
+            do {
+                try unsealed.write(to: zip)
+            } catch {
+                throw .damaged
+            }
+        }
+        defer { if zip != file { try? FileManager.default.removeItem(at: zip) } }
         let entries: [String]
         do {
             entries = try output("/usr/bin/zipinfo", ["-1", zip.path]).split(separator: "\n").map(String.init)
@@ -145,7 +159,7 @@ public enum Backup {
             throw .damaged
         }
         return BackupArchive(
-            fileName: zip.lastPathComponent, manifest: manifest, folder: folder, databaseURL: databaseURL)
+            fileName: file.lastPathComponent, manifest: manifest, folder: folder, databaseURL: databaseURL)
     }
 
     /// The folder the files sit in ("" for the zip's root), or nil when the list isn't a Komodo backup: only

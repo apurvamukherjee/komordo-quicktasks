@@ -78,6 +78,29 @@ struct BackupTests {
         #expect(after.preferences == before.preferences)
     }
 
+    @Test func aProtectedBackupNeedsItsPassword() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let database = try AppDatabase.open(at: folder.appending(path: "Komodo.sqlite"))
+        var change = BoardChange.lists(from: [], to: [work])
+        change.savedTasks = [task]
+        try database.apply(change)
+
+        // Renamed to .zip, so the password is asked for because of what the file is, not what it's called.
+        let sealed = folder.appending(path: "komodo-backup-2026-09-21.zip")
+        try Backup.export(database, appVersion: "1.0.0", to: sealed, password: "Apurva's pw", at: start)
+        #expect(BackupCrypto.isSealed(try Data(contentsOf: sealed)))
+        #expect(throws: BackupError.passwordRequired) { try Backup.open(sealed) }
+        #expect(throws: BackupError.wrongPassword) { try Backup.open(sealed, password: "nope") }
+
+        let archive = try Backup.open(sealed, password: "Apurva's pw")
+        defer { try? archive.discard() }
+        #expect(archive.fileName == "komodo-backup-2026-09-21.zip")
+        #expect(archive.manifest.counts == .init(lists: 1, tasks: 1, sessions: 1))
+        let leftovers = try FileManager.default.contentsOfDirectory(atPath: NSTemporaryDirectory())
+        #expect(!leftovers.contains { $0.hasPrefix("komodo-unsealed-") })
+    }
+
     @Test func theZipHoldsReadableCopies() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
