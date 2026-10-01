@@ -8,6 +8,23 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Local MCP server (Phase 1) — 2026-10-02
+
+#### Added
+- **`komodo-mcp`**, a helper inside `Komodo.app/Contents/Helpers` that Claude Desktop, Claude Code and Raycast
+  launch over stdio (FEATURES §5.1): `list_lists`, `list_tasks`, `create_task`, `update_task`, `complete_task`,
+  `complete_subtask`, `log_time` and `start_focus`. Hand-written JSON-RPC, no dependency.
+- **Settings ▸ Local MCP server:** the switch (off by default; every tool refuses while it's off), setup for each
+  AI app with a code block and Copy, and the tools.
+- **Live updates:** the app hears `app.komodo.db-changed` after each write and takes in the new rows without
+  resetting the page or the live task.
+- **`komodo://start?task=<id>`** makes a task live in Focus mode; `start_focus` uses it.
+- `MCPServer`, `KomodoTools` and `JSONValue` in KomodoCore, with tests. A code block component.
+  `KOMODO_DATABASE` points the helper at a scratch file; `-openSettings mcp`.
+
+#### Changed
+- The app's version moved to the project settings, so the helper and the app always agree.
+
 ### Password-protected backups (Phase 1) — 2026-10-02
 
 #### Added
