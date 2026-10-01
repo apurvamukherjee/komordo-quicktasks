@@ -454,6 +454,27 @@ import SwiftUI
         if let id = focus.taskID, tasks.first(where: { $0.id == id })?.isDone != false { focus.taskID = nil }
     }
 
+    /// Calendar import (FEATURES §5): events from the calendars read join the chosen list as tasks, and tasks whose
+    /// event moved follow it. Trash, archive and shelved tasks count as known, so they never come back.
+    func importCalendarEvents(_ events: [CalendarEvent], calendars: Set<String>, days: ClosedRange<LocalDate>) {
+        let listID = lists.first { $0.id == settings.calendarListID }?.id ?? lists.first?.id
+        guard let listID else { return }
+        let known = Set((tasks + trash + archived + shelved).map(\.id))
+        let saved = CalendarImport.sync(
+            events, board: tasks, known: known, listID: listID, calendars: calendars, days: days,
+            acceptedOnly: settings.calendarAcceptedOnly, week: week, now: now, calendar: calendar)
+        guard !saved.isEmpty else { return }
+        var updated = tasks
+        for task in saved {
+            if let index = updated.firstIndex(where: { $0.id == task.id }) {
+                updated[index] = task
+            } else {
+                updated.append(task)
+            }
+        }
+        tasks = updated
+    }
+
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
     func pauseForQuit() {
         if let id = focus.taskID { closeSession(id) }
