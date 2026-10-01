@@ -180,6 +180,10 @@ struct FocusWonCard: View {
     var summary: DaySummary
     /// Consecutive days with a task done, today included.
     var streak: Int
+    /// False after End Day with tasks still queued; the subtitle then gives the day's span instead.
+    var isQueueEmpty = true
+    var firstStart: Date?
+    var lastFinish: Date?
     var unfinished: [TaskCardModel] = []
     var onSeeReports: ([String: CarryOver]) -> Void
     var onDone: ([String: CarryOver]) -> Void
@@ -204,8 +208,7 @@ struct FocusWonCard: View {
                     .font(.system(size: 27, weight: .heavy))
                     .tracking(-0.8)
                     .foregroundStyle(Palette.textPrimary)
-                let day = date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
-                Text("\(day) · the Focus queue is empty.")
+                Text(subtitle)
                     .font(.system(size: 13))
                     .foregroundStyle(Palette.textSecondary)
             }
@@ -271,6 +274,13 @@ struct FocusWonCard: View {
         )
         .shadow(color: Palette.amber.opacity(0.35), radius: 40)
         .spotlight(SpotlightTint.review, radius: 24, lifts: false)
+    }
+
+    private var subtitle: String {
+        let day = date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+        guard !isQueueEmpty, let firstStart, let lastFinish else { return "\(day) · the Focus queue is empty." }
+        let time = Date.FormatStyle.dateTime.hour().minute()
+        return "\(day) · first task \(firstStart.formatted(time)) · last \(lastFinish.formatted(time))"
     }
 
     /// FocusStates ⑦'s NOT FINISHED rows, each with its Tomorrow / This week menu.

@@ -318,6 +318,7 @@ struct FocusPanelView: View {
             FocusWonCard(
                 date: store.now, done: plan.done, focused: plan.focused,
                 summary: DaySummary(doneToday: store.layout.doneToday, now: store.now), streak: store.streak,
+                isQueueEmpty: store.layout.upNext.isEmpty, firstStart: plan.firstStart, lastFinish: plan.lastFinish,
                 unfinished: store.unfinishedToday.map(store.cardModel(for:)),
                 onSeeReports: { choices in
                     // The summary closes and Home comes back on Reports.
