@@ -15,6 +15,8 @@ import KomodoCore
 
     var isOpen = false
     var draft = ""
+    /// Hold the mic to talk (Assistant.png ②).
+    let voice = SpeechTranscriber()
     private(set) var phase = Phase.empty
     private(set) var prompt = ""
     private(set) var sentAt: Date?
@@ -67,6 +69,21 @@ import KomodoCore
                 phase = .failed(error.message)
             }
         }
+    }
+
+    func startListening() {
+        guard phase != .thinking, !voice.isListening else { return }
+        Task {
+            await voice.start()
+            if case .failed(let message) = voice.state { phase = .failed(message) }
+        }
+    }
+
+    /// Releasing the mic sends what was heard, as Return would.
+    func stopListening(store: BoardStore) {
+        guard voice.isListening else { return }
+        let heard = voice.stop()
+        if !heard.isEmpty { send(heard, store: store) }
     }
 
     func apply(store: BoardStore) {

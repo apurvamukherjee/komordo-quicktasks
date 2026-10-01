@@ -66,6 +66,14 @@ struct AssistantPanel: View {
     // MARK: Body
 
     @ViewBuilder private var content: some View {
+        if model.voice.isListening {
+            ListeningView(voice: model.voice)
+        } else {
+            conversation
+        }
+    }
+
+    @ViewBuilder private var conversation: some View {
         switch model.phase {
         case .empty: welcome
         case .thinking:
@@ -362,15 +370,29 @@ struct AssistantPanel: View {
     private var footer: some View {
         let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
         return HStack(spacing: 6) {
-            TextField("Type or hold mic to talk…", text: Bindable(model).draft, axis: .vertical)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundStyle(Palette.textPrimary)
-                .lineLimit(1...4)
-                .focused($isInputFocused)
-                .focusEffectDisabled()
-                .onSubmit { model.send(store: store) }
-                .disabled(model.phase == .thinking)
+            if model.voice.isListening {
+                WaveformBars(levels: Array(model.voice.levels.suffix(4)), height: 14)
+                Text("Listening…")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Palette.limeText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                TextField("Type or hold mic to talk…", text: Bindable(model).draft, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.textPrimary)
+                    .lineLimit(1...4)
+                    .focused($isInputFocused)
+                    .focusEffectDisabled()
+                    .onSubmit { model.send(store: store) }
+                    .disabled(model.phase == .thinking)
+            }
+            MicButton(isOn: model.voice.isListening) {
+                model.startListening()
+            } release: {
+                model.stopListening(store: store)
+            }
+            .disabled(model.phase == .thinking)
             if model.phase == .thinking {
                 Button {
                     model.cancel()
@@ -399,6 +421,115 @@ struct AssistantPanel: View {
         .padding(.top, 10)
         .padding(.bottom, 12)
         .overlay(alignment: .top) { Rectangle().fill(Palette.border).frame(height: 1) }
+    }
+}
+
+/// Hold to talk: pressing starts listening and releasing sends. VoiceOver gets a tap that toggles instead.
+private struct MicButton: View {
+    var isOn: Bool
+    var press: () -> Void
+    var release: () -> Void
+
+    @State private var isHeld = false
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 9, style: .continuous)
+        Image(systemName: "mic.fill")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(isOn ? Palette.onAccent : Palette.textBody)
+            .frame(width: 30, height: 30)
+            .background(isOn ? Palette.lime : Color.white.opacity(0.06), in: shape)
+            .overlay(shape.strokeBorder(isOn ? Palette.lime : Color.white.opacity(0.08), lineWidth: 1))
+            .shadow(color: isOn ? Palette.lime.opacity(0.85) : .clear, radius: 9)
+            .contentShape(shape)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !isHeld else { return }
+                        isHeld = true
+                        press()
+                    }
+                    .onEnded { _ in
+                        isHeld = false
+                        release()
+                    }
+            )
+            .help("Hold to talk")
+            .accessibilityElement()
+            .accessibilityLabel(isOn ? "Stop listening and send" : "Talk")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { isOn ? release() : press() }
+    }
+}
+
+/// Assistant.png ②: the time, a live waveform, the hint, and the transcript as it's heard.
+private struct ListeningView: View {
+    var voice: SpeechTranscriber
+
+    var body: some View {
+        VStack(spacing: Space.s3) {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let seconds = Int(context.date.timeIntervalSince(voice.startedAt ?? context.date))
+                HStack(spacing: 6) {
+                    Circle().fill(Palette.lime).frame(width: 6, height: 6)
+                    Text(String(format: "%d:%02d", seconds / 60, seconds % 60)).monospacedDigit()
+                }
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Palette.limeText)
+                .padding(.horizontal, 10)
+                .frame(height: 24)
+                .background(Palette.lime.opacity(0.12), in: Capsule())
+                .overlay(Capsule().strokeBorder(Palette.lime.opacity(0.3), lineWidth: 1))
+            }
+            .padding(.top, Space.s4)
+            WaveformBars(levels: voice.levels, height: 80)
+                .padding(.vertical, Space.s2)
+            VStack(spacing: 4) {
+                Text("Listening… release to send").font(.system(size: 15, weight: .heavy))
+                    .foregroundStyle(Palette.textPrimary)
+                Text("Speech is transcribed on this Mac.").font(.system(size: 12)).foregroundStyle(Palette.textTertiary)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("TRANSCRIPT")
+                    .font(Typography.label)
+                    .tracking(Typography.Tracking.label)
+                    .foregroundStyle(Palette.textMuted)
+                (Text(voice.transcript) + Text(" ▍").foregroundColor(Palette.lime))
+                    .font(.system(size: 13))
+                    .foregroundStyle(Palette.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(14)
+            .background(Color.white.opacity(0.02), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(Palette.lime.opacity(0.25), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Lime-to-teal bars at the input's recent levels; they hold still under Reduce Motion.
+struct WaveformBars: View {
+    var levels: [Double]
+    var height: CGFloat
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(alignment: .center, spacing: height > 30 ? 4 : 2) {
+            ForEach(Array(levels.enumerated()), id: \.offset) { _, level in
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Palette.limeText, Palette.lime, Palette.teal], startPoint: .top, endPoint: .bottom)
+                    )
+                    .frame(width: height > 30 ? 4 : 3, height: max(4, height * (reduceMotion ? 0.4 : level)))
+            }
+        }
+        .frame(height: height)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: levels)
+        .accessibilityHidden(true)
     }
 }
 
