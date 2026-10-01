@@ -429,6 +429,31 @@ import SwiftUI
         scheduleReminderSync()
     }
 
+    /// `komodo-mcp` wrote to the file (ARCHITECTURE §10): take the rows as they are now, keeping the page, the
+    /// open sheets and the live task's clock. Unlike a restore, nothing on screen resets.
+    func absorbOutsideChanges() {
+        guard let database else { return }
+        let stored: StoredBoard
+        do {
+            stored = try database.load()
+        } catch {
+            Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't refresh: \(error)")
+            return
+        }
+        // Written already, so nothing is saved back.
+        isReloading = true
+        allLists = stored.lists
+        tasks = stored.tasks
+        shelved = stored.shelved
+        trash = stored.trash.sorted { $0.deletedAt ?? .now > $1.deletedAt ?? .now }
+        archived = stored.archived
+        isReloading = false
+        if let id = selectedListID, !lists.contains(where: { $0.id == id }) { selectedListID = lists.first?.id }
+        if inspectedTaskID.map({ id in !tasks.contains { $0.id == id } }) == true { inspectedTaskID = nil }
+        // Finished from an AI app: its session is already closed, so Focus mode just lets it go.
+        if let id = focus.taskID, tasks.first(where: { $0.id == id })?.isDone != false { focus.taskID = nil }
+    }
+
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
     func pauseForQuit() {
         if let id = focus.taskID { closeSession(id) }
