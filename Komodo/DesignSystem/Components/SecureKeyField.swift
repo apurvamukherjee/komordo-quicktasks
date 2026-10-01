@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// A secret with **Show** and **Test** (DESIGN_SYSTEM §10.6). The test result is shown inline under the field.
+/// A secret with **Show** and **Test** (DESIGN_SYSTEM §10.6); Return tests too. The test result is shown inline
+/// under the field.
 struct SecureKeyField: View {
     enum TestState: Equatable {
         case idle
@@ -33,6 +34,8 @@ struct SecureKeyField: View {
                 .foregroundStyle(Palette.textPrimary)
                 .focused($isFocused)
                 .focusEffectDisabled()
+                // Return tests the key, so it can be pasted and checked without the pointer.
+                .onSubmit { if !secret.isEmpty { onTest() } }
                 Button(isRevealed ? "Hide" : "Show") { isRevealed.toggle() }
                     .buttonStyle(.komodo(.ghost, size: .small))
                 Button("Test", action: onTest)
