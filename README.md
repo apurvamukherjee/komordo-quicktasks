@@ -56,6 +56,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
 | 🗓️ | **Calendar import** | Meetings from any calendar on your Mac, iCloud, Google or Outlook, show up as tasks on the right day, with their time, length, reminder and call link | ✅ Available |
+| 🎙️ | **Voice input and voice notes** | Hold the mic to talk to the Assistant, or speak a note onto any task, transcribed on your Mac | ✅ Available |
 | ✨ | **Komodo Assistant** | Brain dump your day or say "move @Task to tomorrow", and see every change in an editable preview first. Runs on Apple's on-device model, or Claude with your own key | ✅ Available |
 | 🤖 | **Local MCP server** | Let Claude Desktop, Claude Code or Raycast read and plan your lists, add and finish tasks, log time and start a focus session. Runs on your Mac, with no login and no server | ✅ Available |
 | 🔐 | **Password-protected backups** | Seal every export and daily backup with a password of your own, kept in your Keychain and never inside the backup | ✅ Available |
@@ -212,6 +213,10 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **On your Mac first.** It runs on Apple's on-device model, so your words stay on your Mac. Without Apple Intelligence, it uses Claude with your own key.
 - **Nothing changes until you say so.** Every change waits in the preview, and one Undo takes it all back. ⌘J opens it from anywhere in Home.
 
+<p align="center"><img src="docs/media/voice.png" alt="Voice in Komodo: the Assistant listening with a lime waveform and the live transcript, and a task's notes after a spoken note was added" width="100%"></p>
+
+- **Just say it.** Hold the mic and talk to the Assistant, or add a voice note to any task. Speech is transcribed on your Mac and never leaves it.
+
 ## Work with AI apps
 
 <p align="center"><img src="docs/media/settings-mcp.png" alt="Settings on the Local MCP server page: the switch that lets AI apps on this Mac use Komodo, the Claude Desktop setup snippet with Copy, and the eight tools" width="100%"></p>
@@ -353,6 +358,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Local MCP server
 - [x] Calendar import
 - [x] Komodo Assistant
+- [x] Voice input and voice notes
 
 ## Contributing
 
