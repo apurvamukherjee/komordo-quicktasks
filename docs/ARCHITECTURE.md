@@ -391,6 +391,9 @@ protocol ProviderAdapter: Sendable {
 
 ## 9. On-device assistant and voice (P2)
 - **Komodo Assistant:** uses the on-device model when available, otherwise Claude with the user's key. It only **proposes** changes. The user confirms them in a preview, and they go through the normal stores.
+  - Both brains return one `AssistantPlan` (KomodoCore): on device through FoundationModels guided generation (`@Generable`, the day limited to a fixed set of words), and from Claude as structured output (`output_config.format`, a JSON schema with every field required and nullable), effort `low`, with `fallbacks: "default"`.
+  - `AssistantResolver` turns the plan into the preview and keeps it to what the user wrote: `RequestPhrase` reads each phrase's day, time and length, `TaskCommand` reads `@Task` commands without a model, ungrounded values and changes to unnamed tasks are dropped, and skipped phrases become tasks. The prompt (`AssistantPrompt`) lists only the tasks the request names.
+  - `BoardStore.applyAssistant` saves the ticked rows together with one undo.
 - **Voice notes and voice input:** `SFSpeechRecognizer` with `requiresOnDeviceRecognition = true`, so audio never leaves the Mac. Needs the microphone and speech-recognition permissions.
 
 ## 10. Local MCP server (P1)
