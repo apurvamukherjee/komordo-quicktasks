@@ -117,4 +117,21 @@ struct BoardLayoutTests {
             calendar: calendar)
         #expect(plan.focused == 600)
     }
+
+    @Test func theDaySpansFirstWorkToLastFinish() {
+        let midnight = today.startOfDay(in: calendar)
+        let overnight = task(
+            "overnight", completedAt: midnight.addingTimeInterval(600),
+            sessions: [WorkSession(start: midnight.addingTimeInterval(-1_800), end: midnight.addingTimeInterval(600))])
+        let afternoon = task(
+            "afternoon", completedAt: midnight.addingTimeInterval(17 * 3600),
+            sessions: [
+                WorkSession(start: midnight.addingTimeInterval(16 * 3600), end: midnight.addingTimeInterval(17 * 3600))
+            ])
+        let plan = DayPlan(
+            now: midnight.addingTimeInterval(18 * 3600), live: nil, queue: [], scheduled: [],
+            doneToday: [afternoon, overnight], allTasks: [afternoon, overnight], today: today, calendar: calendar)
+        #expect(plan.firstStart == midnight)
+        #expect(plan.lastFinish == midnight.addingTimeInterval(17 * 3600))
+    }
 }
