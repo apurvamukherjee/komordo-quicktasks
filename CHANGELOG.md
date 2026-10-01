@@ -8,6 +8,22 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Password-protected backups (Phase 1) — 2026-10-02
+
+#### Added
+- **Password-protect backups** in Settings ▸ Data & backup (FEATURES §4.21): a sheet sets the password twice,
+  and from then on every export and daily backup is an encrypted `.kbak` (AES-GCM, PBKDF2-SHA256 with 600k
+  rounds). The password lives in the Keychain, never in the database or a backup. Off, or Delete all data,
+  removes it.
+- **Restore from a `.kbak`:** Choose file… accepts it, asks for the password, and a wrong one stays on the sheet.
+  The safety copy made before a restore is sealed too.
+- A daily backup whose password has left the Keychain reports "the password isn't in your Keychain".
+- A secure variant of the text field. `BackupCrypto` in KomodoCore, with tests. Debug flags
+  `-openBackupPassword YES` and `-backupPassword <pw>`; `-openRestore` takes a `.kbak`.
+
+#### Changed
+- Keep last counts `.kbak` files alongside zips.
+
 ### End-of-day review and streaks (Phase 1) — 2026-10-02
 
 #### Added
