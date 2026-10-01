@@ -25,8 +25,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": ask me §9 question 3, then build Phase 1's Local MCP
-server. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 1 is done except what waits for Gmail and my screen;
+build Phase 2, starting with Komodo Assistant. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -63,7 +63,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
 | P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
 | P1 | Calendar import, Integrations page | ✅ | 2026-10-02; macOS Calendar through EventKit, the maintainer's call |
-| P1 | **Settings ▸ AI** | ⏭ **Next** | See §4 |
+| P1 | Settings ▸ AI | ✅ | 2026-10-02; Apple Intelligence status, Claude key (Keychain, free check), model |
+| P2 | **Komodo Assistant** | ⏭ **Next** | See §4; `Assistant.png`, DESIGN_SYSTEM §13.26 |
 | P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
 | P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
@@ -205,15 +206,21 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: Settings ▸ AI
+## 4. Next task: Komodo Assistant (Phase 2)
 
-Done on 2026-10-02: password-protected backups, the Local MCP server, and calendar import through macOS Calendar
-with the Integrations page. Next, in order:
-1. **Settings ▸ AI** (DESIGN_SYSTEM §13.23): Apple Intelligence's status line, the Claude key in the Keychain with
-   Test, and the model. "Use Claude for Gmail → Calendar" waits for Gmail; Komodo Assistant comes with Phase 2.
-2. **Phase 2:** Komodo Assistant (DESIGN_SYSTEM §13.26), voice notes, then Notion · Todoist · Linear · ClickUp ·
-   Asana with personal tokens.
-3. **XCUITest smoke tests** once the maintainer gives the screen.
+Phase 1 is done on 2026-10-02 except what waits on the maintainer: Claude mode and the Review tab come with
+Gmail → Calendar (parked), and the XCUITest smoke tests need the screen. Landed today: password-protected
+backups, the Local MCP server, calendar import through macOS Calendar with the Integrations page, and Settings ▸
+AI. Next, in order:
+1. **Komodo Assistant** (FEATURES §4.19, DESIGN_SYSTEM §13.26, `Assistant.png`, `Assistant.dc.html`): the lime
+   bubble, the 360×520 popover, brain dump → an editable preview → Add, and edits with `@Task`. On-device
+   (FoundationModels) when available, Claude with the user's key otherwise. Nothing is written without the
+   preview, and every change can be undone.
+2. **Voice notes and voice input** (`SFSpeechRecognizer`, on device): asks for microphone and speech access, so
+   ask the maintainer before trying it on this Mac.
+3. **Notion · Todoist · Linear · ClickUp · Asana** with personal tokens (FEATURES §5): the token sheet on
+   Integrations; untestable without the maintainer's tokens.
+4. **XCUITest smoke tests** once the maintainer gives the screen.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -323,6 +330,9 @@ with the Integrations page. Next, in order:
     new task and unlinks the old one.
   - Unlinking matches a task to its calendar by the calendar's name; two calendars with the same name share it.
   - Switching a calendar off unlinks its open tasks in range rather than deleting them, as FEATURES §5 says.
+- **Settings ▸ AI:** Test was checked against the Models API with a bogus key (401 → "Anthropic didn't accept
+  this key"); a working key and its save to the Keychain weren't tried. The Claude mode warning and the What's
+  sent to Claude explainer wait for Gmail.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -449,6 +459,9 @@ with the Integrations page. Next, in order:
 | Calendar sync timing | EventKit's change notification, launch, day rollover, Sync now | Replaces ARCHITECTURE's 5 min poll; Calendar says when something changed |
 | Imported events | The event wins for title, time and length; Komodo's notes are kept; done tasks are left alone | FEATURES §5 says the newer change wins; an event has no edit time EventKit exposes reliably |
 | Integrations page | One Calendar import card; Gmail as coming soon | DESIGN_SYSTEM §13.17 drew Google and Microsoft calendar cards |
+| Claude models | `claude-opus-5-5` (default) and `claude-sonnet-5-5` | The canvas names `claude-opus-5` and `claude-sonnet-5`, now a generation old |
+| Claude key check | `GET /v1/models/<model>` | Free, and tells a bad key from a model the key can't use |
+| AI page before Gmail | Use Claude for disabled; no Claude mode warning or payload explainer | Both describe Gmail's Claude mode, which isn't built |
 
 ---
 
