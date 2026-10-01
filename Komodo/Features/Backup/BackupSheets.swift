@@ -184,6 +184,41 @@ struct SetBackupPasswordSheet: View {
     }
 }
 
+/// Restore from backup with a `.kbak`: the password before the usual confirm. A wrong one keeps the sheet open
+/// with the field marked.
+struct OpenBackupPasswordSheet: View {
+    var fileName: String
+    var isWrong: Bool
+    var isOpening: Bool
+    var cancel: () -> Void
+    var open: (String) -> Void
+
+    @State private var password = ""
+
+    var body: some View {
+        FormSheet(symbol: "lock", tint: Palette.teal, glyph: Palette.tealText) {
+            Text("Enter the backup's password")
+        } content: {
+            (Text(fileName).font(.system(size: 12.5, weight: .medium, design: .monospaced))
+                .foregroundColor(Palette.textPrimary) + Text(" is password-protected."))
+            KomodoTextField(
+                "Password", text: $password, variant: .secure, error: isWrong ? "Wrong password." : nil,
+                focusesOnAppear: true
+            )
+            .accessibilityLabel("Backup password")
+        } actions: {
+            Button("Cancel", action: cancel)
+                .buttonStyle(.komodo(.secondary))
+                .keyboardShortcut(.cancelAction)
+                .disabled(isOpening)
+            Button("Open") { open(password) }
+                .buttonStyle(.komodo(.primary, isBusy: isOpening))
+                .keyboardShortcut(.defaultAction)
+                .disabled(password.isEmpty || isOpening)
+        }
+    }
+}
+
 #Preview("Delete all data") {
     DeleteAllDataSheet(cancel: {}, delete: {})
 }
@@ -201,6 +236,8 @@ struct SetBackupPasswordSheet: View {
 #Preview("Backup password") {
     VStack(spacing: Space.s4) {
         SetBackupPasswordSheet(cancel: {}, save: { _ in })
+        OpenBackupPasswordSheet(
+            fileName: "komodo-backup-2026-09-24.kbak", isWrong: true, isOpening: false, cancel: {}, open: { _ in })
     }
     .padding(Space.s6)
     .background(Palette.bg)
