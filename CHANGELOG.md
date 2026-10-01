@@ -8,6 +8,21 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Calendar import and Integrations (Phase 1) — 2026-10-02
+
+#### Added
+- **Calendar import** through macOS Calendar (FEATURES §5): any account on the Mac, iCloud, Google or Exchange.
+  Events become tasks placed by date, with time, length as the estimate, notes and the meeting link. Syncs at
+  launch, on every Calendar change, at day rollover and on Sync now. No duplicates, deleted tasks stay deleted,
+  moved events move their task, and a vanished event only unlinks it.
+- **Settings ▸ Integrations** (DESIGN_SYSTEM §13.17): Calendar import, Local MCP server and coming-soon cards,
+  and the calendar group: calendars by account, the list, the range (1–3 weeks), accepted only, Disconnect.
+- The integration card component. `CalendarImport` and `CalendarEvent` in KomodoCore, with tests. Debug flag
+  `-sampleCalendar YES`; `-openSettings integrations`.
+
+#### Changed
+- FEATURES §5's Google and Microsoft calendar rows become one row for macOS Calendar, the maintainer's call.
+
 ### Local MCP server (Phase 1) — 2026-10-02
 
 #### Added
