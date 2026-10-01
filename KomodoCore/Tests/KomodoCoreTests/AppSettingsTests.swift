@@ -46,6 +46,8 @@ struct AppSettingsTests {
         settings.lastBackupFailure = "folder not found"
         settings.protectsBackups = true
         settings.allowsMCP = true
+        settings.hasClaudeKey = true
+        settings.claudeModel = "claude-sonnet-5-5"
         settings.importsCalendars = true
         settings.calendarIDs = ["A1B2-work", "C3D4-family"]
         settings.calendarListID = "work"

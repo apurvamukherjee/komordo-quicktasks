@@ -58,6 +58,11 @@ public struct AppSettings: Equatable, Sendable {
     public var calendarAcceptedOnly = false
     public var lastCalendarSync: Date?
 
+    // AI (DESIGN_SYSTEM §13.23)
+    /// A Claude key is saved in the Keychain; the key itself never enters the database.
+    public var hasClaudeKey = false
+    public var claudeModel = AppSettings.claudeModels[0]
+
     // Local MCP server
     /// Let AI apps on this Mac use Komodo (DESIGN_SYSTEM §13.24); `komodo-mcp` refuses every tool while it's off.
     public var allowsMCP = false
@@ -70,6 +75,8 @@ public struct AppSettings: Equatable, Sendable {
     public static let backupsKeptChoices = [7, 14, 30]
     /// FEATURES §5: a range of up to 3 weeks.
     public static let calendarWeekChoices = [1, 2, 3]
+    /// The current Opus first, the default, then the current Sonnet.
+    public static let claudeModels = ["claude-opus-5-5", "claude-sonnet-5-5"]
     public static let timedAlertIntervals: [TimeInterval] = [5, 10, 15, 30].map { $0 * 60 }
 
     public init() {}
@@ -107,6 +114,8 @@ public struct AppSettings: Equatable, Sendable {
         static let backupFailure = "lastBackupFailure"
         static let protectsBackups = "protectsBackups"
         static let mcp = "mcpEnabled"
+        static let hasClaudeKey = "hasClaudeKey"
+        static let claudeModel = "claudeModel"
         static let importsCalendars = "importsCalendars"
         static let calendarIDs = "calendarIDs"
         static let calendarList = "calendarListID"
@@ -154,6 +163,8 @@ public struct AppSettings: Equatable, Sendable {
         if let text = stored[Key.backupFailure], !text.isEmpty { lastBackupFailure = text }
         bool(Key.protectsBackups, &protectsBackups)
         bool(Key.mcp, &allowsMCP)
+        bool(Key.hasClaudeKey, &hasClaudeKey)
+        if let text = stored[Key.claudeModel], Self.claudeModels.contains(text) { claudeModel = text }
         bool(Key.importsCalendars, &importsCalendars)
         if let text = stored[Key.calendarIDs] {
             calendarIDs = text.split(separator: "\n").map(String.init)
@@ -204,6 +215,8 @@ public struct AppSettings: Equatable, Sendable {
             Key.backupFailure: lastBackupFailure ?? "",
             Key.protectsBackups: flag(protectsBackups),
             Key.mcp: flag(allowsMCP),
+            Key.hasClaudeKey: flag(hasClaudeKey),
+            Key.claudeModel: claudeModel,
             Key.importsCalendars: flag(importsCalendars),
             Key.calendarIDs: calendarIDs.joined(separator: "\n"),
             Key.calendarList: calendarListID ?? "",
