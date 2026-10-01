@@ -69,7 +69,8 @@ struct SettingsCommand: Commands {
 /// - `-sprintDisplay sprint` counts the live card in sprints instead of the estimate, and `-sprintSeconds 20`
 ///   shortens sprints to watch one end.
 /// - `-openFocusPanel YES` docks the Focus Panel and `-openFloatingTimer YES` shows the timer. `-focusState
-///   paused|timesUp|break|celebrating|scheduled|won` puts either in one of its states (FocusStates.png).
+///   paused|timesUp|break|celebrating|scheduled|won|ended` puts either in one of its states (FocusStates.png);
+///   `ended` is End Day with the queue still full, for the end-of-day review.
 /// - `-openTrash <count>` moves that many sample tasks to Trash and shows it; `-deleteList <list id>` also puts
 ///   a list there first.
 /// - `-openListSheet new|edit|delete` opens the list sheet, on the selected list for edit and delete.
@@ -146,6 +147,8 @@ enum LaunchOptions {
                 }
             case "celebrating":
                 store.completeLive()
+            case "ended":
+                store.endDay()
             default:
                 break
             }
