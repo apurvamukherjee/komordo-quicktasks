@@ -1,9 +1,9 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-10-01. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
+Last updated: 2026-10-02. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
 archive, focus restore with crash recovery, 5g without Google (Data & backup, onboarding, celebration GIFs), and
 most of the P0 polish (list management, timed tasks joining the queue, sleep and App Nap, scheduled focus alerts,
-the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
+the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions, end-of-day review and streak rules are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -16,7 +16,7 @@ Paste this as the first message of a new session:
 ```text
 Read CLAUDE.md, docs/HANDOFF.md, CHANGELOG.md and CONTRIBUTING.md first, then docs/DESIGN_HANDOFF.md.
 Follow every rule in them. The most important ones:
-- Commit as my git identity only, with Conventional Commits (type(scope): summary), about 20–25 small
+- Commit as my git identity only, with Conventional Commits (type(scope): summary), about 30–40 small
   commits per task, each one building on its own. No co-author or tool trailers. Never push, I push.
 - Before rewriting any commit, run git fetch and make sure it isn't already on origin/main.
 - When a feature lands, update README.md in the same task with fresh screenshots and a recording captured
@@ -25,7 +25,7 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 1's end-of-day review and streak rules, then the next
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 1's password-protected backups, then the next
 Phase 1 item. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
@@ -60,7 +60,10 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | — | P0 polish: lists, timed tasks, sleep, App Nap, scheduled alerts, scrolling title, File and Help menus | ✅ | 2026-10-01; tried on a scratch database |
 | — | Idle CPU | ✅ | Timer digits and colon on Core Animation; ~3–4% idle in an optimized build |
 | P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
-| P1 | **End-of-day review and streak rules** | ⏭ **Next** | See §4 |
+| P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
+| P1 | **Password-protected backups** | ⏭ **Next** | See §4 |
+| P1 | Calendar import, Claude mode | ⏸ Blocked | Need Google sign-in (§9 question 1); Claude mode is Claude mode for Gmail |
+| P1 | Local MCP server | ⏸ Waiting | §9 question 3: MCP Swift SDK or hand-written JSON-RPC |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
@@ -200,17 +203,19 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: end-of-day review and streak rules
+## 4. Next task: password-protected backups
 
-Done on 2026-10-01: the idle CPU fix (the odometer's spring and the colon's beat now run on Core Animation
-through `HostedLayer`; an optimized sample build idles at 3–4% on the Board, Focus Panel and floating timer, and
-under 1% on Reports once Charts settle) and Reports with all four tabs, session editing, export and recorded
-breaks. Next, in order:
-1. **End-of-day review** (FEATURES §6.4, DESIGN_SYSTEM §13.11): the day summary's NOT FINISHED list with
-   Tomorrow (default) / This week per task, and streak rules (the "3 in a row today" chip on the celebration).
-2. **Calendar import**, then **Claude mode**, **Local MCP server** (needs `ValueObservation`), **password-protected
-   backups** and the **Integrations** page.
-3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
+Done on 2026-10-02: the end-of-day review (End Day in the Focus menu and palette, NOT FINISHED with Tomorrow /
+This week and one Undo, the early-end span, the clean sweep) and streak rules (streak days count tasks done,
+"3 in a row today" on the hero celebration, the Streaks switch). Next, in order:
+1. **Password-protected backups** (FEATURES §4.21, ARCHITECTURE §9): AES-GCM (CryptoKit) over the zip with a
+   PBKDF2 key (`CCKeyDerivationPBKDF`, 600k rounds), saved as `.kbak`. Data & backup's switch is drawn disabled
+   today. No dependency.
+2. **Local MCP server** (FEATURES §5.1, ARCHITECTURE §10) once §9 question 3 is answered; it needs
+   `ValueObservation` so the app sees the helper's writes.
+3. **Calendar import** and **Claude mode** need Google sign-in (§9 question 1); Claude mode is Claude mode for
+   Gmail. The **Integrations** page comes with calendar import.
+4. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
    maintainer gives the screen; they take over the pointer.
 
 **After that**
@@ -259,7 +264,7 @@ breaks. Next, in order:
 - **README recording** has not been re-recorded for 5b to 5e. The screenshots are fresh, but recording needs the
   pointer and the screen. Ask the maintainer for a window when it's time.
 - **Celebration:** the floating card keeps the check, since the 240 × 180 GIF tile doesn't fit a 320 × 240 card.
-  No "3 in a row today" chip (needs streak rules).
+  The 320 × 240 floating card leaves out "3 in a row today"; only the hero card shows it.
 - **Floating timer:**
   - The scrolling title wasn't captured moving (screen locked); the marquee's pause-on-hover is untried.
   - Its window is a fixed 600 × 88 transparent frame. Clicks pass through the transparent part; that was
@@ -267,7 +272,8 @@ breaks. Next, in order:
   - Dragging, hover controls and the position memory weren't exercised with the pointer.
 - **Command palette:** the dim covers the Board, not the sidebar. Backup, Gmail and Settings show dimmed.
   Keyboard navigation and ⌘F weren't tried with real keystrokes; each state was opened with `-openPalette`.
-- **Day summary:** unfinished tasks with Tomorrow / This week are the P1 end-of-day review (FEATURES §6.4).
+- **Day summary:** the review's Tomorrow / This week menus and End Day were captured through `-focusState ended`,
+  not clicked. A task still ahead today isn't listed as unfinished, so it stays in Today.
 - **Notifications** (`FocusAlerts`): sprint end, break over, Time's Up (panel hidden) and scheduled reminders
   with Start now / Snooze 5 min are built, but none has been triggered on the maintainer's Mac, since the first
   asks for permission with a system dialog. Reminders are replaced a second after edits and only for a saved
@@ -408,6 +414,13 @@ breaks. Next, in order:
 | Added break | Not tied to a task | The canvas: "Break · not tied to a task" |
 | Time spent | The top list starts open | The canvas's `openList: 'W'` |
 | Report sample history | Nine months of archived weekday tasks and breaks | Reports need history; archived keeps the Board, bars and streak as on `Main.png` |
+| Streak days | A day counts with one task done, archived ones included | FEATURES §4.13; the code had counted any focused time |
+| Streaks switch | A fourth row in Settings ▸ Celebration | `Settings.png` draws three; FEATURES §4.13 says streaks can be switched off, and FEATURES wins on behavior |
+| In a row | Early or on time, counted back from the latest finish; no estimate is skipped; shown from 3 | `Celebration.png` ① shows the chip; no spec gives the rule |
+| Floating celebration | No "in a row" pill | The 320 × 240 card has no room |
+| End Day | In the Focus menu and the palette, in the review's amber | FEATURES §6.4 makes it a flow; DESIGN_SYSTEM §13.7 lists no palette command for it |
+| Unfinished tasks | Today's open tasks whose time has come, in every list | A task still ahead today isn't unfinished yet |
+| Carry-over | Tomorrow keeps the time of day; This week clears the date | This week matches dragging a task there |
 
 ---
 
@@ -524,3 +537,5 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
    dependency acceptable (GoogleSignIn, about 1 MB), or should it be `ASWebAuthenticationSession` with PKCE and
    no dependency?
 2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
+3. **Local MCP server:** the MCP Swift SDK (about 1 MB, what ARCHITECTURE §10 names) or hand-written JSON-RPC
+   over stdio (no dependency; seven tools)?
