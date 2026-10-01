@@ -194,6 +194,8 @@ struct OpenBackupPasswordSheet: View {
     var open: (String) -> Void
 
     @State private var password = ""
+    /// The password last sent, so editing it clears "Wrong password." until the next try.
+    @State private var tried = ""
 
     var body: some View {
         FormSheet(symbol: "lock", tint: Palette.teal, glyph: Palette.tealText) {
@@ -202,7 +204,8 @@ struct OpenBackupPasswordSheet: View {
             (Text(fileName).font(.system(size: 12.5, weight: .medium, design: .monospaced))
                 .foregroundColor(Palette.textPrimary) + Text(" is password-protected."))
             KomodoTextField(
-                "Password", text: $password, variant: .secure, error: isWrong ? "Wrong password." : nil,
+                "Password", text: $password, variant: .secure,
+                error: isWrong && password == tried ? "Wrong password." : nil,
                 focusesOnAppear: true
             )
             .accessibilityLabel("Backup password")
@@ -211,10 +214,13 @@ struct OpenBackupPasswordSheet: View {
                 .buttonStyle(.komodo(.secondary))
                 .keyboardShortcut(.cancelAction)
                 .disabled(isOpening)
-            Button("Open") { open(password) }
-                .buttonStyle(.komodo(.primary, isBusy: isOpening))
-                .keyboardShortcut(.defaultAction)
-                .disabled(password.isEmpty || isOpening)
+            Button("Open") {
+                tried = password
+                open(password)
+            }
+            .buttonStyle(.komodo(.primary, isBusy: isOpening))
+            .keyboardShortcut(.defaultAction)
+            .disabled(password.isEmpty || isOpening)
         }
     }
 }
