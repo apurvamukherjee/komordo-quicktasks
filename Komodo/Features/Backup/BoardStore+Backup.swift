@@ -29,7 +29,7 @@ extension BoardStore {
     /// backup can really be sealed.
     func protectBackups(with password: String) -> Bool {
         do {
-            try BackupPassword.save(password)
+            try KeychainSecret.backupPassword.save(password)
         } catch {
             Self.log.error("Couldn't save the backup password: \(error)")
             toasts.show(Toast(kind: .error, message: "Couldn't save the password in your Keychain"))
@@ -42,7 +42,7 @@ extension BoardStore {
     func stopProtectingBackups() {
         settings.protectsBackups = false
         do {
-            try BackupPassword.remove()
+            try KeychainSecret.backupPassword.remove()
         } catch {
             // Harmless left behind: nothing reads it while protection is off, and turning it on replaces it.
             Self.log.error("Couldn't remove the backup password: \(error)")
@@ -52,7 +52,7 @@ extension BoardStore {
     /// The password backups are sealed with, or nil while protection is off.
     private func sealingPassword() throws -> String? {
         guard settings.protectsBackups else { return nil }
-        guard let password = try BackupPassword.read() else { throw MissingBackupPassword() }
+        guard let password = try KeychainSecret.backupPassword.read() else { throw MissingBackupPassword() }
         return password
     }
 
