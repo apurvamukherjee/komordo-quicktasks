@@ -62,7 +62,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
 | P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
 | P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
-| P1 | **Calendar import** | ⏭ **Next** | Through macOS Calendar (EventKit), the maintainer's call on 2026-10-02; see §4 |
+| P1 | Calendar import, Integrations page | ✅ | 2026-10-02; macOS Calendar through EventKit, the maintainer's call |
+| P1 | **Settings ▸ AI** | ⏭ **Next** | See §4 |
 | P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
 | P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
@@ -204,17 +205,15 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: calendar import
+## 4. Next task: Settings ▸ AI
 
-Done on 2026-10-02: password-protected backups and the Local MCP server (`komodo-mcp`, hand-written JSON-RPC in
-KomodoCore, the Settings page, live refresh on `app.komodo.db-changed`, and `komodo://start`). Next, in order:
-1. **Calendar import** through macOS Calendar with EventKit (the maintainer's call on 2026-10-02 instead of
-   Google and Microsoft sign-in): every calendar already added to macOS (iCloud, Google, Exchange) can become
-   tasks (FEATURES §5's Google Calendar row: title, time, notes, Meet link; choice of calendars; up to 3 weeks;
-   all or accepted events), with the **Integrations** page.
-2. **Settings ▸ AI** (DESIGN_SYSTEM §13.23): the Claude key in the Keychain with Test, and the model.
-3. **Phase 2:** Komodo Assistant, voice notes, then Notion · Todoist · Linear · ClickUp · Asana.
-4. **XCUITest smoke tests** once the maintainer gives the screen.
+Done on 2026-10-02: password-protected backups, the Local MCP server, and calendar import through macOS Calendar
+with the Integrations page. Next, in order:
+1. **Settings ▸ AI** (DESIGN_SYSTEM §13.23): Apple Intelligence's status line, the Claude key in the Keychain with
+   Test, and the model. "Use Claude for Gmail → Calendar" waits for Gmail; Komodo Assistant comes with Phase 2.
+2. **Phase 2:** Komodo Assistant (DESIGN_SYSTEM §13.26), voice notes, then Notion · Todoist · Linear · ClickUp ·
+   Asana with personal tokens.
+3. **XCUITest smoke tests** once the maintainer gives the screen.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -317,6 +316,13 @@ KomodoCore, the Settings page, live refresh on `app.komodo.db-changed`, and `kom
   - The helper is 8.9 MB in Debug (GRDB is linked into it as well as the app); measure it in Release.
   - "Works while Komodo is running" is the spec's copy, but the helper also works with Komodo closed: writes land
     in the file and show at the next launch, and `start_focus` launches Komodo.
+- **Calendar import:**
+  - Tried with `-sampleCalendar YES` on a scratch database; real EventKit wasn't read, because Connect shows the
+    system's Calendar access prompt on the maintainer's Mac. Ask before pressing it.
+  - A recurring event's occurrences are told apart by external ID plus start, so moving one occurrence makes a
+    new task and unlinks the old one.
+  - Unlinking matches a task to its calendar by the calendar's name; two calendars with the same name share it.
+  - Switching a calendar off unlinks its open tasks in range rather than deleting them, as FEATURES §5 says.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -439,6 +445,10 @@ KomodoCore, the Settings page, live refresh on `app.komodo.db-changed`, and `kom
 | MCP transport | Hand-written JSON-RPC 2.0 over stdio | The maintainer asked for Phase 1 to finish; no dependency needed asking about, and four methods are small |
 | MCP refresh | A Darwin notification and an in-place re-read, not `ValueObservation` | Only the helper writes from outside, and the notification costs nothing at idle |
 | New MCP tasks | Backlog of the first list unless a column or date is given | FEATURES §5: imported tasks with no date go to Backlog |
+| Calendar import | macOS Calendar through EventKit, not Google and Microsoft sign-in | The maintainer's call on 2026-10-02: no OAuth client, tokens or dependency, and every account the Mac has |
+| Calendar sync timing | EventKit's change notification, launch, day rollover, Sync now | Replaces ARCHITECTURE's 5 min poll; Calendar says when something changed |
+| Imported events | The event wins for title, time and length; Komodo's notes are kept; done tasks are left alone | FEATURES §5 says the newer change wins; an event has no edit time EventKit exposes reliably |
+| Integrations page | One Calendar import card; Gmail as coming soon | DESIGN_SYSTEM §13.17 drew Google and Microsoft calendar cards |
 
 ---
 
