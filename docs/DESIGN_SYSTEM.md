@@ -244,6 +244,10 @@ Short, playful, second person, and never guilt-tripping. Emoji at most once, in 
 | Time's Up | **Time's up.** +5 min · +15 min · Done · Next |
 | Done | "Nailed it. 12min early." / "Done. Right on time." / "Done. 8min over, still counts." |
 | End of queue | **You won the day.** 7 tasks · 5hr 40min focused |
+| In a row | "3 in a row today" (amber pill on the celebration, from three on-estimate finishes) |
+| End Day | **End Day** · "Day summary · move what's left" (palette detail) |
+| Clean sweep | **Clean sweep. Nothing carried over.** "Every Today task is done. Tomorrow starts empty." |
+| Carried over | "Unfinished tasks moved" · "2 to Tomorrow · 1 to This week" [Undo] |
 | Empty Today | "Nothing planned. Pull something in from This week, or add a task." |
 | Offline | "You're offline. Everything still works, and Gmail will catch up when you're back." |
 | Gmail promise | "Komodo reads your email to find meetings and deadlines. It never sends, deletes, or changes email." |
@@ -782,6 +786,13 @@ The states are in §10.5. When a task completes in floating mode, the celebratio
 └────────────────────────────────────────┘
 ```
 
+- In the Focus Panel it's FocusStates ⑦'s 312 pt card. NOT FINISHED rows carry the list badge (19 pt) and a
+  24 pt menu button, Tomorrow or This week. Done is the default button (Return).
+- After **End Day** with tasks still queued, the subtitle's second line is the day's span: "first task 9:02 AM ·
+  last 5:48 PM" (Celebration.png ④), since the queue isn't empty.
+- With nothing left in Today, Celebration.png ⑤'s green clean-sweep tile replaces NOT FINISHED.
+- Streaks switched off hide the streak line here and in the sidebar, and the "in a row" pill.
+
 ### 13.12 Reports: Overview (P1)
 
 ```
@@ -859,7 +870,7 @@ A table with Item · Type (List / Task) · From list · Deleted, and the row act
 | --- | --- |
 | Focus | Panel screen (picker) · Panel side (segmented: Left / Right) · Float above full-screen apps (toggle) · Pomodoros (toggle) · Work sprint · Break · Default break (duration fields) · Scrolling title (toggle) · Open links in notes when a task starts (toggle) |
 | Alerts & sounds | Timed alerts during a task (toggle) + interval (picker) + sound (picker with ▶ preview) + pulse timer (toggle) · Reminder sound (picker) · Volume (slider) |
-| Celebration | Success screen · GIF · Sound (toggles) · Preview button |
+| Celebration | Success screen · GIF · Sound · Streaks (toggles) · Preview button |
 | Shortcuts | A table of Action · Shortcut (a `KeyboardShortcuts.Recorder`) · Scope · Reset. A conflict shows in danger text: "Used by another app" |
 
 ### 13.17 Settings: Integrations (P1; Gmail is P0)
