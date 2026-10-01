@@ -25,8 +25,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 1 is done except what waits for Gmail and my screen;
-build Phase 2, starting with Komodo Assistant. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's voice input and voice notes, then the token
+integrations. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -64,7 +64,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
 | P1 | Calendar import, Integrations page | ✅ | 2026-10-02; macOS Calendar through EventKit, the maintainer's call |
 | P1 | Settings ▸ AI | ✅ | 2026-10-02; Apple Intelligence status, Claude key (Keychain, free check), model |
-| P2 | **Komodo Assistant** | ⏭ **Next** | See §4; `Assistant.png`, DESIGN_SYSTEM §13.26 |
+| P2 | Komodo Assistant | ✅ | 2026-10-02; on-device or Claude, editable preview, @ commands, one Undo |
+| P2 | **Voice input and voice notes** | ⏭ **Next** | See §4 |
 | P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
 | P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
@@ -206,21 +207,15 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: Komodo Assistant (Phase 2)
+## 4. Next task: voice input and voice notes (Phase 2)
 
-Phase 1 is done on 2026-10-02 except what waits on the maintainer: Claude mode and the Review tab come with
-Gmail → Calendar (parked), and the XCUITest smoke tests need the screen. Landed today: password-protected
-backups, the Local MCP server, calendar import through macOS Calendar with the Integrations page, and Settings ▸
-AI. Next, in order:
-1. **Komodo Assistant** (FEATURES §4.19, DESIGN_SYSTEM §13.26, `Assistant.png`, `Assistant.dc.html`): the lime
-   bubble, the 360×520 popover, brain dump → an editable preview → Add, and edits with `@Task`. On-device
-   (FoundationModels) when available, Claude with the user's key otherwise. Nothing is written without the
-   preview, and every change can be undone.
-2. **Voice notes and voice input** (`SFSpeechRecognizer`, on device): asks for microphone and speech access, so
-   ask the maintainer before trying it on this Mac.
-3. **Notion · Todoist · Linear · ClickUp · Asana** with personal tokens (FEATURES §5): the token sheet on
+Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen) and Komodo Assistant. Next, in order:
+1. **Voice** (FEATURES §4.5 and §4.19, ARCHITECTURE §9, Assistant.png ②): hold the mic in the Assistant to talk,
+   with the live transcript, and voice notes on a task. `SFSpeechRecognizer` on device. It needs the microphone
+   and speech-recognition permissions, so ask the maintainer before the first real try on this Mac.
+2. **Notion · Todoist · Linear · ClickUp · Asana** with personal tokens (FEATURES §5): the token sheet on
    Integrations; untestable without the maintainer's tokens.
-4. **XCUITest smoke tests** once the maintainer gives the screen.
+3. **XCUITest smoke tests** once the maintainer gives the screen.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -333,6 +328,13 @@ AI. Next, in order:
 - **Settings ▸ AI:** Test was checked against the Models API with a bogus key (401 → "Anthropic didn't accept
   this key"); a working key and its save to the Keychain weren't tried. The Claude mode warning and the What's
   sent to Claude explainer wait for Gmail.
+- **Komodo Assistant:**
+  - Tried with Apple's on-device model through `-assistantPrompt` on scratch databases: brain dumps, @ commands,
+    Add and the applied card. The Claude path wasn't run (no key). Clicking, editing titles in the preview,
+    Discard, Undo and ⌘J weren't driven with the pointer.
+  - The on-device model is uneven; the resolver keeps the preview honest (see §6), but titles can still be
+    terse ("Deck").
+  - The input reads "Type or hold mic to talk…", the spec's copy, before the mic exists.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -462,6 +464,11 @@ AI. Next, in order:
 | Claude models | `claude-opus-5-5` (default) and `claude-sonnet-5-5` | The canvas names `claude-opus-5` and `claude-sonnet-5`, now a generation old |
 | Claude key check | `GET /v1/models/<model>` | Free, and tells a bad key from a model the key can't use |
 | AI page before Gmail | Use Claude for disabled; no Claude mode warning or payload explainer | Both describe Gmail's Claude mode, which isn't built |
+| Assistant values | Each task's day, time and length come from its own phrase; ungrounded values are dropped | The on-device model invented times, lengths and lists and moved them between tasks |
+| Assistant edits | `@Task` commands read without a model; the model can't change a task the request doesn't name | The on-device model renamed and moved unrelated tasks |
+| Assistant reply | The model's reply only when there's no preview; Komodo writes the applied line | The model claimed it had "called Apurva" |
+| Assistant skipped items | A phrase no proposal covers becomes a task | The on-device model dropped items from brain dumps |
+| Assistant shortcut | ⌘J | DESIGN_SYSTEM gives none; J was free in Home |
 
 ---
 
