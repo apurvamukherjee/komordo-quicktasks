@@ -48,6 +48,10 @@ public struct AppSettings: Equatable, Sendable {
     /// Backups are sealed as `.kbak`; the password itself is in the Keychain, never here.
     public var protectsBackups = false
 
+    // Local MCP server
+    /// Let AI apps on this Mac use Komodo (DESIGN_SYSTEM §13.24); `komodo-mcp` refuses every tool while it's off.
+    public var allowsMCP = false
+
     // Shortcuts
     /// Only the global shortcuts can be changed; a missing entry means the default.
     public var shortcuts: [GlobalShortcut: KeyCombo] = [:]
@@ -90,6 +94,7 @@ public struct AppSettings: Equatable, Sendable {
         static let lastBackup = "lastBackupAt"
         static let backupFailure = "lastBackupFailure"
         static let protectsBackups = "protectsBackups"
+        static let mcp = "mcpEnabled"
         static let shortcutPrefix = "shortcut."
     }
 
@@ -130,6 +135,7 @@ public struct AppSettings: Equatable, Sendable {
         lastBackupAt = stored[Key.lastBackup].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
         if let text = stored[Key.backupFailure], !text.isEmpty { lastBackupFailure = text }
         bool(Key.protectsBackups, &protectsBackups)
+        bool(Key.mcp, &allowsMCP)
         for action in GlobalShortcut.allCases {
             if let combo = stored[Key.shortcutPrefix + action.rawValue].flatMap(KeyCombo.init(stored:)) {
                 shortcuts[action] = combo
@@ -169,6 +175,7 @@ public struct AppSettings: Equatable, Sendable {
             Key.lastBackup: lastBackupAt.map { String($0.timeIntervalSince1970) } ?? "",
             Key.backupFailure: lastBackupFailure ?? "",
             Key.protectsBackups: flag(protectsBackups),
+            Key.mcp: flag(allowsMCP),
         ]
         for action in GlobalShortcut.allCases {
             result[Key.shortcutPrefix + action.rawValue] = shortcuts[action]?.storedValue ?? ""
