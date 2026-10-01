@@ -55,6 +55,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 📊 | **Reports** | Work days, hours and your most productive hour, day and month; estimate accuracy week by week; hours by list; and every session and break, editable and exportable to PDF or CSV | ✅ Available |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
+| 🗓️ | **Calendar import** | Meetings from any calendar on your Mac, iCloud, Google or Outlook, show up as tasks on the right day, with their time, length, reminder and call link | ✅ Available |
 | 🤖 | **Local MCP server** | Let Claude Desktop, Claude Code or Raycast read and plan your lists, add and finish tasks, log time and start a focus session. Runs on your Mac, with no login and no server | ✅ Available |
 | 🔐 | **Password-protected backups** | Seal every export and daily backup with a password of your own, kept in your Keychain and never inside the backup | ✅ Available |
 | 👋 | **First launch** | Three short intro screens, notifications, and the tasks you want to finish today, then a tip pointing at Start | ✅ Available |
@@ -190,6 +191,16 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 
 - **Lock it with a password.** Turn on Password-protect backups and every export and daily backup is sealed with AES-GCM as a `.kbak`. The password lives in your Keychain, so the daily backup still runs on its own, and it never goes inside a backup.
 - **Only you can open it.** Restoring a `.kbak` asks for its password first, and a wrong one changes nothing. There's no recovery, so keep the password somewhere safe.
+
+## Your calendar, on the Board
+
+<p align="center"><img src="docs/media/calendar-import.png" alt="The Board with imported calendar events: a standup in Scheduled today, a design review and a dentist appointment in This week, and quarterly planning in the Backlog, each with a Calendar chip, its time, length and reminder" width="100%"></p>
+
+<p align="center"><img src="docs/media/settings-integrations.png" alt="Settings on Integrations: Calendar import active with two calendars and Sync now, the Local MCP server card, and the calendars to import grouped by account" width="100%"></p>
+
+- **Every calendar you already have.** Komodo reads the calendars on your Mac, so iCloud, Google and Outlook all work with no extra sign-in. Pick the calendars, the list they join and how far ahead to look.
+- **Meetings land where they belong.** Each event becomes a task on its day and time, with its length as the estimate and a reminder when it starts. Starting it opens the call link.
+- **Always in step.** When an event moves in Calendar, its task moves too, the moment Calendar changes. Anything you deleted in Komodo stays deleted, and your notes are never overwritten.
 
 ## Work with AI apps
 
@@ -330,6 +341,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] End-of-day review and streaks
 - [x] Password-protected backups
 - [x] Local MCP server
+- [x] Calendar import
 
 ## Contributing
 
