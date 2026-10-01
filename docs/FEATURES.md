@@ -308,7 +308,9 @@ Each is on by default and can be switched off:
 - **Success screen:** a success message for about 2.5 s. Click to dismiss.
 - **Fun GIF:** a random GIF from a bundled set, so it works offline.
 - **Success sound**.
-- **Streaks** (P1): consecutive days with at least one task done.
+- **Streaks** (P1): consecutive days with at least one task done, shown on the day summary and in the sidebar.
+  Today doesn't break a streak until it's over. The celebration adds "3 in a row today" once three or more tasks
+  in a row finish early or on time (±10%); a late finish resets the run, and a task with no estimate is skipped.
 - Never shown mid-task. With Reduce Motion on, a still success card replaces the animation.
 
 ### 4.14 Reports (P1)
@@ -498,8 +500,12 @@ flowchart TD
 ```
 
 ### 6.4 End of day (P1)
-1. Day summary: tasks done, time focused, EST accuracy, streak.
-2. Unfinished tasks: **Tomorrow** (default) or **This week**.
+1. Day summary: tasks done, time focused, EST accuracy, streak. It opens when the queue runs out, or at any time
+   with **End Day** (Focus menu or the command palette), which stops the live task and keeps its time.
+2. Unfinished tasks: **Tomorrow** (default) or **This week**. These are Today's open tasks in every list whose time
+   has come; a task timed later today stays. Tomorrow keeps a task's time of day, This week drops its date. The
+   choices apply when the summary closes (Done, Return or See reports), with one Undo for the batch. With nothing
+   left in Today, a clean sweep shows instead.
 3. A link to Reports.
 
 ---
