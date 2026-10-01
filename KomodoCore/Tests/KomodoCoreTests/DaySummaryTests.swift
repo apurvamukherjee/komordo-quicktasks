@@ -35,6 +35,37 @@ struct DaySummaryTests {
         #expect(summary.measured == 0)
         #expect(summary.onEstimate == nil)
     }
+
+    /// Finished `order` minutes into the day, so later calls finish later.
+    private func finished(_ order: Int, estimate: TimeInterval?, taken: TimeInterval) -> TaskItem {
+        var task = done(estimate: estimate, taken: taken)
+        task.completedAt = now.addingTimeInterval(Double(order - 100) * 60)
+        return task
+    }
+
+    @Test func aRunCountsBackFromTheLatestFinish() {
+        let tasks = [
+            finished(1, estimate: 600, taken: 300),
+            finished(2, estimate: 600, taken: 900),
+            finished(3, estimate: 600, taken: 600),
+            finished(4, estimate: 600, taken: 400),
+        ]
+        #expect(DaySummary.onEstimateRun(tasks.shuffled(), now: now) == 2)
+    }
+
+    @Test func aLateFinishEndsTheRun() {
+        let tasks = [finished(1, estimate: 600, taken: 300), finished(2, estimate: 600, taken: 900)]
+        #expect(DaySummary.onEstimateRun(tasks, now: now) == 0)
+    }
+
+    @Test func tasksWithoutAnEstimateDontBreakTheRun() {
+        let tasks = [
+            finished(1, estimate: 600, taken: 600),
+            finished(2, estimate: nil, taken: 900),
+            finished(3, estimate: 600, taken: 500),
+        ]
+        #expect(DaySummary.onEstimateRun(tasks, now: now) == 2)
+    }
 }
 
 extension DaySummary {
