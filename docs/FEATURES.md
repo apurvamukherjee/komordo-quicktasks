@@ -198,7 +198,7 @@ Above Today, a day summary shows **Est: 8hrs** (remaining EST), a progress bar, 
 - Rich text with bold, italic, underline, strikethrough, links, bulleted lists, numbered lists, and undo. **✕ Clear** removes formatting.
 - Open from the card menu, or on the live task with ⌘⌥N.
 - **Links in notes open automatically in the browser when the task goes live.** Only `http` and `https` links open, at most 5 per task, and a per-task toggle turns this off.
-- **Voice note (P2):** the mic button records speech, which is transcribed on the Mac and added to the note.
+- **Voice note (P2):** the mic button records speech, which is transcribed on the Mac and added to the note. In the inspector, **Voice note** beside NOTES listens and shows the words as they're heard; **Add to notes** puts them at the end of the notes as a new paragraph, undoable like typing. Recognition must run on the device; if the Mac's language has no on-device dictation, or the microphone or speech recognition is off, it says so.
 
 ### 4.6 Scheduling (P0)
 
@@ -384,6 +384,7 @@ Global shortcuts can be changed in Settings. A shortcut already taken by another
 - **Edits:** renames tasks or lists, changes subtasks, notes, schedules, or ESTs, logs time, and moves tasks between lists or columns. `@Task name` targets a task.
 - It runs on Apple's on-device model when available, and on Claude with the user's own key otherwise. It never writes directly: every change goes through the preview and can be undone.
 - **Open it** with the lime bubble at the bottom right of Home, or ⌘J. The conversation stays while it's closed.
+- **Talk:** hold the mic beside the field; the live transcript shows while listening, and releasing sends it, transcribed on the Mac.
 - **What the words decide:** each phrase of a request (split at commas, "and", semicolons and new lines) sets its own task's day, time and length, so the model can't move one task's details to another. A value the user didn't give (a time, a length, a list) isn't invented. A brain dump never loses an item: a phrase the model skipped becomes its own task. `@Task` commands ("move @X to tomorrow", "log 30min on @X", "@X is done", "rename @X to Y", "@X to backlog") are read directly from the words, and the model can't change a task the user didn't name.
 - **Without a brain:** with Apple Intelligence off and no Claude key, the popover says how to turn one on.
 
