@@ -46,6 +46,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | ⏱️ | **Focus mode** | Work top-down through Today in a Focus Panel docked to the screen edge: a live focus dial, breaks that breathe with you, and the queue a click away | ✅ Available |
 | 💊 | **Floating timer** | A 40 pt pill that stays above every app and every Space, drags anywhere, expands on hover, and scrolls long titles | ✅ Available |
 | 🎉 | **Celebrations and day summary** | A burst, a chime and a random animated GIF on every Done, and "You won the day." when the queue is clear | ✅ Available |
+| 🌙 | **End-of-day review and streaks** | End the day whenever you like, send what's left to tomorrow or this week in one go, and keep a streak of days with something done | ✅ Available |
 | ✉️ | **Gmail → Calendar** | Finds meetings and deadlines in your email and adds them to Google Calendar. Never sends, deletes or changes email | 🚧 In development |
 | 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available |
 | 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
@@ -112,13 +113,30 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 <table>
   <tr>
     <td width="58%"><img src="docs/media/floating-timer.png" alt="The floating timer pill running with a lime ring, paused in grey, at Time's Up in red with +5 and Done, and on a green break"></td>
-    <td width="42%"><img src="docs/media/celebration.png" alt="The Focus Panel celebrating: a flexed-biceps GIF under a burst of confetti, Nailed it. 9min early., and what's up next"></td>
+    <td width="42%"><img src="docs/media/celebration.png" alt="The Focus Panel celebrating: an animated emoji under a burst of confetti, Nailed it. 9min early., an amber 3 in a row today pill, and what's up next"></td>
   </tr>
 </table>
 
 - **Out of the way, never out of sight.** ⌘⇧T collapses the panel into a 40 pt pill that floats above every app and Space. Drag it anywhere; it remembers its spot on each display.
 - **Hover for controls.** Pause, Done, Skip, Break, Notes and back to the panel slide in on a spring. At Time's Up it turns red with +5 and Done inline, and ⌘⇧P ripples it so you can find it.
 - **A moment for every Done.** A confetti burst, a random animated GIF and a word on how you did against the estimate: "Nailed it. 12min early." The GIFs ship inside the app, so they work offline. The next task starts when it's over, never mid-celebration.
+- **Runs and streaks.** Finish three tasks in a row on or under their estimates and the celebration says so. The day summary and the sidebar count your streak of days with something done. Prefer without? One switch in Settings.
+
+## End of day
+
+<table>
+  <tr>
+    <td width="42%"><img src="docs/media/day-review.png" alt="The day summary after End Day: You won the day. with the day's first and last task, tasks, focused time and accuracy, a 7-day streak, and four unfinished tasks each set to Tomorrow"></td>
+    <td width="58%">
+
+- **End the day on your terms.** Focus ▸ End Day, or End Day in the command palette, stops the clock and opens the summary, even with tasks still queued.
+- **Nothing gets lost overnight.** Every unfinished Today task is listed with **Tomorrow** or **This week**. Tomorrow keeps a task's time; This week parks it undated. Press Done or Return and they all move, with one Undo if you change your mind.
+- **Or sweep it clean.** When every Today task is done, the summary says so: nothing carried over, tomorrow starts empty.
+- **Then look back.** See reports takes you straight to Reports to see how the week is going.
+
+</td>
+  </tr>
+</table>
 
 ## Command palette
 
@@ -138,7 +156,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
     <td width="50%"><img src="docs/media/settings-alerts.png" alt="Settings on the Alerts and sounds page: timed alerts with interval, sound and pulse, the reminder sound and a volume slider"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/media/settings-celebration.png" alt="Settings on the Celebration page: success screen, fun GIF and success sound beside a live preview of the moment"></td>
+    <td width="50%"><img src="docs/media/settings-celebration.png" alt="Settings on the Celebration page: success screen, fun GIF, success sound and streaks beside a live preview of the moment"></td>
     <td width="50%"><img src="docs/media/settings-shortcuts.png" alt="Settings on the Shortcuts page: the three global shortcuts with recorders and reset buttons, then the app's own shortcuts"></td>
   </tr>
 </table>
@@ -294,6 +312,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Lists: create, rename, color and badge, reorder, archive, delete to Trash
 - [x] Timed tasks join the queue on time, alerts that survive App Nap, and the away-from-your-Mac question
 - [x] Reports and sessions
+- [x] End-of-day review and streaks
 
 ## Contributing
 
