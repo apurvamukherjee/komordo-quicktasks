@@ -585,6 +585,11 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   activates it and ignores the arguments, and `osascript … quit` by bundle ID asks it to quit. Check `pgrep -x
   Komodo` first, launch scratch runs with `open -n -g`, and stop them with `kill <pid>` of the new process
   (`pgrep -nx Komodo`), never by bundle ID.
+- **Release builds ignore every Debug launch flag**, `-databasePath` included, so a Release Komodo opens the
+  maintainer's real database. On 2026-10-02 one ran for 25 s next to the maintainer's copy to measure idle CPU
+  (0.1–0.5%) and re-saved `lastBackupAt` with its unchanged value; nothing else was written. Measure CPU in
+  Release only with the maintainer's go-ahead, or point a Debug build at a scratch file and accept Debug's
+  higher numbers.
 - **Parallel sessions:** two sessions editing the same folder overwrote each other once. Run only one working
   session per checkout.
 
