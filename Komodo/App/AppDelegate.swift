@@ -11,6 +11,8 @@ import notify
     let hotKeys = GlobalHotKeys()
 
     private var store: BoardStore?
+    /// A `komodo://start` that arrived before Home handed over the store, as when it launched Komodo.
+    private var pendingStart: String?
     private var outsideWrites: Int32 = 0
     private let backupScheduler = NSBackgroundActivityScheduler(identifier: "app.komodo.Komodo.backup")
 
@@ -36,6 +38,10 @@ import notify
         }
         store.alerts = alerts
         watchForOutsideWrites(store)
+        if let id = pendingStart {
+            pendingStart = nil
+            start(id, in: store)
+        }
     }
 
     // MARK: Local MCP server
@@ -48,6 +54,24 @@ import notify
         if status != NOTIFY_STATUS_OK {
             Logger(subsystem: "app.komodo.Komodo", category: "mcp").error("Couldn't watch for MCP writes: \(status)")
         }
+    }
+
+    /// `komodo://start?task=<id>` (ARCHITECTURE §4.1), which `start_focus` opens: the task goes live in Focus mode.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.scheme == "komodo" && url.host() == "start" {
+            guard
+                let id = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
+                    .first(where: { $0.name == "task" })?.value
+            else { continue }
+            if let store { start(id, in: store) } else { pendingStart = id }
+        }
+    }
+
+    private func start(_ id: String, in store: BoardStore) {
+        // The helper may have just added the task, ahead of the notification.
+        store.absorbOutsideChanges()
+        guard store.tasks.contains(where: { $0.id == id && !$0.isDone }) else { return }
+        store.startNow(id)
     }
 
     /// Show Komodo in the Dock: off makes Komodo a menu bar app, reachable from its menu bar item.

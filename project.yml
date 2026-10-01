@@ -39,6 +39,15 @@ targets:
         copy:
           destination: wrapper
           subpath: Contents/Helpers
+    info:
+      path: Komodo/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # komodo://start?task=<id>, which the MCP helper's start_focus opens (ARCHITECTURE §4.1).
+        CFBundleURLTypes:
+          - CFBundleURLName: app.komodo.Komodo
+            CFBundleURLSchemes: [komodo]
     settings:
       base:
         PRODUCT_NAME: Komodo
