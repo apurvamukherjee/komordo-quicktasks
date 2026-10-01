@@ -4,6 +4,9 @@ import Foundation
 /// says. The Assistant's tasks take these from their own phrase rather than from the model, which mixes them up
 /// between tasks.
 struct RequestPhrase: Equatable {
+    /// As the user typed it, for a task's title.
+    var original: String
+    /// Lowercased, for matching.
     var text: String
     var day: String?
     var minute: Int?
@@ -11,18 +14,40 @@ struct RequestPhrase: Equatable {
 
     /// Splits on commas, semicolons, new lines and " and ".
     static func split(_ request: String) -> [RequestPhrase] {
-        request.lowercased()
-            .replacingOccurrences(of: " and ", with: ",")
+        request.replacingOccurrences(of: #"\s+and\s+"#, with: ",", options: [.regularExpression, .caseInsensitive])
             .split(whereSeparator: { ",;\n".contains($0) })
             .map { RequestPhrase(String($0).trimmingCharacters(in: .whitespaces)) }
             .filter { !$0.text.isEmpty }
     }
 
-    init(_ text: String) {
+    init(_ original: String) {
+        self.original = original
+        let text = original.lowercased()
         self.text = text
         day = Self.day(in: text)
         minute = Self.minute(in: text)
         minutes = Self.minutes(in: text)
+    }
+
+    /// The phrase as a task title: its day, time and length taken out, and the first letter capitalized.
+    /// "finish the deck by Fri (3h)" becomes "Finish the deck".
+    var title: String {
+        let patterns = [
+            #"\(?\d+(\.\d+)?\s*(hours|hour|hrs|hr|h|minutes|minute|mins|min|m)\b\)?"#,
+            #"\b(at\s+)?\d{1,2}(:\d{2})?\s*(am|pm)\b"#, #"\bat\s+\d{1,2}(:\d{2})?\b"#, #"\b\d{1,2}:\d{2}\b"#,
+            #"\b(by\s+|on\s+)?(next\s+)?(today|tonight|tomorrow|tmrw|week|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b"#,
+            #"\bin\s+\d+\s+days?\b"#, #"\d{4}-\d{2}-\d{2}"#, #"\b(noon|midnight)\b"#,
+        ]
+        var title = original
+        for pattern in patterns {
+            title = title.replacingOccurrences(of: pattern, with: " ", options: [.regularExpression, .caseInsensitive])
+        }
+        title = title.split(separator: " ").joined(separator: " ")
+            .trimmingCharacters(in: CharacterSet(charactersIn: " .,-:()"))
+        for filler in [" by", " at", " on", " for"] where title.lowercased().hasSuffix(filler) {
+            title = String(title.dropLast(filler.count))
+        }
+        return title.prefix(1).uppercased() + title.dropFirst()
     }
 
     /// The phrase sharing the most words with `title`; nil when none shares one.

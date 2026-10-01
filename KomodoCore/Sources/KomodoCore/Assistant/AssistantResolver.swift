@@ -174,6 +174,29 @@ public enum AssistantResolver {
             proposals.removeAll { $0.id == task.id }
             proposals.append(AssistantProposal(kind: .edit(before: before), task: task, loggedMinutes: logged))
         }
+        // A brain dump never loses an item: a phrase no proposal or change covers becomes a task of its own.
+        if !plan.add.isEmpty, let listID = context.defaultListID ?? context.lists.first?.id {
+            let covered = Set(
+                proposals.compactMap { RequestPhrase.best(for: $0.task.title, in: phrases)?.text }
+                    + plan.edit.compactMap { RequestPhrase.best(for: $0.task, in: phrases)?.text })
+            for phrase in phrases where !covered.contains(phrase.text) && !phrase.text.contains("@") {
+                let title = phrase.title
+                guard !title.isEmpty else { continue }
+                var task = TaskItem(
+                    id: UUID().uuidString, listID: listID, title: title, bucket: .today, rank: 0,
+                    estimate: phrase.minutes.map { TimeInterval($0 * 60) }, createdAt: context.now)
+                if let day = phrase.day.flatMap({ DayPhrase.day($0, today: context.today, calendar: context.calendar) })
+                {
+                    task.scheduledDate = day
+                }
+                if let minute = phrase.minute {
+                    task.scheduledDate = task.scheduledDate ?? context.today
+                    task.scheduledMinute = minute
+                }
+                task.rank = rank(in: task.column(in: context.week))
+                proposals.append(AssistantProposal(kind: .add, task: task))
+            }
+        }
         return Result(proposals: proposals, problems: problems)
     }
 

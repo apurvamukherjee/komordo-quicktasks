@@ -130,6 +130,25 @@ struct AssistantTests {
         #expect(tasks.map(\.estimate) == [3_600, 10_800, nil])
     }
 
+    /// The on-device model sometimes leaves a phrase out; it comes back as its own task.
+    @Test func aBrainDumpNeverLosesAnItem() {
+        let plan = AssistantPlan(reply: "", add: [.init(title: "Gym"), .init(title: "Finish Deck")])
+        let tasks = AssistantResolver.resolve(
+            plan, for: "tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva at 4pm", in: context
+        ).proposals.map(\.task)
+        #expect(tasks.map(\.title) == ["Gym", "Finish Deck", "Call Apurva"])
+        #expect(tasks.last?.scheduledMinute == 16 * 60)
+        // Not a brain dump: a question gets an answer, not a task.
+        let question = AssistantResolver.resolve(AssistantPlan(reply: "Two."), for: "what's left today?", in: context)
+        #expect(question.proposals.isEmpty)
+    }
+
+    @Test func phrasesBecomeTitles() {
+        let titles = RequestPhrase.split("finish the deck by Fri (3h), Lunch with Apurva next fri at 1pm, gym 1.5h")
+            .map(\.title)
+        #expect(titles == ["Finish the deck", "Lunch with Apurva", "Gym"])
+    }
+
     @Test func phrasesSayTheirOwnDayTimeAndLength() {
         let phrases = RequestPhrase.split("Lunch with Apurva next fri at 1pm and review notes for 45 min; gym 1.5h")
         #expect(phrases.map(\.day) == ["next fri", nil, nil])
@@ -161,7 +180,9 @@ struct AssistantTests {
             reply: "", add: [.init(title: "Gym")],
             edit: [.init(task: "Review accounts", title: "Finish the deck", day: "today")])
         let result = AssistantResolver.resolve(plan, for: "gym tomorrow, finish the deck", in: context)
-        #expect(result.proposals.map(\.task.title) == ["Gym"])
+        // The phrase the bad edit stood for comes back as a new task.
+        #expect(result.proposals.map(\.task.title) == ["Gym", "Finish the deck"])
+        #expect(result.proposals.allSatisfy { $0.kind == .add })
     }
 
     @Test func thePlanDecodesFromTheSchemasShape() throws {
