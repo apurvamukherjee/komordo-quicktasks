@@ -28,6 +28,8 @@ import SwiftUI
         var title: String
         var message: String
         var nextTitle: String?
+        /// Tasks finished early or on time in a row today, this one included.
+        var inARow = 0
     }
 
     /// The list sheet over Home: New list, Rename or Color & Icon, or Delete's typed confirm.
@@ -519,6 +521,12 @@ import SwiftUI
     var layout: BoardLayout {
         _ = scheduleTicks
         return BoardLayout(tasks: tasks, listID: selectedListID, week: week, now: now, calendar: calendar)
+    }
+
+    /// Today across every list, whatever the Board or the Focus Panel shows, for the day's own numbers.
+    var everyListLayout: BoardLayout {
+        _ = scheduleTicks
+        return BoardLayout(tasks: tasks, week: week, now: now, calendar: calendar)
     }
 
     func showList(_ id: String?) {
@@ -1168,7 +1176,8 @@ import SwiftUI
         focus.celebration = Celebration(
             taskID: id, title: task.title,
             message: CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now)),
-            nextTitle: layout.upNext.first?.title)
+            nextTitle: layout.upNext.first?.title,
+            inARow: DaySummary.onEstimateRun(everyListLayout.doneToday, now: now))
         // With the success screen off, Done goes straight to the next task.
         if !settings.showsSuccessScreen { finishCelebration() }
     }
