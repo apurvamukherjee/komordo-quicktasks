@@ -12,6 +12,7 @@ struct SettingsDataPage: View {
     @State private var failure: BackupError?
     @State private var isRestoring = false
     @State private var isConfirmingDelete = false
+    @State private var isSettingPassword = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -49,11 +50,9 @@ struct SettingsDataPage: View {
                 .opacity(store.settings.backsUpDaily ? 1 : 0.4)
                 .disabled(!store.settings.backsUpDaily)
                 SettingsRow("Password-protect backups", detail: "Saved as an encrypted .kbak file.") {
-                    Chip("P1", tint: .outline, size: .compact)
-                    SettingsSwitch(title: "Password-protect backups", isOn: .constant(false))
-                        .disabled(true)
+                    SettingsSwitch(title: "Password-protect backups", isOn: protectsBackups)
+                        .disabled(store.database == nil)
                 }
-                .help("Password-protected backups arrive in Phase 1")
             }
             SettingsGroup(title: "RESTORE") {
                 SettingsRow(
@@ -98,6 +97,11 @@ struct SettingsDataPage: View {
                     })
             }
         }
+        .sheet(isPresented: $isSettingPassword) {
+            SetBackupPasswordSheet(
+                cancel: { isSettingPassword = false },
+                save: { if store.protectBackups(with: $0) { isSettingPassword = false } })
+        }
         .sheet(isPresented: $isConfirmingDelete) {
             DeleteAllDataSheet(
                 cancel: { isConfirmingDelete = false },
@@ -109,6 +113,15 @@ struct SettingsDataPage: View {
     }
 
     // MARK: Rows
+
+    /// On asks for a password first; the switch only flips once it's in the Keychain.
+    private var protectsBackups: Binding<Bool> {
+        Binding(
+            get: { store.settings.protectsBackups },
+            set: { isOn in
+                if isOn { isSettingPassword = true } else { store.stopProtectingBackups() }
+            })
+    }
 
     private var exportDetail: Text {
         if store.isExporting { return Text("Writing \(store.suggestedBackupName)…") }
