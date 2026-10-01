@@ -84,7 +84,6 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     var comingIn: String? {
         switch self {
         case .gmail: "Gmail → Calendar arrives in the next milestone"
-        case .integrations: "Integrations arrive in Phase 1"
         case .ai: "Arrives in Phase 1"
         default: nil
         }
@@ -101,7 +100,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .celebration: ["success", "gif", "confetti"]
         case .shortcuts: ["keyboard", "global", "hotkey"]
         case .gmail: ["calendar", "email"]
-        case .integrations: ["notion", "todoist", "linear"]
+        case .integrations: ["calendar", "google", "outlook", "icloud", "notion", "todoist", "linear"]
         case .data: ["backup", "export", "restore", "delete"]
         case .ai: ["claude", "api key", "apple intelligence"]
         case .mcp: ["claude", "raycast"]
