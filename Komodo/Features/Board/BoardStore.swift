@@ -1131,6 +1131,35 @@ import SwiftUI
         focusSurface = nil
     }
 
+    // MARK: End of day (FEATURES §6.4)
+
+    /// The day summary's NOT FINISHED: Today's open tasks in every list whose time, if any, has come. One still
+    /// ahead today isn't unfinished yet, so it stays put.
+    var unfinishedToday: [TaskItem] { everyListLayout.upNext }
+
+    /// The review's Tomorrow or This week for each unfinished task; one without a choice takes Tomorrow, the
+    /// default. One Undo puts them all back.
+    func carryOver(_ choices: [String: CarryOver]) {
+        let snapshots = unfinishedToday
+        guard !snapshots.isEmpty else { return }
+        let (today, calendar) = (self.today, self.calendar)
+        for task in snapshots {
+            let choice = choices[task.id] ?? .tomorrow
+            update(task.id) { choice.apply(to: &$0, today: today, calendar: calendar) }
+        }
+        let toThisWeek = snapshots.filter { choices[$0.id] == .thisWeek }.count
+        let detail = [
+            snapshots.count - toThisWeek > 0 ? "\(snapshots.count - toThisWeek) to Tomorrow" : nil,
+            toThisWeek > 0 ? "\(toThisWeek) to This week" : nil,
+        ]
+        offerUndo("Unfinished tasks moved", detail: detail.compactMap { $0 }.joined(separator: " · ")) { store in
+            for snapshot in snapshots {
+                guard let index = store.tasks.firstIndex(where: { $0.id == snapshot.id }) else { continue }
+                store.tasks[index] = snapshot
+            }
+        }
+    }
+
     /// The next task with a time today, once nothing else is left to run.
     var nextScheduled: TaskItem? {
         layout.upNext.isEmpty && focus.taskID == nil && !focus.isDayWon ? layout.scheduledToday.first : nil
