@@ -100,6 +100,16 @@ struct CalendarImportTests {
         #expect(tasks.map(\.id) == ["calendar:a"])
     }
 
+    @Test func startingAMeetingOpensItsCallOnce() throws {
+        var call = event("a", "Call")
+        call.url = URL(string: "https://zoom.us/j/123")
+        call.notes = "Docs: https://docs.example.com and https://zoom.us/j/123"
+        var task = try #require(sync([call]).first)
+        #expect(task.linksToOpen.map(\.absoluteString) == ["https://zoom.us/j/123", "https://docs.example.com"])
+        task.opensLinks = false
+        #expect(task.linksToOpen.isEmpty)
+    }
+
     @Test func meetingLinksComeFromTheEventFirst() {
         var call = event("a", "Call")
         #expect(call.meetingLink?.host() == "meet.google.com")

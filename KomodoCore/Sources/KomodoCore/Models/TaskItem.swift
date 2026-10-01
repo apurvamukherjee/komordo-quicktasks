@@ -124,8 +124,13 @@ public struct TaskItem: Identifiable, Hashable, Sendable {
     /// Links chip and auto-open always agree with what the notes say (FEATURES §4.5).
     public var links: [URL] { NoteLinks.find(in: notes ?? "") }
 
-    /// What opens in the browser when the task goes live: at most five links, none when the toggle is off.
-    public var linksToOpen: [URL] { opensLinks ? Array(links.prefix(Self.maxLinksToOpen)) : [] }
+    /// What opens in the browser when the task goes live: at most five links, none when the toggle is off. An
+    /// imported meeting's call link comes first, even when its notes don't mention it.
+    public var linksToOpen: [URL] {
+        guard opensLinks else { return [] }
+        let call = source == .calendar ? sourceURL.map { [$0] } ?? [] : []
+        return Array((call + links.filter { $0 != sourceURL }).prefix(Self.maxLinksToOpen))
+    }
     public static let maxLinksToOpen = 5
 
     /// Summed from sessions and never stored (ARCHITECTURE §5).
