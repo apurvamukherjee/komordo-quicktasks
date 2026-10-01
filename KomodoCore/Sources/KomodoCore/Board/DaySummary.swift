@@ -10,19 +10,30 @@ public struct DaySummary: Sendable, Equatable {
     /// Within 10% of the estimate either way counts as on time, as in the Punctuality report (FEATURES §4.14).
     public static let onTimeTolerance = 0.1
 
+    /// How one finished task landed against its estimate.
+    public enum Result: Sendable {
+        case early, onTime, late
+    }
+
     /// Tasks without an estimate have nothing to be early or late against, so they're left out.
     public init(doneToday: [TaskItem], now: Date) {
         for task in doneToday {
-            guard let estimate = task.estimate, estimate > 0 else { continue }
-            let difference = (task.timeTaken(at: now) - estimate) / estimate
-            if difference < -Self.onTimeTolerance {
-                early += 1
-            } else if difference > Self.onTimeTolerance {
-                late += 1
-            } else {
-                onTime += 1
+            switch Self.result(of: task, now: now) {
+            case .early: early += 1
+            case .onTime: onTime += 1
+            case .late: late += 1
+            case nil: break
             }
         }
+    }
+
+    /// nil without an estimate.
+    public static func result(of task: TaskItem, now: Date) -> Result? {
+        guard let estimate = task.estimate, estimate > 0 else { return nil }
+        let difference = (task.timeTaken(at: now) - estimate) / estimate
+        if difference < -onTimeTolerance { return .early }
+        if difference > onTimeTolerance { return .late }
+        return .onTime
     }
 
     public var measured: Int { early + onTime + late }
