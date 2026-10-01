@@ -45,6 +45,8 @@ public struct AppSettings: Equatable, Sendable {
     public var lastBackupAt: Date?
     /// Why the last automatic backup failed, shown in danger text until one succeeds.
     public var lastBackupFailure: String?
+    /// Backups are sealed as `.kbak`; the password itself is in the Keychain, never here.
+    public var protectsBackups = false
 
     // Shortcuts
     /// Only the global shortcuts can be changed; a missing entry means the default.
@@ -87,6 +89,7 @@ public struct AppSettings: Equatable, Sendable {
         static let lastExport = "lastExportAt"
         static let lastBackup = "lastBackupAt"
         static let backupFailure = "lastBackupFailure"
+        static let protectsBackups = "protectsBackups"
         static let shortcutPrefix = "shortcut."
     }
 
@@ -126,6 +129,7 @@ public struct AppSettings: Equatable, Sendable {
         lastExportAt = stored[Key.lastExport].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
         lastBackupAt = stored[Key.lastBackup].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
         if let text = stored[Key.backupFailure], !text.isEmpty { lastBackupFailure = text }
+        bool(Key.protectsBackups, &protectsBackups)
         for action in GlobalShortcut.allCases {
             if let combo = stored[Key.shortcutPrefix + action.rawValue].flatMap(KeyCombo.init(stored:)) {
                 shortcuts[action] = combo
@@ -164,6 +168,7 @@ public struct AppSettings: Equatable, Sendable {
             Key.lastExport: lastExportAt.map { String($0.timeIntervalSince1970) } ?? "",
             Key.lastBackup: lastBackupAt.map { String($0.timeIntervalSince1970) } ?? "",
             Key.backupFailure: lastBackupFailure ?? "",
+            Key.protectsBackups: flag(protectsBackups),
         ]
         for action in GlobalShortcut.allCases {
             result[Key.shortcutPrefix + action.rawValue] = shortcuts[action]?.storedValue ?? ""

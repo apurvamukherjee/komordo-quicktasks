@@ -44,6 +44,7 @@ struct AppSettingsTests {
         settings.lastExportAt = Date(timeIntervalSince1970: 1_790_000_000.25)
         settings.lastBackupAt = Date(timeIntervalSince1970: 1_790_086_400)
         settings.lastBackupFailure = "folder not found"
+        settings.protectsBackups = true
         settings.shortcuts[.findTimer] = KeyCombo(keyCode: 3, modifiers: [.control, .option], key: "f")
         #expect(AppSettings(stored: settings.stored) == settings)
     }
