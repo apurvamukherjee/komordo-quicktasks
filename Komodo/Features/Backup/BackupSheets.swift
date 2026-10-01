@@ -144,6 +144,46 @@ struct DeleteAllDataSheet: View {
     }
 }
 
+/// Password-protect backups: the password twice before the switch turns on. It can't be recovered, so the sheet
+/// says so before anything is sealed with it.
+struct SetBackupPasswordSheet: View {
+    var cancel: () -> Void
+    var save: (String) -> Void
+
+    @State private var password = ""
+    @State private var confirmation = ""
+
+    private var mismatch: String? {
+        !confirmation.isEmpty && confirmation != password ? "The passwords don't match." : nil
+    }
+
+    var body: some View {
+        FormSheet(symbol: "lock", tint: Palette.teal, glyph: Palette.tealText) {
+            Text("Set a backup password")
+        } content: {
+            Text(
+                "Backups are saved as encrypted .kbak files. Komodo keeps the password in your Keychain for the daily backup."
+            )
+            VStack(alignment: .leading, spacing: Space.s2) {
+                KomodoTextField("Password", text: $password, variant: .secure, focusesOnAppear: true)
+                    .accessibilityLabel("Password")
+                KomodoTextField("Confirm password", text: $confirmation, variant: .secure, error: mismatch)
+                    .accessibilityLabel("Confirm password")
+            }
+            Text("Without this password, a protected backup can't be opened, on this Mac or any other.")
+                .foregroundStyle(Palette.textSecondary)
+        } actions: {
+            Button("Cancel", action: cancel)
+                .buttonStyle(.komodo(.secondary))
+                .keyboardShortcut(.cancelAction)
+            Button("Turn on") { save(password) }
+                .buttonStyle(.komodo(.primary))
+                .keyboardShortcut(.defaultAction)
+                .disabled(password.isEmpty || confirmation != password)
+        }
+    }
+}
+
 #Preview("Delete all data") {
     DeleteAllDataSheet(cancel: {}, delete: {})
 }
@@ -153,6 +193,14 @@ struct DeleteAllDataSheet: View {
         RestoreErrorSheet(error: .newerVersion, dismiss: {}, chooseAnother: {})
         RestoreErrorSheet(error: .notABackup, dismiss: {}, chooseAnother: {})
         RestoreErrorSheet(error: .damaged, dismiss: {}, chooseAnother: {})
+    }
+    .padding(Space.s6)
+    .background(Palette.bg)
+}
+
+#Preview("Backup password") {
+    VStack(spacing: Space.s4) {
+        SetBackupPasswordSheet(cancel: {}, save: { _ in })
     }
     .padding(Space.s6)
     .background(Palette.bg)
