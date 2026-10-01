@@ -1065,6 +1065,7 @@ A list of suggestion cards (§10.11) sorted by event date, with **Add all** and 
 - **Apple Intelligence:** a status line that reads "Available: used by On this Mac mode", "Turned off in System Settings", or "Needs macOS 26 or later".
 - **Claude:** an API key (secure field with [Test]) · Model (picker, default `claude-opus-5`) · Use Claude for: ☐ Gmail → Calendar · ☐ Komodo Assistant (P2). The note reads "Billed to your Anthropic account. The key is stored in the macOS Keychain."
 - **What's sent to Claude:** a code-block explainer listing the exact fields: subject, sender name, cleaned text, received time, and time zone.
+- **As built (P1, before Gmail):** the models are `claude-opus-5-5` (default) and `claude-sonnet-5-5`, the current Opus and Sonnet. Test (or Return in the field) checks the key against the Models API, which bills nothing, and saves it to the Keychain; a saved key gets [Remove]. Test results: "Key works", "Anthropic didn't accept this key. Copy it again from the Claude Console.", "This key can't use claude-opus-5-5.", "Couldn't reach Anthropic. Check your connection." The Apple Intelligence line can also read "Not available on this Mac". Both "Use Claude for" boxes are disabled until Gmail → Calendar and Komodo Assistant ship; the Claude mode warning and the What's sent to Claude explainer come with Gmail.
 
 ### 13.24 Settings: Local MCP server (P1)
 
