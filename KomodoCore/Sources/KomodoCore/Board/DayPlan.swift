@@ -10,6 +10,9 @@ public struct DayPlan: Sendable {
     public var done: Int
     public var total: Int
     public var focused: TimeInterval
+    /// When work on today's finished tasks began and when the last one was done, for the day summary.
+    public var firstStart: Date?
+    public var lastFinish: Date?
 
     /// - Parameters:
     ///   - live: the task whose timer runs, if any; it goes first and isn't part of `queue`.
@@ -37,6 +40,9 @@ public struct DayPlan: Sendable {
         total = doneToday.count + open.count
 
         let dayStart = today.startOfDay(in: calendar)
+        // A task started last night and finished today counts from midnight, like its focused time.
+        firstStart = doneToday.flatMap(\.sessions).map { max($0.start, dayStart) }.min()
+        lastFinish = doneToday.compactMap(\.completedAt).max()
         focused = allTasks.reduce(0) { sum, task in
             sum
                 + task.sessions.reduce(0) { partial, session in
