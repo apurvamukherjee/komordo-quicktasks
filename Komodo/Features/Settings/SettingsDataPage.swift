@@ -13,6 +13,10 @@ struct SettingsDataPage: View {
     @State private var isRestoring = false
     @State private var isConfirmingDelete = false
     @State private var isSettingPassword = false
+    /// A `.kbak` waiting for its password.
+    @State private var lockedFile: URL?
+    @State private var isWrongPassword = false
+    @State private var isUnlocking = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -103,6 +107,13 @@ struct SettingsDataPage: View {
             SetBackupPasswordSheet(
                 cancel: { isSettingPassword = false },
                 save: { if store.protectBackups(with: $0) { isSettingPassword = false } })
+        }
+        .sheet(isPresented: Binding(get: { lockedFile != nil }, set: { if !$0 { lockedFile = nil } })) {
+            if let lockedFile {
+                OpenBackupPasswordSheet(
+                    fileName: lockedFile.lastPathComponent, isWrong: isWrongPassword, isOpening: isUnlocking,
+                    cancel: { self.lockedFile = nil }, open: { unlock(lockedFile, with: $0) })
+            }
         }
         .sheet(isPresented: $isConfirmingDelete) {
             DeleteAllDataSheet(
@@ -225,7 +236,7 @@ struct SettingsDataPage: View {
 
     private func chooseBackup() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.zip]
+        panel.allowedContentTypes = [.zip, .komodoBackup]
         panel.directoryURL = store.backupFolder
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Task { await open(url) }
@@ -234,7 +245,28 @@ struct SettingsDataPage: View {
     private func open(_ url: URL) async {
         switch await BoardStore.openBackup(url) {
         case .success(let opened): archive = opened
+        case .failure(.passwordRequired):
+            isWrongPassword = false
+            lockedFile = url
         case .failure(let error): failure = error
+        }
+    }
+
+    private func unlock(_ url: URL, with password: String) {
+        isUnlocking = true
+        Task {
+            let result = await BoardStore.openBackup(url, password: password)
+            isUnlocking = false
+            switch result {
+            case .success(let opened):
+                lockedFile = nil
+                archive = opened
+            case .failure(.wrongPassword):
+                isWrongPassword = true
+            case .failure(let error):
+                lockedFile = nil
+                failure = error
+            }
         }
     }
 
