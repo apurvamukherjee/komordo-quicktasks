@@ -156,7 +156,8 @@ struct FocusPanelView: View {
         if let celebration = store.focus.celebration {
             CelebrationCard(
                 message: celebration.message, nextTitle: celebration.nextTitle,
-                showsGIF: store.settings.showsGIF, onFinish: store.finishCelebration
+                showsGIF: store.settings.showsGIF, inARow: celebration.inARow,
+                onFinish: store.finishCelebration
             )
             .id(celebration.taskID)
             .transition(.rise(reduceMotion: reduceMotion))
