@@ -1221,6 +1221,45 @@ import SwiftUI
         }
     }
 
+    /// Komodo Assistant's Add (FEATURES §4.19): the ticked rows are saved together. ⌘Z and the returned closure
+    /// both undo them, taking away what was added and putting edited tasks back as they were.
+    func applyAssistant(_ proposals: [AssistantProposal]) -> (@MainActor () -> Void)? {
+        let chosen = proposals.filter(\.isIncluded)
+        guard !chosen.isEmpty else { return nil }
+        var updated = tasks
+        for proposal in chosen {
+            if let index = updated.firstIndex(where: { $0.id == proposal.id }) {
+                updated[index] = proposal.task
+            } else {
+                updated.append(proposal.task)
+            }
+        }
+        tasks = updated
+        let restore: @MainActor (BoardStore) -> Void = { store in
+            var tasks = store.tasks
+            for proposal in chosen {
+                switch proposal.kind {
+                case .add:
+                    tasks.removeAll { $0.id == proposal.id }
+                case .edit(let before):
+                    if let index = tasks.firstIndex(where: { $0.id == proposal.id }) { tasks[index] = before }
+                }
+            }
+            store.tasks = tasks
+        }
+        let token = NSObject()
+        undoManager?.registerUndo(withTarget: token) { [weak self] _ in
+            guard let self else { return }
+            restore(self)
+        }
+        undoManager?.setActionName("Assistant")
+        return { [weak self] in
+            guard let self else { return }
+            restore(self)
+            self.undoManager?.removeAllActions(withTarget: token)
+        }
+    }
+
     /// The next task with a time today, once nothing else is left to run.
     var nextScheduled: TaskItem? {
         layout.upNext.isEmpty && focus.taskID == nil && !focus.isDayWon ? layout.scheduledToday.first : nil
