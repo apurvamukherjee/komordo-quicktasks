@@ -37,6 +37,7 @@ struct AppSettingsTests {
         settings.showsSuccessScreen = false
         settings.showsGIF = false
         settings.playsSuccessSound = false
+        settings.showsStreaks = false
         settings.backsUpDaily = false
         settings.backupFolder = "/Volumes/Backup Drive/Komodo"
         settings.backupsKept = 30

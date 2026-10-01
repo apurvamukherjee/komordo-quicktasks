@@ -33,6 +33,8 @@ public struct AppSettings: Equatable, Sendable {
     public var showsSuccessScreen = true
     public var showsGIF = true
     public var playsSuccessSound = true
+    /// The day streak and "in a row today" (FEATURES §4.13).
+    public var showsStreaks = true
 
     // Data & backup
     public var backsUpDaily = true
@@ -78,6 +80,7 @@ public struct AppSettings: Equatable, Sendable {
         static let successScreen = "showsSuccessScreen"
         static let gif = "showsGIF"
         static let successSound = "playsSuccessSound"
+        static let streaks = "showsStreaks"
         static let backsUpDaily = "backsUpDaily"
         static let backupFolder = "backupFolder"
         static let backupsKept = "backupsKept"
@@ -116,6 +119,7 @@ public struct AppSettings: Equatable, Sendable {
         bool(Key.successScreen, &showsSuccessScreen)
         bool(Key.gif, &showsGIF)
         bool(Key.successSound, &playsSuccessSound)
+        bool(Key.streaks, &showsStreaks)
         bool(Key.backsUpDaily, &backsUpDaily)
         if let text = stored[Key.backupFolder], !text.isEmpty { backupFolder = text }
         if let value = stored[Key.backupsKept].flatMap(Int.init), value > 0 { backupsKept = value }
@@ -153,6 +157,7 @@ public struct AppSettings: Equatable, Sendable {
             Key.successScreen: flag(showsSuccessScreen),
             Key.gif: flag(showsGIF),
             Key.successSound: flag(playsSuccessSound),
+            Key.streaks: flag(showsStreaks),
             Key.backsUpDaily: flag(backsUpDaily),
             Key.backupFolder: backupFolder ?? "",
             Key.backupsKept: String(backupsKept),
