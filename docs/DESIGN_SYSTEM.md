@@ -1098,6 +1098,8 @@ The app icon, "Komodo 1.0.0", [Check for Updates…] (Sparkle), "Release notes �
 
 The bubble is a 40 pt lime circle at the bottom right with a `sparkles` symbol. The popover is 360×520. Proposal rows can be edited inline, and unticked rows are left out.
 
+**As built:** ⌘J opens and closes it, and the bubble shows ✕ while it's open. The header chip reads **On this Mac** (green) or **Claude · your key** (amber). The welcome greets by the clock ("Good morning." / "Good afternoon." / "Good evening.") and its suggestions name the board's shortest open tasks. Thinking reads "Thinking on this Mac · Apple on-device model" or "Asking Claude · claude-opus-5-5", with a stop button in the field. Proposal rows carry an **Edit** chip for changes to existing tasks and "+30min logged" for logged time; the button reads **Add N**, or **Apply N** when every row is a change. The model's own reply shows only when there's nothing to preview; after Add, Komodo writes "Done. Call Apurva is in Today's Focus queue. Anything else?" (or "Done. Anything else?"). The applied card reads "Added 3 tasks", "Updated 2 tasks" or "Added 2 · updated 1". Errors: "Turn on Apple Intelligence, or add a Claude key in Settings ▸ AI.", "Claude declined that one. Try wording it another way.", "Couldn't reach Claude. Check your connection.", "That didn't come back as a plan. Try again." with [Try again]. The Listening state waits for voice input.
+
 ## 14. System surfaces
 
 ### 14.1 Menu bar (P0)
