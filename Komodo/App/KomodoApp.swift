@@ -81,6 +81,8 @@ struct SettingsCommand: Commands {
 ///   `-openDeleteAll YES` the typed confirm, and `-openBackupPassword YES` the sheet that sets a backup password.
 /// - `-sampleCalendar YES` stands in for macOS Calendar with three calendars and four events, so calendar import
 ///   can be tried and captured without the system asking for access.
+/// - `-assistantPrompt "<text>"` opens the Assistant and sends the text; add `-assistantApply YES` to press Add
+///   once the preview arrives.
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {
@@ -102,6 +104,11 @@ enum LaunchOptions {
             // `-openTrash <count>` deletes that many sample tasks and shows Trash.
             let trashed = defaults.integer(forKey: "openTrash")
             if let id = defaults.string(forKey: "deleteList") { store.deleteList(id) }
+            // `-assistantPrompt "<text>"` opens the Assistant and sends it; `-assistantApply YES` then presses Add.
+            if let prompt = defaults.string(forKey: "assistantPrompt") {
+                store.assistant.isOpen = true
+                store.assistant.send(prompt, store: store)
+            }
             if let tab = defaults.string(forKey: "openReports").flatMap(ReportsState.Tab.init) {
                 store.showReports(tab)
             }
