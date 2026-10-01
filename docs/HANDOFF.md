@@ -1,11 +1,11 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-10-02. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
-archive, focus restore with crash recovery, 5g without Google (Data & backup, onboarding, celebration GIFs), and
-most of the P0 polish (list management, timed tasks joining the queue, sleep and App Nap, scheduled focus alerts,
-the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions, end-of-day review, streak rules and password-protected backups are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
-committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
-`CHANGELOG.md` has the full list of what landed.
+Last updated: 2026-10-02 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
+maintainer), all of Phase 1 except what depends on Gmail (Claude mode, the Review tab, reschedules) and the
+XCUITest smoke tests (they need the maintainer's screen), and the first two thirds of Phase 2 (Komodo Assistant;
+voice input and voice notes). Next is Phase 2's token integrations. §4 lists everything that remains, phase by
+phase. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new
+commits on top. `CHANGELOG.md` has the full list of what landed.
 
 ---
 
@@ -25,9 +25,14 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's token integrations. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's token integrations (Notion, Todoist, Linear,
+ClickUp, Asana); ask me §9's questions first, since each needs my test token. §4 lists every phase that remains.
+The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
-persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
+persistence on a scratch file with -databasePath, never the real board. My own Komodo may be running: check
+pgrep, launch scratch runs with open -n -g and stop them by pid, never quit by bundle ID. Release builds ignore
+every Debug flag and open my real database, so ask before running one. Ask before anything that shows a macOS
+permission prompt (microphone, speech, Calendar, notifications). I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
 PNG, and list every place where you followed one spec over another. Ask me HANDOFF §9's questions, and ask
 before adding any dependency (bundle cost plus one alternative). The README demo video waits until I give you
@@ -61,21 +66,25 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
 | P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
 | P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
+| P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | P1 | Calendar import, Integrations page | ✅ | 2026-10-02; macOS Calendar through EventKit, the maintainer's call |
 | P1 | Settings ▸ AI | ✅ | 2026-10-02; Apple Intelligence status, Claude key (Keychain, free check), model |
 | P2 | Komodo Assistant | ✅ | 2026-10-02; on-device or Claude, editable preview, @ commands, one Undo |
 | P2 | Voice input and voice notes | ✅ | 2026-10-02; on-device dictation; tried with a simulated voice only |
 | P2 | **Token integrations** | ⏭ **Next** | Notion · Todoist · Linear · ClickUp · Asana; see §4 |
-| P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
-| P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
+| P1 | Claude mode, Review tab, reschedules | ⏸ Parked | They're parts of Gmail → Calendar (FEATURES §4.0) |
+| P2 | Light appearance | ⏳ Later | DESIGN_SYSTEM §2: dark only so far |
+| — | Release: signing, notarizing, DMG, Sparkle | ⏳ Later | ARCHITECTURE §15; needs the maintainer's Developer ID |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
-Palette, Settings (seven pages), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5
-and the Start tip). Screens left: Gmail and onboarding step 6 (parked); Assistant (P2). Reports states left: loading (nothing loads
-slowly on a local database). Settings
-pages left: Gmail → Calendar, Integrations, AI, Local MCP server (disabled in the sidebar with `.help` notes).
+Palette, Settings (General, Focus, Alerts & sounds, Celebration, Shortcuts, Integrations, Data & backup, AI,
+Local MCP server, About), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5 and the
+Start tip), Reports, Assistant (all five states). Screens left: Gmail (connect, Overview, Settings, Activity,
+Review) and onboarding step 6, all parked with Gmail; Settings ▸ Gmail → Calendar (dimmed in the sidebar); the
+token sheet for the task-tool integrations. Reports states left: loading (nothing loads slowly on a local
+database).
 
 ---
 
@@ -83,7 +92,8 @@ pages left: Gmail → Calendar, Integrations, AI, Local MCP server (disabled in 
 
 ```
 Komodo/
-  App/                KomodoApp (scenes incl. MenuBarExtra, commands, LaunchOptions), AppDelegate (attaches the
+  App/                KeychainSecret (one generic Keychain item per secret, with a Debug launch-flag override),
+                      KomodoApp (scenes incl. MenuBarExtra, commands, LaunchOptions), AppDelegate (attaches the
                       store; Dock policy, hotkeys, day rollover, notification actions), FocusAlerts
                       (notifications, reminders), GlobalHotKeys (Carbon), Sounds (KomodoSound.play),
                       FocusCommands, FileCommands, HelpCommands, DebugCommands (Debug menu, gallery)
@@ -105,15 +115,22 @@ Komodo/
   Features/Palette/   CommandPalette (⌘F search and > commands, overlaid on the Board)
   Features/Settings/  SettingsView (sidebar + page), SettingsSection (pages, search keywords), SettingsKit
                       (group, row, switch, menu picker, duration stepper, sound preview), one file per page:
-                      General, Focus, Alerts, Celebration, Shortcuts (key recorder), About
+                      General, Focus, Alerts, Celebration, Shortcuts (key recorder), Integrations, Data, AI,
+                      Local MCP server, About
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
   Features/Trash/     TrashView (shown in place of the Board when store.page is .trash): task and list rows
   Features/Lists/     ListEditorSheet (new, rename, color & icon), DeleteListSheet (typed name)
   Features/Reports/   ReportsView (header, filters, tabs), OverviewReport, PunctualityReport, TimeSpentReport,
                       SessionsReport, SessionSheet, SessionsExport (PDF, CSV), ReportTable, ReportsFormat,
                       BoardStore+Reports (ReportsState)
-  Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all), BackupSheets (restore
-                      confirm, restore errors, typed delete)
+  Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all, protection), BackupSheets
+                      (restore confirm, restore errors, typed delete, set and enter password), BackupPassword
+  Features/Integrations/ CalendarSync (EventKit: access, calendars, sync on launch, change and day rollover)
+  Features/AI/        AppleIntelligence (FoundationModels status), ClaudeKey (Keychain item + free key check),
+                      AssistantBrain (on-device guided generation or Claude structured output)
+  Features/Assistant/ AssistantModel (conversation state), AssistantPanel (popover, rows, listening, waveform),
+                      AssistantBubble (bubble + host, ⌘J)
+  Features/Voice/     SpeechTranscriber (AVAudioEngine → SFSpeechRecognizer, on device only)
   Features/Onboarding/ OnboardingView (sheet, steps, dots), OnboardingStages (plan, focus, win, notification
                       drawings), OnboardingTodayStep (lines with EST chips)
   Windows/            FocusPanel (FocusSurfaceController: sets Home aside, docks the panel, shows the timer),
@@ -121,13 +138,18 @@ Komodo/
                       SettingsWindow (SettingsWindowController: an AppKit window opened by store.settingsRequests)
   Resources/          AppIcon.icon (Icon Composer), Assets.xcassets (color sets, menu bar icons),
                       CelebrationGIFs (ten Animated Noto Emoji, CC BY 4.0, 200 px)
+KomodoMCP/main.swift  komodo-mcp: stdio loop around MCPServer, embedded at Contents/Helpers
 scripts/render-icons.swift  Renders the AppIcon.icon layers and the menu bar template images
 KomodoCore/           Pure logic, no UI, tested with Swift Testing
   Models/             LocalDate, TaskItem (+Bucket, Subtask, WorkSession, TaskSource), TaskList
   Board/              WeekRange, BoardLayout, DayPlan, DaySummary, FocusHistory, TaskSearch, CelebrationCopy,
-                      Reminders (upcoming task reminders), Trash (30-day rule)
+                      Reminders (upcoming task reminders), Trash (30-day rule), CarryOver, CalendarImport
   Settings/           AppSettings (every Settings value, stored as preferences), KeyCombo, GlobalShortcut
-  Backup/             Backup (export zip, open and check, prune, file names), BackupManifest, CSV
+  Backup/             Backup (export zip, open and check, prune, file names), BackupManifest, CSV, BackupCrypto
+                      (.kbak: AES-GCM + PBKDF2)
+  MCP/                JSONValue, MCPServer (JSON-RPC), KomodoTools (+Definitions)
+  Assistant/          AssistantPlan, AssistantPrompt, AssistantResolver (+Grounds), DayPhrase, RequestPhrase,
+                      TaskCommand
   Storage/            AppDatabase (GRDB: v1 + v2 trash/archive migrations, load splits tasks/trash/archived,
                       write-through, preferences), BoardChange (the diff)
   Timer/              FocusClock, TimerFormat, PomodoroCycle, CrashRecovery, AwayTime
@@ -202,31 +224,81 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   backup, last export, failure) are kept across a restore because they describe the Mac, not the data.
 - **Onboarding:** shown when a saved board has no tasks, no trash, no archive and no `onboarded` preference, so an
   existing board never sees it. `finishOnboarding(adding:)` adds the lines to Today and raises the Start tip.
+- **Outside writes:** `komodo-mcp` writes the file and posts `app.komodo.db-changed`; `AppDelegate` hears it and
+  calls `BoardStore.absorbOutsideChanges()`, which re-reads rows without resetting the page or the live task.
+- **Secrets:** every secret is a `KeychainSecret` (backup password, Claude key); the database only stores a flag
+  (`protectsBackups`, `hasClaudeKey`) so nothing reads the Keychain unless it has to.
+- **Calendar import:** `CalendarSync` reads EventKit and hands `CalendarEvent`s to
+  `BoardStore.importCalendarEvents`, which runs the pure `CalendarImport.sync` rule. Task IDs are
+  `calendar:<external ID>@<start>`.
+- **Assistant:** a brain returns an `AssistantPlan`; `AssistantResolver` keeps it to the user's words (per-phrase
+  values, `@` commands, grounding, skipped phrases) and builds the preview; `applyAssistant` saves it with one undo.
+  The resolver, not the model, decides days, times and lengths.
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
 ---
 
-## 4. Next task: token integrations (Phase 2)
+## 4. Next task, and everything that remains
 
-Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen), Komodo Assistant, and voice input and
-voice notes. Next, in order:
-1. **Notion · Todoist · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8's `ProviderAdapter`): personal
-   tokens in the Keychain through the token sheet on Integrations ("Paste your API token", "Where to find it",
-   Test, Save), polling every 5–10 min, `external_links`, the common settings (Auto sync, Sync now, Sync deletes,
-   Only my items, Date and Status mapping). Each needs the maintainer's token to try for real; build the mapping
-   rules in KomodoCore with tests against recorded responses.
-2. **XCUITest smoke tests** once the maintainer gives the screen.
+### Next task: token integrations (Phase 2)
 
-**After that**
-- **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
-  It brings onboarding step 6, the menu bar's Gmail rows, the sidebar status row, "and disconnects Google" in
-  Delete all data, and the restore success sheet's Reconnect.
-- **Release:** signing, notarizing and a DMG (ARCHITECTURE §15), then Sparkle for Check for Updates.
-- **Phase 2:** Komodo Assistant, voice notes, Notion · Todoist · Linear · ClickUp · Asana.
-- **Maintainer-only steps:** re-record the README demo video (the maintainer will offer the screen later; ask
-  first), foreground captures with green switches, and trying notifications, global shortcuts and the menu bar
-  by hand.
+**Notion · Todoist · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8, DESIGN_SYSTEM §13.17):
+- A `ProviderAdapter` per provider, personal tokens in the Keychain (`KeychainSecret`), and the token sheet on
+  Integrations: "Paste your API token", a "Where to find it" link, [Test] and [Save]. The cards sit in COMING SOON
+  today.
+- Two-way where FEATURES says so (Notion, Todoist, ClickUp, Asana), Linear → Komodo only. Polling every 5–10 min
+  with a catch-up on launch and wake; an `external_links` table (a schema migration); the newer `updated_at` wins;
+  a remote delete only unlinks.
+- The common settings: Auto sync, Sync now, Sync deletes, Only my items, Date mapping, Status mapping; one account
+  per provider per list; imported tasks placed by date.
+- Build the mapping rules in KomodoCore with tests against recorded API responses. Each provider needs the
+  maintainer's test token to try for real (§9), and the current API version should be checked against the
+  provider's docs before writing its client.
+
+### Everything that remains, by phase
+
+**Phase 0a: Gmail → Calendar (parked by the maintainer since 2026-09-29)**
+- FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`: connect Google, the two Komodo calendars, On this Mac
+  extraction, the activity log, and its Settings page (dimmed in the sidebar today).
+- It also brings onboarding step 6, the menu bar's Gmail rows, the sidebar status row, "and disconnects Google"
+  in Delete all data, and the restore success sheet's Reconnect.
+- Waits on §9 question 1 (OAuth client and sign-in approach).
+
+**Phase 1: what's left**
+- **Claude mode for Gmail**, the **Review tab** (DESIGN_SYSTEM §13.20, suggestion cards) and **reschedules and
+  cancellations** (FEATURES §4.0): all part of Gmail → Calendar. Settings ▸ AI's "Use Claude for Gmail" box, the
+  Claude mode warning and the "What's sent to Claude" explainer come with them.
+- **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
+  maintainer gives the screen.
+- **Acceptance on the maintainer's Mac** (ARCHITECTURE §16: "every P1 acceptance check passes"): real Calendar
+  access, a real MCP client, a working Claude key, notifications and global shortcuts tried by hand. Each needs
+  the maintainer's go-ahead or setup.
+
+**Phase 2: what's left**
+- **Token integrations** (the next task above).
+- **Light appearance** (DESIGN_SYSTEM §2: "Light is P2"): Light values for every color set, and the Settings
+  appearance choice. Increase Contrast variants are missing too (§5), which DESIGN_SYSTEM §8 expects.
+- **Real voice:** voice was only tried with a simulated voice; try the microphone once the maintainer allows the
+  prompts.
+- **Assistant with Claude:** try once a key is in Settings ▸ AI; check the structured-output schema is accepted
+  (nullable union types) and the refusal path.
+
+**Release (ARCHITECTURE §15)**
+- Signing with the maintainer's Developer ID, hardened runtime (already on), notarizing, a DMG, then Sparkle for
+  Check for Updates (About's button is disabled until then) and Release notes. Re-check the Keychain and Calendar
+  behavior on a signed build, since ad hoc builds may ask for Keychain access after each rebuild.
+- Measure the Release helper (6.4 MB) and app (32 MB) once more and decide whether GRDB should live in one
+  shared framework instead of twice.
+
+**Polish carried in §5** (no phase of their own): Sessions' own Lists menu and "Load earlier", list image icons
+and the backup's `assets/`, onboarding's pulsing rings and moving drawings, the Focus Panel's Scheduled today
+**+** and row dragging, the floating card's GIF and "in a row" pill, a declared `.kbak` document type, the shared
+table, suggestion card and page-dot components, and the Reports loading state.
+
+**Maintainer-only steps:** re-record the README demo video (ask first), foreground captures with green switches,
+and trying notifications, global shortcuts, the menu bar, Calendar access, the microphone and a Claude key by
+hand.
 
 ## 5. Known gaps and placeholders
 
@@ -492,7 +564,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   errors.
 - **Commits:** Conventional Commits with scopes used so far: `core`, `app`, `design-system`, `effects`,
   `components`, `gallery`, `board`, `readme`, `media`, `settings`, `focus`, `menubar`, `alerts`, `trash`,
-  `handoff`. Commit in dependency order so each commit builds, and
+  `handoff`, `backup`, `mcp`, `ai`, `assistant`, `voice`, `inspector`, `features`, `architecture`, `changelog`,
+  `contributing`. Commit in dependency order so each commit builds, and
   build an intermediate commit in a throwaway `git worktree` to prove it.
 - **README media:** follow CONTRIBUTING.md.
   - Board: `open build/DerivedData/Build/Products/Debug/Komodo.app --args -sampleTime artboard -homeWindowSize
@@ -515,6 +588,13 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     and shows Trash.
   - Lists: `-openListSheet new|edit|delete` (edit and delete act on the selected list) and `-deleteList <id>`,
     which pairs with `-openTrash <count>` for a list row in Trash.
+  - Integrations, AI and MCP: `-openSettings integrations|ai|mcp`; `-sampleCalendar YES` stands in for macOS
+    Calendar; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
+    points `komodo-mcp` at a scratch file (pipe JSON-RPC lines into
+    `Komodo.app/Contents/Helpers/komodo-mcp`).
+  - Assistant and voice: `-assistantPrompt "<text>"` (plus `-assistantApply YES`) runs the real on-device model,
+    about 15 s; `-assistantListening YES` and `-voiceNote <seconds>` with `-voiceSample "<text>"` simulate the
+    microphone.
   - Onboarding: `-openOnboarding plan|focus|win|notifications|today` and `-openStartTip YES`. The sheet blocks
     Quit, so end those runs with `pkill` (sample data only, never a database).
   - Backups: launch without `-quietCapture` on a scratch database with its `backupFolder` preference pointed at
@@ -597,7 +677,13 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 
 ## 9. Open questions for the user
 
-1. **Gmail → Calendar (parked):** when it's unparked, which Google Cloud project and OAuth client should Komodo use, and is a Google sign-in
-   dependency acceptable (GoogleSignIn, about 1 MB), or should it be `ASWebAuthenticationSession` with PKCE and
-   no dependency?
+1. **Gmail → Calendar (parked):** when it's unparked, which Google Cloud project and OAuth client should Komodo
+   use, and is a Google sign-in dependency acceptable (GoogleSignIn, about 1 MB), or should it be
+   `ASWebAuthenticationSession` with PKCE and no dependency?
 2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
+3. **Token integrations:** which providers matter most, and can the maintainer share a test token (or sandbox
+   workspace) for each? Without one, a client can only be checked against recorded responses.
+4. **Permission prompts:** may the next session show macOS's Calendar, microphone and speech-recognition prompts
+   on this Mac to try calendar import and voice for real?
+5. **Claude key:** will the maintainer add one in Settings ▸ AI so the Assistant's Claude path can be tried?
+6. **Release:** when should signing, notarizing and Sparkle happen, and with which Developer ID team?
