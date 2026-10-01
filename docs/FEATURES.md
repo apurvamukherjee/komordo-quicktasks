@@ -383,6 +383,13 @@ Global shortcuts can be changed in Settings. A shortcut already taken by another
 - **Brain dump → tasks:** turns free text into tasks with titles, subtasks, notes, schedules, and ESTs, shown as an **editable preview** before anything is saved.
 - **Edits:** renames tasks or lists, changes subtasks, notes, schedules, or ESTs, logs time, and moves tasks between lists or columns. `@Task name` targets a task.
 - It runs on Apple's on-device model when available, and on Claude with the user's own key otherwise. It never writes directly: every change goes through the preview and can be undone.
+- **Open it** with the lime bubble at the bottom right of Home, or ⌘J. The conversation stays while it's closed.
+- **What the words decide:** each phrase of a request (split at commas, "and", semicolons and new lines) sets its own task's day, time and length, so the model can't move one task's details to another. A value the user didn't give (a time, a length, a list) isn't invented. A brain dump never loses an item: a phrase the model skipped becomes its own task. `@Task` commands ("move @X to tomorrow", "log 30min on @X", "@X is done", "rename @X to Y", "@X to backlog") are read directly from the words, and the model can't change a task the user didn't name.
+- **Without a brain:** with Apple Intelligence off and no Claude key, the popover says how to turn one on.
+
+**Acceptance**
+- [ ] "tomorrow gym 1h at 7, finish the deck by Fri (3h), call Apurva" previews three tasks with those days, times and lengths, and Add then Undo leaves the board as it was.
+- [ ] "move @Task to tomorrow and log 30min on @Other" previews exactly those two changes.
 
 ### 4.20 Trash (P1)
 
