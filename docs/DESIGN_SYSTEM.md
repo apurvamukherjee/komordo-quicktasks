@@ -898,6 +898,8 @@ A table with Item · Type (List / Task) · From list · Deleted, and the row act
 
 Token-based providers open a sheet with "Paste your API token", a "Where to find it" link, and [Test] and [Save] buttons.
 
+**As built:** calendars come through macOS Calendar, so one **Calendar import** card replaces the Google Calendar and Microsoft Calendar cards: "Show events from the calendars on this Mac as tasks: iCloud, Google, Outlook and more." [Connect]; connected, "● Active" with "2 calendars · Synced 9:41 AM" [Sync now]; access off, "Needs attention" with "Calendar access is off. Allow Komodo in System Settings." [Open System Settings]. Below the cards, a **CALENDAR IMPORT** group lists calendars by account (color dot and switch), then **Add to list** ("Imported events join this list, placed by their date."), **Range** (Next week · Next 2 weeks · Next 3 weeks; "How far ahead events are imported."), **Only accepted events** ("Skip invitations you haven't accepted.") and **Stop importing** ("Tasks already imported stay on the Board.") [Disconnect]. Gmail → Calendar shows as coming soon while it's parked.
+
 ### 13.18 Gmail → Calendar: connect (P0)
 
 **A. Not connected**
