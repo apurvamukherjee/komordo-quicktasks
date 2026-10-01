@@ -50,7 +50,26 @@ public enum AssistantResolver {
         public var problems: [String]
     }
 
-    public static func resolve(_ plan: AssistantPlan, in context: AssistantContext) -> Result {
+    /// - Parameter request: what the user wrote. A change to a task their words don't name is dropped, since a
+    ///   small model sometimes rewrites unrelated tasks instead of adding new ones.
+    public static func resolve(_ plan: AssistantPlan, for request: String, in context: AssistantContext) -> Result {
+        let words = request.lowercased()
+        let grounds = Grounds(words)
+        let phrases = RequestPhrase.split(request)
+        /// A task's day, time and length come from its own phrase when one names it, since models mix them up
+        /// between tasks; otherwise the model's, when the request supports them at all.
+        func values(for name: String, day: String?, time: String?, minutes: Int?) -> RequestPhrase {
+            if let phrase = RequestPhrase.best(for: name, in: phrases) { return phrase }
+            var guess = RequestPhrase("")
+            guess.day = day.flatMap { !$0.isEmpty && grounds.mentionsDay ? $0 : nil }
+            guess.minute = time.flatMap(DayPhrase.minute).flatMap { grounds.allows(minute: $0) ? $0 : nil }
+            guess.minutes = minutes.flatMap { $0 > 0 && grounds.mentionsDuration ? $0 : nil }
+            return guess
+        }
+        func listName(_ name: String?) -> String? {
+            guard let name, words.contains(name.lowercased()) else { return nil }
+            return name
+        }
         var proposals: [AssistantProposal] = []
         var problems: [String] = []
         var nextRank: [Bucket: Double] = [:]
@@ -66,23 +85,27 @@ public enum AssistantResolver {
         for item in plan.add {
             let parsed = EstimateParser.parse(item.title)
             guard !parsed.title.isEmpty,
-                let listID = list(named: item.list, in: context)?.id ?? context.defaultListID ?? context.lists.first?.id
+                let listID = list(named: listName(item.list), in: context)?.id ?? context.defaultListID
+                    ?? context.lists.first?.id
             else { continue }
+            let said = values(
+                for: parsed.title, day: item.day, time: item.time,
+                minutes: item.estimateMinutes ?? parsed.estimate.map { Int($0 / 60) })
             var task = TaskItem(
                 id: UUID().uuidString, listID: listID, title: parsed.title, bucket: .today, rank: 0,
-                estimate: item.estimateMinutes.map { TimeInterval(max(0, $0) * 60) } ?? parsed.estimate,
+                estimate: said.minutes.flatMap { $0 > 0 ? TimeInterval($0 * 60) : nil },
                 notes: item.notes.flatMap { $0.isEmpty ? nil : $0 }, createdAt: context.now)
             task.subtasks = (item.subtasks ?? []).filter { !$0.isEmpty }.map {
                 Subtask(id: UUID().uuidString, title: $0)
             }
-            if let phrase = item.day, !phrase.isEmpty {
+            if let phrase = said.day {
                 if let day = DayPhrase.day(phrase, today: context.today, calendar: context.calendar) {
                     task.scheduledDate = day
                 } else {
                     problems.append("Didn't understand “\(phrase)” for \(parsed.title), so it's for today.")
                 }
             }
-            if let phrase = item.time, !phrase.isEmpty, let minute = DayPhrase.minute(phrase) {
+            if let minute = said.minute {
                 task.scheduledDate = task.scheduledDate ?? context.today
                 task.scheduledMinute = minute
             }
@@ -91,27 +114,32 @@ public enum AssistantResolver {
         }
 
         for edit in plan.edit {
+            let name = edit.task.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased()
+            guard !name.isEmpty, words.contains(name) else { continue }
             guard let before = task(named: edit.task, in: context.tasks) else {
                 problems.append("Couldn't find @\(edit.task.trimmingCharacters(in: CharacterSet(charactersIn: "@ "))).")
                 continue
             }
             var task = proposals.first { $0.id == before.id }?.task ?? before
+            // An edit only moves or times its task when the model meant to; the phrase supplies the value.
+            let said = values(
+                for: name, day: edit.day, time: edit.time, minutes: edit.logMinutes ?? edit.estimateMinutes)
             if let title = edit.title, !title.isEmpty { task.title = title }
-            if let name = edit.list {
+            if let name = listName(edit.list) {
                 if let list = list(named: name, in: context) {
                     task.listID = list.id
                 } else {
                     problems.append("There's no list called “\(name)”.")
                 }
             }
-            if let phrase = edit.day, !phrase.isEmpty {
+            if edit.day?.isEmpty == false, let phrase = said.day {
                 if let day = DayPhrase.day(phrase, today: context.today, calendar: context.calendar) {
                     task.scheduledDate = day
                 } else {
                     problems.append("Didn't understand “\(phrase)” for \(task.title).")
                 }
             }
-            if let phrase = edit.time, !phrase.isEmpty, let minute = DayPhrase.minute(phrase) {
+            if edit.time?.isEmpty == false, let minute = said.minute {
                 task.scheduledDate = task.scheduledDate ?? context.today
                 task.scheduledMinute = minute
             }
@@ -121,7 +149,9 @@ public enum AssistantResolver {
                 task.scheduledDate = nil
                 task.scheduledMinute = nil
             }
-            if let minutes = edit.estimateMinutes { task.estimate = minutes > 0 ? TimeInterval(minutes * 60) : nil }
+            if edit.estimateMinutes != nil, edit.logMinutes == nil, let minutes = said.minutes {
+                task.estimate = TimeInterval(minutes * 60)
+            }
             if let notes = edit.notes, !notes.isEmpty {
                 task.notes = [task.notes, notes].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n")
                 task.notesRTF = nil
@@ -130,7 +160,7 @@ public enum AssistantResolver {
                 Subtask(id: UUID().uuidString, title: $0)
             }
             var logged: Int?
-            if let minutes = edit.logMinutes, minutes > 0 {
+            if edit.logMinutes != nil, let minutes = said.minutes {
                 task.sessions.append(
                     WorkSession(start: context.now.addingTimeInterval(TimeInterval(-minutes * 60)), end: context.now))
                 logged = minutes
@@ -145,6 +175,41 @@ public enum AssistantResolver {
             proposals.append(AssistantProposal(kind: .edit(before: before), task: task, loggedMinutes: logged))
         }
         return Result(proposals: proposals, problems: problems)
+    }
+
+    /// What the user's own words support. Small models invent times, lengths, days and lists; a value is kept only
+    /// when the request gives something for it: the hour among its numbers, any duration, any day, the list's name.
+    struct Grounds {
+        let numbers: Set<Int>
+        let mentionsDuration: Bool
+        let mentionsDay: Bool
+        let saysNoon: Bool
+        let saysMidnight: Bool
+
+        init(_ words: String) {
+            numbers = Set(words.split { !$0.isNumber }.compactMap { Int($0) })
+            mentionsDuration =
+                words.range(
+                    of: #"\d+(\.\d+)?\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes)\b"#, options: .regularExpression
+                )
+                != nil
+            let dayWords = [
+                "today", "tonight", "tomorrow", "tmrw", "next week", "mon", "tue", "wed", "thu", "fri", "sat", "sun",
+                "in ",
+            ]
+            mentionsDay =
+                dayWords.contains { words.contains($0) }
+                || words.range(of: #"\d{4}-\d{2}-\d{2}"#, options: .regularExpression) != nil
+            saysNoon = words.contains("noon")
+            saysMidnight = words.contains("midnight")
+        }
+
+        func allows(minute: Int) -> Bool {
+            let hour = minute / 60
+            if minute == 0 { return saysMidnight || numbers.contains(12) || numbers.contains(0) }
+            if minute == 12 * 60, saysNoon { return true }
+            return numbers.contains(hour) || numbers.contains(hour % 12 == 0 ? 12 : hour % 12)
+        }
     }
 
     /// Exact title first, then one that starts with the name, then one that contains it; open tasks before done.
