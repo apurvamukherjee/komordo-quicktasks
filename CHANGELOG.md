@@ -8,6 +8,20 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Komodo Assistant (Phase 2) — 2026-10-02
+
+#### Added
+- **Komodo Assistant** (FEATURES §4.19, DESIGN_SYSTEM §13.26): the lime bubble at the bottom right of Home (⌘J)
+  and its 360 × 520 popover with the welcome, thinking, an editable preview, Discard, Add or Apply, the applied
+  card with Undo, and errors with Try again.
+- **Two brains, one plan:** Apple's on-device model through FoundationModels when Apple Intelligence is on,
+  otherwise Claude with the user's key (structured output, low effort, server-side fallbacks).
+- **Kept to the user's words:** each phrase sets its own task's day, time and length; `@Task` commands (move,
+  log, estimate, done, rename, column, list) are read without a model; values nobody gave aren't invented; a
+  brain dump never loses an item; nothing the user didn't name is changed.
+- `AssistantPlan`, `AssistantResolver`, `AssistantPrompt`, `DayPhrase`, `RequestPhrase` and `TaskCommand` in
+  KomodoCore, with tests. Debug flags `-assistantPrompt "<text>"` and `-assistantApply YES`.
+
 ### Settings ▸ AI (Phase 1) — 2026-10-02
 
 #### Added
