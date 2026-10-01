@@ -28,15 +28,23 @@ struct FocusHistoryTests {
         #expect(totals == [1_800, 5_400])
     }
 
+    private func done(daysAgo: Int) -> TaskItem {
+        let at = today.adding(days: -daysAgo, calendar: calendar).startOfDay(in: calendar).addingTimeInterval(10 * 3600)
+        return TaskItem(id: "done-\(daysAgo)", listID: "work", title: "t", bucket: .today, rank: 0, completedAt: at)
+    }
+
     @Test func streakCountsBackFromToday() {
-        let now = today.startOfDay(in: calendar).addingTimeInterval(20 * 3600)
-        let tasks = [0, 1, 2, 4].map { worked(daysAgo: $0, minutes: 20) }
-        #expect(FocusHistory.streak(tasks, today: today, now: now, calendar: calendar) == 3)
+        let tasks = [0, 1, 2, 4].map { done(daysAgo: $0) }
+        #expect(FocusHistory.streak(tasks, today: today, calendar: calendar) == 3)
     }
 
     @Test func anEmptyMorningKeepsYesterdaysStreak() {
-        let now = today.startOfDay(in: calendar).addingTimeInterval(8 * 3600)
-        let tasks = [1, 2].map { worked(daysAgo: $0, minutes: 20) }
-        #expect(FocusHistory.streak(tasks, today: today, now: now, calendar: calendar) == 2)
+        let tasks = [1, 2].map { done(daysAgo: $0) }
+        #expect(FocusHistory.streak(tasks, today: today, calendar: calendar) == 2)
+    }
+
+    @Test func focusWithoutATaskDoneDoesntCount() {
+        let tasks = [done(daysAgo: 0), worked(daysAgo: 1, minutes: 90), done(daysAgo: 2)]
+        #expect(FocusHistory.streak(tasks, today: today, calendar: calendar) == 1)
     }
 }
