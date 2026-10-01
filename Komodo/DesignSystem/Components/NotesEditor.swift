@@ -7,9 +7,22 @@ import SwiftUI
 struct NotesEditor: View {
     var text: String
     var rtf: Data?
+    /// Pass one to drive the editor from outside, as voice notes do.
+    var external: NotesEditorController?
     var onChange: (_ text: String, _ rtf: Data?) -> Void
 
-    @State private var controller = NotesEditorController()
+    @State private var own = NotesEditorController()
+    private var controller: NotesEditorController { external ?? own }
+
+    init(
+        text: String, rtf: Data?, controller: NotesEditorController? = nil,
+        onChange: @escaping (_ text: String, _ rtf: Data?) -> Void
+    ) {
+        self.text = text
+        self.rtf = rtf
+        external = controller
+        self.onChange = onChange
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Space.s3, style: .continuous)
@@ -107,6 +120,18 @@ struct NotesEditor: View {
             let adding = !fonts.allSatisfy { hasTrait(($0 as? NSFont) ?? Self.baseFont) }
             return { convert(($0 as? NSFont) ?? Self.baseFont, adding) }
         }
+    }
+
+    /// A voice note (FEATURES §4.5): what was heard joins the end as its own paragraph, as if typed, so it saves,
+    /// undoes and looks like the rest of the notes.
+    func append(_ addition: String) {
+        guard let textView, let storage = textView.textStorage else { return }
+        let range = NSRange(location: storage.length, length: 0)
+        let insertion = NSAttributedString(
+            string: (storage.length > 0 ? "\n" : "") + addition, attributes: NotesTextView.baseAttributes)
+        guard textView.shouldChangeText(in: range, replacementString: insertion.string) else { return }
+        storage.replaceCharacters(in: range, with: insertion)
+        textView.didChangeText()
     }
 
     /// Underline or strikethrough on and off.
