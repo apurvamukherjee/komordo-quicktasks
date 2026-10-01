@@ -3,7 +3,7 @@
 Last updated: 2026-10-02. Milestones through 5f (Settings, the menu bar, reminders, global shortcuts), Trash and
 archive, focus restore with crash recovery, 5g without Google (Data & backup, onboarding, celebration GIFs), and
 most of the P0 polish (list management, timed tasks joining the queue, sleep and App Nap, scheduled focus alerts,
-the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions, end-of-day review and streak rules are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
+the scrolling title, the File and Help menus), the idle CPU fix, and Phase 1's Reports and Sessions, end-of-day review, streak rules and password-protected backups are on `main`. Gmail → Calendar is parked by the maintainer's call. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 `CHANGELOG.md` has the full list of what landed.
 
@@ -25,8 +25,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 1's password-protected backups, then the next
-Phase 1 item. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": ask me §9 question 3, then build Phase 1's Local MCP
+server. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -61,9 +61,9 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | — | Idle CPU | ✅ | Timer digits and colon on Core Animation; ~3–4% idle in an optimized build |
 | P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
 | P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
-| P1 | **Password-protected backups** | ⏭ **Next** | See §4 |
+| P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
 | P1 | Calendar import, Claude mode | ⏸ Blocked | Need Google sign-in (§9 question 1); Claude mode is Claude mode for Gmail |
-| P1 | Local MCP server | ⏸ Waiting | §9 question 3: MCP Swift SDK or hand-written JSON-RPC |
+| P1 | **Local MCP server** | ⏭ **Next** | Waits on §9 question 3: MCP Swift SDK or hand-written JSON-RPC |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
@@ -203,19 +203,16 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: password-protected backups
+## 4. Next task: Local MCP server
 
-Done on 2026-10-02: the end-of-day review (End Day in the Focus menu and palette, NOT FINISHED with Tomorrow /
-This week and one Undo, the early-end span, the clean sweep) and streak rules (streak days count tasks done,
-"3 in a row today" on the hero celebration, the Streaks switch). Next, in order:
-1. **Password-protected backups** (FEATURES §4.21, ARCHITECTURE §9): AES-GCM (CryptoKit) over the zip with a
-   PBKDF2 key (`CCKeyDerivationPBKDF`, 600k rounds), saved as `.kbak`. Data & backup's switch is drawn disabled
-   today. No dependency.
-2. **Local MCP server** (FEATURES §5.1, ARCHITECTURE §10) once §9 question 3 is answered; it needs
+Done on 2026-10-02: the end-of-day review and streak rules, then password-protected backups (`BackupCrypto` in
+KomodoCore seals the zip as `.kbak`; Data & backup's switch, the two password sheets, sealed exports, daily
+backups and before-restore copies, and restoring a `.kbak`). Every remaining P1 item waits on a maintainer call:
+1. **Local MCP server** (FEATURES §5.1, ARCHITECTURE §10) once §9 question 3 is answered; it needs
    `ValueObservation` so the app sees the helper's writes.
-3. **Calendar import** and **Claude mode** need Google sign-in (§9 question 1); Claude mode is Claude mode for
+2. **Calendar import** and **Claude mode** need Google sign-in (§9 question 1); Claude mode is Claude mode for
    Gmail. The **Integrations** page comes with calendar import.
-4. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
+3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
    maintainer gives the screen; they take over the pointer.
 
 **After that**
@@ -240,7 +237,12 @@ This week and one Undo, the early-end span, the clean sweep) and streak rules (s
     tried through the daily backup, `-openRestore`, `-openDeleteAll` and keystrokes, on scratch files only.
   - A restore without Google shows a "Restored." toast instead of the success sheet, whose copy is about
     reconnecting Google. A newer backup's error offers OK, since Check for Updates waits for Sparkle.
-  - Password-protected backups (P1) show as a disabled switch. List icons (`assets/` in the zip) don't exist yet.
+  - List icons (`assets/` in the zip) don't exist yet.
+  - **Protected backups:** tried on a scratch database with `-backupPassword`, which stands in for the Keychain:
+    the set sheet typed with `CGEvent.postToPid`, a sealed daily backup, a wrong then right password, and a
+    sealed before-restore copy. The real Keychain wasn't touched. An ad hoc signed build may ask for Keychain
+    access after each rebuild; a Developer ID build won't. The export Save panel wasn't clicked. `.kbak` isn't a
+    declared document type, so Finder shows it as a plain file and double-clicking doesn't open Komodo.
 - **Onboarding:**
   - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip has no pulsing rings, and the
     illustrations don't float or tick (static drawings, so an open sheet costs nothing).
@@ -421,6 +423,10 @@ This week and one Undo, the early-end span, the clean sweep) and streak rules (s
 | End Day | In the Focus menu and the palette, in the review's amber | FEATURES §6.4 makes it a flow; DESIGN_SYSTEM §13.7 lists no palette command for it |
 | Unfinished tasks | Today's open tasks whose time has come, in every list | A task still ahead today isn't unfinished yet |
 | Carry-over | Tomorrow keeps the time of day; This week clears the date | This week matches dragging a task there |
+| Backup password storage | The Keychain, plus a `protectsBackups` setting | The daily backup must seal unattended; the flag stays with the Mac across a restore, like the backup folder |
+| Password sheets | Komodo's form sheet with a lock in teal; copy written for them | `Settings.dc.html` draws only the switch and its "Saved as an encrypted .kbak file." line |
+| Delete all data | Also removes the backup password | It leaves a first-launch Mac, and the switch resets with the other settings |
+| Wrong password | Stays on the password sheet | AES-GCM can't tell a wrong password from a changed file; a wrong password is far likelier |
 
 ---
 
@@ -456,8 +462,9 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     panel at normal level behind other apps, so it doesn't cover the screen; `screencapture -l` still gets it.
     The window is named "Focus Panel" in `CGWindowListCopyWindowInfo` (use `.optionAll`, it isn't on top).
   - Settings: `-openSettings general|focus|alerts|celebration|shortcuts|data|about` (window "Settings"). With
-    `data`, `-openRestore <zip>` and `-openDeleteAll YES` open the sheets. Trash: `-openTrash <count>` deletes
-    that many sample tasks and shows Trash.
+    `data`, `-openRestore <zip|kbak>`, `-openDeleteAll YES` and `-openBackupPassword YES` open the sheets, and
+    `-backupPassword <pw>` stands in for the Keychain. Trash: `-openTrash <count>` deletes that many sample tasks
+    and shows Trash.
   - Lists: `-openListSheet new|edit|delete` (edit and delete act on the selected list) and `-deleteList <id>`,
     which pairs with `-openTrash <count>` for a list row in Trash.
   - Onboarding: `-openOnboarding plan|focus|win|notifications|today` and `-openStartTip YES`. The sheet blocks
@@ -526,6 +533,10 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   locked; check `CGSSessionScreenIsLocked` in `CGSessionCopyCurrentDictionary()` before retrying.
 - **List arrays:** the lists diff deletes rows missing from the array and SQLite cascades to their tasks, so a
   list only ever changes flags in `allLists`, never moves to another array.
+- **The maintainer's own Komodo may be running** (the Debug build, on the real board). `open -g` then just
+  activates it and ignores the arguments, and `osascript … quit` by bundle ID asks it to quit. Check `pgrep -x
+  Komodo` first, launch scratch runs with `open -n -g`, and stop them with `kill <pid>` of the new process
+  (`pgrep -nx Komodo`), never by bundle ID.
 - **Parallel sessions:** two sessions editing the same folder overwrote each other once. Run only one working
   session per checkout.
 
