@@ -25,8 +25,7 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's voice input and voice notes, then the token
-integrations. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
+Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's token integrations. The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. I use this Mac while you work: capture Komodo's own windows (screencapture -l) with the Debug
 launch flags and -quietCapture instead of moving my pointer. Show me a screenshot of the running app next to each
@@ -65,7 +64,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Calendar import, Integrations page | ✅ | 2026-10-02; macOS Calendar through EventKit, the maintainer's call |
 | P1 | Settings ▸ AI | ✅ | 2026-10-02; Apple Intelligence status, Claude key (Keychain, free check), model |
 | P2 | Komodo Assistant | ✅ | 2026-10-02; on-device or Claude, editable preview, @ commands, one Undo |
-| P2 | **Voice input and voice notes** | ⏭ **Next** | See §4 |
+| P2 | Voice input and voice notes | ✅ | 2026-10-02; on-device dictation; tried with a simulated voice only |
+| P2 | **Token integrations** | ⏭ **Next** | Notion · Todoist · Linear · ClickUp · Asana; see §4 |
 | P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
 | P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
@@ -207,15 +207,16 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: voice input and voice notes (Phase 2)
+## 4. Next task: token integrations (Phase 2)
 
-Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen) and Komodo Assistant. Next, in order:
-1. **Voice** (FEATURES §4.5 and §4.19, ARCHITECTURE §9, Assistant.png ②): hold the mic in the Assistant to talk,
-   with the live transcript, and voice notes on a task. `SFSpeechRecognizer` on device. It needs the microphone
-   and speech-recognition permissions, so ask the maintainer before the first real try on this Mac.
-2. **Notion · Todoist · Linear · ClickUp · Asana** with personal tokens (FEATURES §5): the token sheet on
-   Integrations; untestable without the maintainer's tokens.
-3. **XCUITest smoke tests** once the maintainer gives the screen.
+Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen), Komodo Assistant, and voice input and
+voice notes. Next, in order:
+1. **Notion · Todoist · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8's `ProviderAdapter`): personal
+   tokens in the Keychain through the token sheet on Integrations ("Paste your API token", "Where to find it",
+   Test, Save), polling every 5–10 min, `external_links`, the common settings (Auto sync, Sync now, Sync deletes,
+   Only my items, Date and Status mapping). Each needs the maintainer's token to try for real; build the mapping
+   rules in KomodoCore with tests against recorded responses.
+2. **XCUITest smoke tests** once the maintainer gives the screen.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -335,6 +336,9 @@ Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen) and Kom
   - The on-device model is uneven; the resolver keeps the preview honest (see §6), but titles can still be
     terse ("Deck").
   - The input reads "Type or hold mic to talk…", the spec's copy, before the mic exists.
+- **Voice:** tried only with `-voiceSample`, a simulated voice; the microphone and Speech permission prompts
+  haven't been shown on the maintainer's Mac. Ask before the first real try. The hold gesture on the
+  Assistant's mic and the inspector's buttons weren't driven with the pointer.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -469,6 +473,8 @@ Done on 2026-10-02: Phase 1 (except what waits for Gmail and the screen) and Kom
 | Assistant reply | The model's reply only when there's no preview; Komodo writes the applied line | The model claimed it had "called Apurva" |
 | Assistant skipped items | A phrase no proposal covers becomes a task | The on-device model dropped items from brain dumps |
 | Assistant shortcut | ⌘J | DESIGN_SYSTEM gives none; J was free in Home |
+| Voice note in the editor | Inserted into the live text view, as typing | Reloading the editor with new notes left the old text on screen |
+| Voice in the Assistant | Hold to talk, release sends; VoiceOver toggles | Assistant.png ②'s "hold mic to talk" |
 
 ---
 
