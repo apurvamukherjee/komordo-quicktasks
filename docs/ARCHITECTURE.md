@@ -469,3 +469,11 @@ The download page says "Requires a Mac with Apple silicon and macOS 14 or later"
 | **0b** | Board, tasks, subtasks, notes, scheduling, Focus mode, Focus Panel, floating timer, Pomodoro, celebrations, shortcuts | A full day is planned and finished with the network off |
 | **1** | Reports and sessions, recurring tasks, calendar import, Claude mode, local MCP, password-protected backups | Every P1 acceptance check in FEATURES passes |
 | **2** | Komodo Assistant, voice notes, Notion · Todoist · Linear · ClickUp · Asana | Each integration passes a polling test against a sandbox account |
+
+**Where each phase stands (2026-10-02):**
+- **0a:** parked by the maintainer. Zip export, restore and automatic backups are done; Gmail → Calendar isn't.
+- **0b:** done.
+- **1:** done except Claude mode, the Review tab and reschedules (all part of Gmail → Calendar) and the XCUITest
+  smoke tests. Calendar import reads macOS Calendar through EventKit rather than Google and Microsoft APIs.
+- **2:** Komodo Assistant and voice are done; the five task-tool integrations and the Light appearance remain.
+- **Release** (§15): not started.
