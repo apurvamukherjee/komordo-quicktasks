@@ -248,7 +248,8 @@ struct FocusWonCard: View {
                     Text("Done").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.komodo(.primary, size: .large))
-                .help("Close the summary")
+                .keyboardShortcut(.defaultAction)
+                .help("Close the summary and move what's left ↵")
             }
             .padding(.top, 2)
         }
