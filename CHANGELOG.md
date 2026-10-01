@@ -8,6 +8,26 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### End-of-day review and streaks (Phase 1) — 2026-10-02
+
+#### Added
+- **End-of-day review** (FEATURES §6.4): the day summary lists NOT FINISHED, Today's open tasks in every list
+  whose time has come, each with a **Tomorrow** (default) / **This week** menu. Done, Return or See reports moves
+  them all, with one Undo toast. Tomorrow keeps a task's time; This week parks it undated.
+- **End Day** in the Focus menu and the command palette opens the summary at any time; the live task stops and
+  keeps its time, and a break ends and is recorded. The subtitle then gives the day's span, "first task 9:02 AM ·
+  last 5:48 PM".
+- **Clean sweep:** with nothing left in Today, the summary shows "Clean sweep. Nothing carried over."
+- **"3 in a row today"** on the celebration once three or more tasks in a row finish early or on time.
+- **Streaks switch** in Settings ▸ Celebration (FEATURES §4.13); off hides the streak line and the pill.
+- `CarryOver`, `DaySummary.result(of:now:)` and `onEstimateRun`, and `DayPlan.firstStart` / `lastFinish` in
+  KomodoCore, with tests. Debug flag `-focusState ended`.
+
+#### Changed
+- **Streaks count days with a task done**, as FEATURES §4.13 says, instead of days with any focus, and archived
+  tasks still count.
+- Commits per task: roughly 30–40 (CONTRIBUTING.md).
+
 ### Idle CPU and Reports (Phase 1 begins) — 2026-10-01
 
 #### Fixed
