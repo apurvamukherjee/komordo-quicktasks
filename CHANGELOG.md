@@ -8,6 +8,18 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Settings ▸ AI (Phase 1) — 2026-10-02
+
+#### Added
+- **Settings ▸ AI** (DESIGN_SYSTEM §13.23): Apple Intelligence's status from FoundationModels (weak-linked, so
+  macOS 14 and 15 still run), and Claude: the user's own key, checked against the Models API (nothing billed)
+  and saved to the Keychain, with Remove; the model (`claude-opus-5-5` by default, or `claude-sonnet-5-5`); and
+  Use Claude for, disabled until Gmail and the Assistant ship.
+- Return in a secret field runs Test. Debug flag `-claudeKey <key>`; `-openSettings ai`.
+
+#### Changed
+- One `KeychainSecret` helper now holds the backup password and the Claude key.
+
 ### Calendar import and Integrations (Phase 1) — 2026-10-02
 
 #### Added
