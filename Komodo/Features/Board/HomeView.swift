@@ -22,6 +22,7 @@ struct HomeView: View {
                 case .reports: ReportsView(store: store)
                 }
             }
+            .overlay(alignment: .bottomTrailing) { AssistantHost(store: store).padding(Space.s5) }
             .sheet(item: $store.listSheet) { sheet in listSheet(sheet) }
             .inspector(isPresented: isInspectorPresented) {
                 InspectorView(store: store)
