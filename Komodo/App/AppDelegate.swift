@@ -1,4 +1,7 @@
 import AppKit
+import KomodoCore
+import OSLog
+import notify
 
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The delegate owns the panels (ARCHITECTURE §4.1); `KomodoApp` hands it the store once Home appears.
@@ -8,6 +11,7 @@ import AppKit
     let hotKeys = GlobalHotKeys()
 
     private var store: BoardStore?
+    private var outsideWrites: Int32 = 0
     private let backupScheduler = NSBackgroundActivityScheduler(identifier: "app.komodo.Komodo.backup")
 
     /// Called once Home appears with the app's store.
@@ -31,6 +35,19 @@ import AppKit
             store.inspectedTaskID = id
         }
         store.alerts = alerts
+        watchForOutsideWrites(store)
+    }
+
+    // MARK: Local MCP server
+
+    /// `komodo-mcp` posts after each write; the app takes the new rows without resetting anything on screen.
+    private func watchForOutsideWrites(_ store: BoardStore) {
+        let status = notify_register_dispatch(BoardChange.darwinNotification, &outsideWrites, .main) { _ in
+            Task { @MainActor in store.absorbOutsideChanges() }
+        }
+        if status != NOTIFY_STATUS_OK {
+            Logger(subsystem: "app.komodo.Komodo", category: "mcp").error("Couldn't watch for MCP writes: \(status)")
+        }
     }
 
     /// Show Komodo in the Dock: off makes Komodo a menu bar app, reachable from its menu bar item.
