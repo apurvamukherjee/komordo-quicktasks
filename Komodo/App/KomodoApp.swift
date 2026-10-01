@@ -82,7 +82,8 @@ struct SettingsCommand: Commands {
 /// - `-sampleCalendar YES` stands in for macOS Calendar with three calendars and four events, so calendar import
 ///   can be tried and captured without the system asking for access.
 /// - `-assistantPrompt "<text>"` opens the Assistant and sends the text; add `-assistantApply YES` to press Add
-///   once the preview arrives.
+///   once the preview arrives. `-assistantListening YES` opens it listening; `-voiceSample "<text>"` speaks
+///   that text instead of the microphone.
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {
@@ -108,6 +109,11 @@ enum LaunchOptions {
             if let prompt = defaults.string(forKey: "assistantPrompt") {
                 store.assistant.isOpen = true
                 store.assistant.send(prompt, store: store)
+            }
+            // `-assistantListening YES` opens it holding the mic; pair with `-voiceSample "<text>"`.
+            if defaults.bool(forKey: "assistantListening") {
+                store.assistant.isOpen = true
+                store.assistant.startListening()
             }
             if let tab = defaults.string(forKey: "openReports").flatMap(ReportsState.Tab.init) {
                 store.showReports(tab)
