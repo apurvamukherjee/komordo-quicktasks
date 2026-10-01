@@ -82,9 +82,22 @@ public enum AssistantResolver {
             return rank
         }
 
+        // @Task commands are read from the words themselves and win over the model's edits to the same task.
+        let commands = TaskCommand.edits(in: phrases, tasks: context.tasks, lists: context.lists)
+        let commanded = Set(commands.map { $0.task.lowercased() })
+        let edits =
+            commands
+            + plan.edit.filter { edit in
+                !commanded.contains(task(named: edit.task, in: context.tasks)?.title.lowercased() ?? "")
+            }
+
         for item in plan.add {
             let parsed = EstimateParser.parse(item.title)
-            guard !parsed.title.isEmpty,
+            // A task the user @mentioned is being changed, not added again.
+            let isMentioned = commanded.contains {
+                $0.contains(parsed.title.lowercased()) || parsed.title.lowercased().contains($0)
+            }
+            guard !parsed.title.isEmpty, !isMentioned,
                 let listID = list(named: listName(item.list), in: context)?.id ?? context.defaultListID
                     ?? context.lists.first?.id
             else { continue }
@@ -113,7 +126,7 @@ public enum AssistantResolver {
             proposals.append(AssistantProposal(kind: .add, task: task))
         }
 
-        for edit in plan.edit {
+        for edit in edits {
             let name = edit.task.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased()
             guard !name.isEmpty, words.contains(name) else { continue }
             guard let before = task(named: edit.task, in: context.tasks) else {
@@ -124,7 +137,8 @@ public enum AssistantResolver {
             // An edit only moves or times its task when the model meant to; the phrase supplies the value.
             let said = values(
                 for: name, day: edit.day, time: edit.time, minutes: edit.logMinutes ?? edit.estimateMinutes)
-            if let title = edit.title, !title.isEmpty { task.title = title }
+            // Models rename tasks unasked; a new title needs the user to say rename.
+            if let title = edit.title, !title.isEmpty, words.contains("rename") { task.title = title }
             if let name = listName(edit.list) {
                 if let list = list(named: name, in: context) {
                     task.listID = list.id
@@ -143,7 +157,9 @@ public enum AssistantResolver {
                 task.scheduledDate = task.scheduledDate ?? context.today
                 task.scheduledMinute = minute
             }
-            if let column = edit.column.flatMap(Bucket.init(rawValue:)), column != task.column(in: context.week) {
+            if let column = edit.column.flatMap(Bucket.init(rawValue:)),
+                words.contains(column == .week ? "week" : column.rawValue), column != task.column(in: context.week)
+            {
                 // As dragging does: a column move drops the date.
                 task.bucket = column
                 task.scheduledDate = nil

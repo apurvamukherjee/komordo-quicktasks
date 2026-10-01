@@ -18,11 +18,8 @@ public enum AssistantPrompt {
         let named = context.tasks.filter {
             !$0.isDone && (words.contains("@") || words.contains($0.title.lowercased()))
         }
-        let tasks = named.prefix(taskLimit).map { task in
-            var line = "- \(task.title) [\(names[task.listID] ?? "?"), \(task.column(in: context.week).rawValue)"
-            if let day = task.scheduledDate { line += ", \(day)" }
-            return line + "]"
-        }
+        // Titles alone, quoted: the on-device model copied any annotation into the titles it wrote.
+        let tasks = named.prefix(taskLimit).map { "- \"\($0.title)\" in \(names[$0.listID] ?? "a list")" }
         return """
             You are Komodo's assistant inside a to-do app. Turn what the user writes into a plan; the app shows it \
             as a preview the user confirms, so never claim anything is already saved.

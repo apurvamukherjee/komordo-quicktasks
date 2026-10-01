@@ -143,6 +143,36 @@ struct AssistantTests {
         #expect(question.proposals.isEmpty)
     }
 
+    /// What the on-device model did with "move @Draft launch email to tomorrow and log 30min on @Plan the
+    /// offsite": a bracketed copy as a new task, a rename, a move to Backlog, and no time logged.
+    @Test func atCommandsAreReadFromTheWords() throws {
+        var board = context
+        board.tasks.append(TaskItem(id: "offsite", listID: "work", title: "Plan the offsite", bucket: .week, rank: 2))
+        board.tasks.append(TaskItem(id: "plan", listID: "work", title: "Plan", bucket: .week, rank: 3))
+        let garbled = AssistantPlan(
+            reply: "",
+            add: [.init(title: "Review accounts [Work, tomorrow]")],
+            edit: [.init(task: "Review accounts", title: "Review accounts [Work, tomorrow]", column: "backlog")])
+        let result = AssistantResolver.resolve(
+            garbled, for: "move @Review accounts to tomorrow and log 30min on @Plan the offsite", in: board)
+        #expect(result.proposals.count == 2)
+        let moved = try #require(result.proposals.first { $0.id == "accounts" })
+        #expect(moved.task.title == "Review accounts")
+        #expect(moved.task.scheduledDate?.description == "2026-10-02")
+        let logged = try #require(result.proposals.first { $0.id == "offsite" })
+        #expect(logged.loggedMinutes == 30)
+    }
+
+    @Test func atCommandsCoverDoneRenameAndColumns() {
+        let none = AssistantPlan(reply: "")
+        let done = AssistantResolver.resolve(none, for: "@gym is done", in: context).proposals.first
+        #expect(done?.task.isDone == true)
+        let renamed = AssistantResolver.resolve(none, for: "rename @Gym to Leg day", in: context).proposals.first
+        #expect(renamed?.task.title == "Leg day")
+        let parked = AssistantResolver.resolve(none, for: "move @Review accounts to backlog", in: context)
+        #expect(parked.proposals.first?.task.column(in: context.week) == .backlog)
+    }
+
     @Test func phrasesBecomeTitles() {
         let titles = RequestPhrase.split("finish the deck by Fri (3h), Lunch with Apurva next fri at 1pm, gym 1.5h")
             .map(\.title)
@@ -202,9 +232,9 @@ struct AssistantTests {
         let dump = AssistantPrompt.instructions(for: context, request: "gym tomorrow, call Apurva")
         #expect(dump.contains("Today is Thursday, 2026-10-01."))
         #expect(dump.contains("Lists: Personal, Work."))
-        #expect(dump.contains("- Gym [Personal, week]"))
-        #expect(!dump.contains("- Review accounts ["))
+        #expect(dump.contains("- \"Gym\" in Personal"))
+        #expect(!dump.contains("- \"Review accounts\""))
         let mention = AssistantPrompt.instructions(for: context, request: "move @review to friday")
-        #expect(mention.contains("- Review accounts [Work, today]"))
+        #expect(mention.contains("- \"Review accounts\" in Work"))
     }
 }
