@@ -9,6 +9,8 @@ struct KomodoTextField<Accessory: View>: View {
         case search
         /// SF Mono, for IDs and keys.
         case monospaced
+        /// Dots instead of characters, for passwords.
+        case secure
     }
 
     enum Density {
@@ -50,8 +52,13 @@ struct KomodoTextField<Accessory: View>: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Palette.textMuted)
                 }
-                TextField(text: $text, prompt: Text(placeholder).foregroundStyle(Palette.textMuted)) {
-                    Text(placeholder)
+                Group {
+                    let prompt = Text(placeholder).foregroundStyle(Palette.textMuted)
+                    if variant == .secure {
+                        SecureField(text: $text, prompt: prompt) { Text(placeholder) }
+                    } else {
+                        TextField(text: $text, prompt: prompt) { Text(placeholder) }
+                    }
                 }
                 .textFieldStyle(.plain)
                 .font(variant == .monospaced ? .system(size: 13, design: .monospaced) : .system(size: 13))
@@ -105,6 +112,7 @@ extension KomodoTextField where Accessory == EmptyView {
         @State private var focused = "Write launch email 45m"
         @State private var clientID = "1234-abc"
         @State private var search = ""
+        @State private var password = "komodo-2026"
 
         var body: some View {
             VStack(alignment: .leading, spacing: Space.s4) {
@@ -116,8 +124,11 @@ extension KomodoTextField where Accessory == EmptyView {
                     KomodoTextField(
                         "Client ID", text: $clientID, variant: .monospaced, error: "That client ID isn't valid.")
                 }
-                KomodoTextField("Search tasks…", text: $search, variant: .search, density: .compact)
-                    .frame(width: 240)
+                HStack(spacing: 10) {
+                    KomodoTextField("Search tasks…", text: $search, variant: .search, density: .compact)
+                        .frame(width: 240)
+                    KomodoTextField("Password", text: $password, variant: .secure).frame(width: 240)
+                }
             }
             .frame(width: 720)
             .padding(Space.s8)
