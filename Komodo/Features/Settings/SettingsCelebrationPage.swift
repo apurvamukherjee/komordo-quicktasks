@@ -18,6 +18,9 @@ struct SettingsCelebrationPage: View {
                         "Fun GIF", detail: "A random GIF on the success screen.", isOn: $store.settings.showsGIF)
                     SettingsRow(
                         "Success sound", detail: "A short chime on Done.", isOn: $store.settings.playsSuccessSound)
+                    SettingsRow(
+                        "Streaks", detail: "Days in a row with a task done, and on-estimate runs.",
+                        isOn: $store.settings.showsStreaks)
                     SettingsRow("Try it", detail: "Plays the moment with your current choices.") {
                         Button {
                             plays += 1
