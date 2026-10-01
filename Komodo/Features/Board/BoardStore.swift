@@ -1137,6 +1137,17 @@ import SwiftUI
     /// ahead today isn't unfinished yet, so it stays put.
     var unfinishedToday: [TaskItem] { everyListLayout.upNext }
 
+    /// End Day: whatever runs stops and keeps its time, and the day summary opens early in the Focus Panel with
+    /// what's left to carry over.
+    func endDay() {
+        if let id = focus.taskID { closeSession(id) }
+        focus.taskID = nil
+        focus.breakEndsAt = nil
+        focus.celebration = nil
+        focus.isDayWon = true
+        focusSurface = .panel
+    }
+
     /// The review's Tomorrow or This week for each unfinished task; one without a choice takes Tomorrow, the
     /// default. One Undo puts them all back.
     func carryOver(_ choices: [String: CarryOver]) {
