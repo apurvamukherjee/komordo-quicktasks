@@ -73,7 +73,8 @@ struct AssistantPanel: View {
             thinking
         case .proposal:
             you
-            answer(model.reply)
+            // With a preview, the rows speak for themselves; a model's own summary can claim more than it did.
+            answer(model.proposals.isEmpty ? model.reply : "")
             proposal
         case .discarded:
             you
@@ -85,7 +86,7 @@ struct AssistantPanel: View {
         case .applied:
             you
             appliedCard
-            answer(model.reply)
+            answer(appliedReply)
         case .failed(let message):
             if !model.prompt.isEmpty { you }
             HStack(alignment: .top, spacing: Space.s2) {
@@ -316,6 +317,13 @@ struct AssistantPanel: View {
                     RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
                         .strokeBorder(Palette.green.opacity(0.3), lineWidth: 1))
         }
+    }
+
+    /// Assistant.png ⑤: "Done. Call Apurva is in Today's Focus queue. Anything else?"
+    private var appliedReply: String {
+        let queued = model.applied.first { $0.kind == .add && $0.task.column(in: store.week) == .today }
+        return queued.map { "Done. \($0.task.title) is in Today's Focus queue. Anything else?" }
+            ?? "Done. Anything else?"
     }
 
     private var appliedTitle: String {
