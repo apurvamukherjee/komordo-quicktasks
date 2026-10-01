@@ -359,6 +359,10 @@ open Komodo.app --args -sampleTime artboard
 - [x] Calendar import
 - [x] Komodo Assistant
 - [x] Voice input and voice notes
+- [ ] Notion, Todoist, Linear, ClickUp and Asana
+- [ ] Claude mode and the Review tab for Gmail → Calendar
+- [ ] Light appearance and Increase Contrast
+- [ ] Signed, notarized release with automatic updates
 
 ## Contributing
 
