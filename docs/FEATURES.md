@@ -459,6 +459,14 @@ Komodo includes an MCP server that Claude Desktop, Claude Code, and Raycast can 
 | `log_time` | Add a manual session |
 | `start_focus` | Make a task live in Komodo |
 
+- **Off by default.** Settings → Local MCP server → **Let AI apps on this Mac use Komodo**. While it's off, every tool answers with how to turn it on.
+- **Defaults:** a task created without a column or date goes to the Backlog, like an imported one, in the first list. A trailing estimate in the title ("Write spec 45m") is read as in quick add. Moving a dated task to another column clears its date, as dragging does. Only tasks on the Board are seen: nothing in Trash or archived.
+- **Live updates:** the running app shows each change at once, without closing anything that's open. A live task completed from an AI app leaves Focus mode. `start_focus` opens Komodo if it isn't running.
+
+**Acceptance**
+- [ ] With the switch off, every tool refuses; on, a task created from Claude Desktop appears on the Board within a second.
+- [ ] `start_focus` makes the task live in Focus mode.
+
 ---
 
 ## 6. User flows
