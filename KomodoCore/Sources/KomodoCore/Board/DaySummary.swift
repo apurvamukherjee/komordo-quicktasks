@@ -36,6 +36,20 @@ public struct DaySummary: Sendable, Equatable {
         return .onTime
     }
 
+    /// Tasks finished early or on time in a row, counting back from the latest, for the celebration's "3 in a row
+    /// today". A late finish ends the run; a task without an estimate neither counts nor ends it.
+    public static func onEstimateRun(_ doneToday: [TaskItem], now: Date) -> Int {
+        var count = 0
+        for task in doneToday.sorted(by: { ($0.completedAt ?? now) > ($1.completedAt ?? now) }) {
+            switch result(of: task, now: now) {
+            case .early, .onTime: count += 1
+            case .late: return count
+            case nil: continue
+            }
+        }
+        return count
+    }
+
     public var measured: Int { early + onTime + late }
 
     /// Early or on time, out of every task with an estimate; nil when none had one.
