@@ -62,8 +62,9 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Reports and Sessions | ✅ | Checked against `Reports.png`; breaks recorded (schema v4) |
 | P1 | End-of-day review and streak rules | ✅ | 2026-10-02; End Day, carry-over, clean sweep, "in a row today", Streaks switch |
 | P1 | Password-protected backups | ✅ | 2026-10-02; `.kbak` export, daily backup and restore, password in the Keychain |
-| P1 | Calendar import, Claude mode | ⏸ Blocked | Need Google sign-in (§9 question 1); Claude mode is Claude mode for Gmail |
-| P1 | **Local MCP server** | ⏭ **Next** | Waits on §9 question 3: MCP Swift SDK or hand-written JSON-RPC |
+| P1 | **Calendar import** | ⏭ **Next** | Through macOS Calendar (EventKit), the maintainer's call on 2026-10-02; see §4 |
+| P1 | Claude mode, Review tab | ⏸ Parked | Claude mode for Gmail and the Review tab come with Gmail → Calendar |
+| P1 | Local MCP server | ✅ | 2026-10-02; hand-written JSON-RPC helper, Settings page, live refresh, `komodo://start` |
 | — | XCUITest smoke tests | ⏸ Waiting | Needs the maintainer's screen |
 | — | Persistence (SQLite with GRDB) | ✅ | Write-through from `BoardStore`; see §3 and §5 for what's left |
 
@@ -203,17 +204,17 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ---
 
-## 4. Next task: Local MCP server
+## 4. Next task: calendar import
 
-Done on 2026-10-02: the end-of-day review and streak rules, then password-protected backups (`BackupCrypto` in
-KomodoCore seals the zip as `.kbak`; Data & backup's switch, the two password sheets, sealed exports, daily
-backups and before-restore copies, and restoring a `.kbak`). Every remaining P1 item waits on a maintainer call:
-1. **Local MCP server** (FEATURES §5.1, ARCHITECTURE §10) once §9 question 3 is answered; it needs
-   `ValueObservation` so the app sees the helper's writes.
-2. **Calendar import** and **Claude mode** need Google sign-in (§9 question 1); Claude mode is Claude mode for
-   Gmail. The **Integrations** page comes with calendar import.
-3. **XCUITest smoke tests** (ARCHITECTURE §14: Plan → Start → Done, and Export → Delete all → Restore) once the
-   maintainer gives the screen; they take over the pointer.
+Done on 2026-10-02: password-protected backups and the Local MCP server (`komodo-mcp`, hand-written JSON-RPC in
+KomodoCore, the Settings page, live refresh on `app.komodo.db-changed`, and `komodo://start`). Next, in order:
+1. **Calendar import** through macOS Calendar with EventKit (the maintainer's call on 2026-10-02 instead of
+   Google and Microsoft sign-in): every calendar already added to macOS (iCloud, Google, Exchange) can become
+   tasks (FEATURES §5's Google Calendar row: title, time, notes, Meet link; choice of calendars; up to 3 weeks;
+   all or accepted events), with the **Integrations** page.
+2. **Settings ▸ AI** (DESIGN_SYSTEM §13.23): the Claude key in the Keychain with Test, and the model.
+3. **Phase 2:** Komodo Assistant, voice notes, then Notion · Todoist · Linear · ClickUp · Asana.
+4. **XCUITest smoke tests** once the maintainer gives the screen.
 
 **After that**
 - **Gmail → Calendar** when the maintainer unparks it: FEATURES §4.0, DESIGN_SYSTEM §13.17–13.20, `Gmail.png`.
@@ -308,6 +309,14 @@ backups and before-restore copies, and restoring a `.kbak`). Every remaining P1 
   - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
   - If the Home window was closed before Start, Home has no window to bring back.
   - The won card's twinkling sparks are left out.
+- **Local MCP server:**
+  - Driven over stdio against scratch files and seen refreshing a running scratch instance; not yet connected
+    from Claude Desktop, Claude Code or Raycast.
+  - `start_focus` wasn't opened live: with the maintainer's own Komodo running, `komodo://` would reach that
+    copy. `komodo://start` is handled in `AppDelegate.application(_:open:)`.
+  - The helper is 8.9 MB in Debug (GRDB is linked into it as well as the app); measure it in Release.
+  - "Works while Komodo is running" is the spec's copy, but the helper also works with Komodo closed: writes land
+    in the file and show at the next launch, and `start_focus` launches Komodo.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
 - **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
   dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
@@ -427,6 +436,9 @@ backups and before-restore copies, and restoring a `.kbak`). Every remaining P1 
 | Password sheets | Komodo's form sheet with a lock in teal; copy written for them | `Settings.dc.html` draws only the switch and its "Saved as an encrypted .kbak file." line |
 | Delete all data | Also removes the backup password | It leaves a first-launch Mac, and the switch resets with the other settings |
 | Wrong password | Stays on the password sheet | AES-GCM can't tell a wrong password from a changed file; a wrong password is far likelier |
+| MCP transport | Hand-written JSON-RPC 2.0 over stdio | The maintainer asked for Phase 1 to finish; no dependency needed asking about, and four methods are small |
+| MCP refresh | A Darwin notification and an in-place re-read, not `ValueObservation` | Only the helper writes from outside, and the notification costs nothing at idle |
+| New MCP tasks | Backlog of the first list unless a column or date is given | FEATURES §5: imported tasks with no date go to Backlog |
 
 ---
 
@@ -548,5 +560,3 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
    dependency acceptable (GoogleSignIn, about 1 MB), or should it be `ASWebAuthenticationSession` with PKCE and
    no dependency?
 2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
-3. **Local MCP server:** the MCP Swift SDK (about 1 MB, what ARCHITECTURE §10 names) or hand-written JSON-RPC
-   over stdio (no dependency; seven tools)?
