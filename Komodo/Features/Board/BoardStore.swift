@@ -523,6 +523,11 @@ import SwiftUI
         return BoardLayout(tasks: tasks, listID: selectedListID, week: week, now: now, calendar: calendar)
     }
 
+    /// Days in a row with a task done, or 0 with streaks switched off.
+    var streak: Int {
+        settings.showsStreaks ? FocusHistory.streak(reportTasks, today: today, calendar: calendar) : 0
+    }
+
     /// Today across every list, whatever the Board or the Focus Panel shows, for the day's own numbers.
     var everyListLayout: BoardLayout {
         _ = scheduleTicks
@@ -1177,7 +1182,7 @@ import SwiftUI
             taskID: id, title: task.title,
             message: CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now)),
             nextTitle: layout.upNext.first?.title,
-            inARow: DaySummary.onEstimateRun(everyListLayout.doneToday, now: now))
+            inARow: settings.showsStreaks ? DaySummary.onEstimateRun(everyListLayout.doneToday, now: now) : 0)
         // With the success screen off, Done goes straight to the next task.
         if !settings.showsSuccessScreen { finishCelebration() }
     }

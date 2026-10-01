@@ -227,7 +227,7 @@ private struct FocusedTodayCard: View {
         let focused = daily.last ?? 0
         let plan = store.dayPlan()
         let goal = focused + plan.estimateLeft
-        let streak = FocusHistory.streak(store.reportTasks, today: store.today, calendar: store.calendar)
+        let streak = store.streak
         let peak = max(daily.max() ?? 1, 1)
 
         VStack(alignment: .leading, spacing: Space.s3) {

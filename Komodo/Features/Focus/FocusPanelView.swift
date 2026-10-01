@@ -318,7 +318,7 @@ struct FocusPanelView: View {
             FocusWonCard(
                 date: store.now, done: plan.done, focused: plan.focused,
                 summary: DaySummary(doneToday: store.layout.doneToday, now: store.now),
-                streak: FocusHistory.streak(store.reportTasks, today: store.today, calendar: store.calendar),
+                streak: store.streak,
                 onSeeReports: {
                     // The summary closes and Home comes back on Reports.
                     store.closeDaySummary()
