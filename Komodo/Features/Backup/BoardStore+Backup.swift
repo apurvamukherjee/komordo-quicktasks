@@ -143,7 +143,8 @@ extension BoardStore {
     func restore(_ archive: BackupArchive) async -> Bool {
         guard let database else { return false }
         defer { discard(archive) }
-        let safety = Backup.fileName(on: now, calendar: calendar, suffix: "before-restore")
+        let safety = Backup.fileName(
+            on: now, calendar: calendar, suffix: "before-restore", isProtected: settings.protectsBackups)
         guard await backUp(named: safety) else {
             toasts.show(
                 Toast(
@@ -166,6 +167,8 @@ extension BoardStore {
         settings.lastExportAt = local.lastExportAt
         settings.lastBackupAt = local.lastBackupAt
         settings.lastBackupFailure = local.lastBackupFailure
+        // The password stays in this Mac's Keychain, so whether backups use it stays with the Mac too.
+        settings.protectsBackups = local.protectsBackups
         return true
     }
 
