@@ -46,18 +46,23 @@ public enum Backup {
     static let knownFiles: Set<String> = [manifestFile, databaseFile, "data.json", "tasks.csv", "sessions.csv"]
     static let prefix = "komodo-backup-"
 
-    /// `komodo-backup-2026-09-26.zip`, with a suffix such as "before-restore" for the copies Komodo makes itself.
-    public static func fileName(on date: Date, calendar: Calendar, suffix: String? = nil) -> String {
-        prefix + LocalDate(date, calendar: calendar).description + (suffix.map { "-" + $0 } ?? "") + ".zip"
+    /// `komodo-backup-2026-09-26.zip`, with a suffix such as "before-restore" for the copies Komodo makes itself,
+    /// and `.kbak` when it's password-protected.
+    public static func fileName(
+        on date: Date, calendar: Calendar, suffix: String? = nil, isProtected: Bool = false
+    ) -> String {
+        prefix + LocalDate(date, calendar: calendar).description + (suffix.map { "-" + $0 } ?? "") + "."
+            + (isProtected ? BackupCrypto.fileExtension : "zip")
     }
 
     // MARK: Export
 
-    /// Writes the whole database to `destination` as a zip. Every file inside comes from one `VACUUM INTO`
-    /// snapshot, so they agree with each other even while the app keeps writing.
+    /// Writes the whole database to `destination` as a zip, sealed as a `.kbak` when there's a password. Every
+    /// file inside comes from one `VACUUM INTO` snapshot, so they agree with each other even while the app keeps
+    /// writing.
     public static func export(
-        _ database: AppDatabase, appVersion: String, to destination: URL, at now: Date = Date(),
-        calendar: Calendar = .current
+        _ database: AppDatabase, appVersion: String, to destination: URL, password: String? = nil,
+        at now: Date = Date(), calendar: Calendar = .current
     ) throws {
         let files = FileManager.default
         let work = files.temporaryDirectory.appending(path: "komodo-export-\(UUID().uuidString)")
@@ -83,6 +88,9 @@ public enum Backup {
         let zip = work.appending(path: destination.lastPathComponent)
         try run(
             "/usr/bin/ditto", ["-c", "-k", "--norsrc", "--noextattr", "--noacl", "--keepParent", folder.path, zip.path])
+        if let password {
+            try BackupCrypto.seal(Data(contentsOf: zip), password: password).write(to: zip)
+        }
         if files.fileExists(atPath: destination.path) {
             _ = try files.replaceItemAt(destination, withItemAt: zip)
         } else {

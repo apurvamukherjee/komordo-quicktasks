@@ -36,6 +36,7 @@ struct BackupTests {
         #expect(
             Backup.fileName(on: start, calendar: calendar, suffix: "before-restore")
                 == "komodo-backup-2026-09-21-before-restore.zip")
+        #expect(Backup.fileName(on: start, calendar: calendar, isProtected: true) == "komodo-backup-2026-09-21.kbak")
     }
 
     @Test func onlyKomodosOwnFilesPass() {
