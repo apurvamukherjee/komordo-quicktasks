@@ -84,7 +84,6 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     var comingIn: String? {
         switch self {
         case .gmail: "Gmail → Calendar arrives in the next milestone"
-        case .ai: "Arrives in Phase 1"
         default: nil
         }
     }

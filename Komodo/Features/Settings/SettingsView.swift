@@ -56,7 +56,8 @@ struct SettingsView: View {
         case .integrations: SettingsIntegrationsPage(store: store)
         case .mcp: SettingsMCPPage(store: store)
         case .about: SettingsAboutPage(store: store)
-        case .gmail, .ai: EmptyView()
+        case .ai: SettingsAIPage(store: store)
+        case .gmail: EmptyView()
         }
     }
 }
