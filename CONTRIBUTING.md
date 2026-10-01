@@ -29,7 +29,7 @@ Komodo follows [Conventional Commits](https://www.conventionalcommits.org/).
 - **Body:** explain *why*, and anything a reviewer won't see in the diff. Reference spec sections where they
   apply (for example `DESIGN_SYSTEM 10.2`).
 - **Size:** one logical change per commit, and every commit builds on its own. A typical feature lands as
-  roughly 20–25 commits.
+  roughly 30–40 commits.
 - **Authorship:** commits come from the maintainer's own account in their local terminal, with no co-author or
   tool attribution trailers.
 - **Publishing:** commits stay local until the maintainer pushes at the end of a task.
