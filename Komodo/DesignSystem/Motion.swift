@@ -26,4 +26,13 @@ enum Motion {
         /// The won card's sparks, each a quarter of the cycle after the last (FocusStates.dc.html).
         static let twinkle: TimeInterval = 2.4
     }
+
+    /// How often a timer redraws: every second while time moves on screen, otherwise hourly, which is as good as
+    /// never. A window set aside still runs its views, so it has to be told.
+    static func tick(isMoving: Bool, isOffscreen: Bool) -> TimeInterval { isMoving && !isOffscreen ? 1 : 3600 }
+}
+
+extension EnvironmentValues {
+    /// The window is out of sight, as Home is while a Focus surface is up, so its timers needn't redraw.
+    @Entry var isOffscreen = false
 }
