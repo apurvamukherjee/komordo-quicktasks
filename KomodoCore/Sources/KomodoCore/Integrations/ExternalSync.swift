@@ -151,9 +151,11 @@ public enum ExternalSync {
     /// Records what the provider accepted. A refused push leaves its link as it was, so it's tried again on the
     /// next sync rather than lost.
     ///
+    /// - Parameter board: the Board now. A new item's task gains its source as it is now, since it may have been
+    ///   edited while the push was out.
     /// - Returns: added tasks with their new source, the links afterwards, and the reasons for any refusals.
     public static func confirm(
-        _ pushes: [Push], outcomes: [Outcome], links: [ExternalLink], context: Context
+        _ pushes: [Push], outcomes: [Outcome], links: [ExternalLink], board: [TaskItem], context: Context
     ) -> (saved: [TaskItem], links: [ExternalLink], refusals: [String]) {
         var links = links
         var saved: [TaskItem] = []
@@ -164,12 +166,13 @@ public enum ExternalSync {
                 continue
             }
             switch push {
-            case .add(var task):
+            case .add(let sent):
                 guard case .added(let externalID, let url) = outcome else { continue }
                 links.append(
                     ExternalLink(
-                        connectionID: context.connectionID, externalID: externalID, taskID: task.id,
-                        remoteUpdatedAt: nil, snapshot: ExternalItem.snapshot(of: task)))
+                        connectionID: context.connectionID, externalID: externalID, taskID: sent.id,
+                        remoteUpdatedAt: nil, snapshot: ExternalItem.snapshot(of: sent)))
+                guard var task = board.first(where: { $0.id == sent.id }) else { continue }
                 task.source = context.source
                 task.sourceTitle = context.sourceTitle
                 task.sourceURL = url

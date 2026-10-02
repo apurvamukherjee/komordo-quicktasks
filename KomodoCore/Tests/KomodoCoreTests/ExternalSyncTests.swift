@@ -207,13 +207,17 @@ struct ExternalSyncConfirmTests {
             .update(externalID: "1", task: first.board[0], changes: [.title]), .delete(externalID: "2"), .add(new),
         ]
         let url = Todoist.taskURL("3")
+        var renamed = new
+        renamed.title = "New, renamed while it was sent"
         let result = ExternalSync.confirm(
             pushes, outcomes: [.accepted, .accepted, .added(externalID: "3", url: url)], links: first.links,
-            context: pull.context)
+            board: first.board + [renamed], context: pull.context)
         #expect(result.links.map(\.externalID) == ["1", "3"])
         #expect(result.links[0].snapshot == ExternalItem.snapshot(of: first.board[0]))
         #expect(result.links[1].taskID == "n")
-        #expect(result.saved.map(\.id) == ["n"])
+        #expect(result.saved.map(\.title) == [renamed.title])
+        // The link holds what Todoist was sent, so the rename goes on the next sync.
+        #expect(result.links[1].snapshot == ExternalItem.snapshot(of: new))
         #expect(result.saved.first?.source == .todoist && result.saved.first?.sourceURL == url)
         #expect(result.refusals.isEmpty)
     }
@@ -223,7 +227,8 @@ struct ExternalSyncConfirmTests {
         first.board[0].title = "Write the post"
         let push = ExternalSync.Push.update(externalID: "1", task: first.board[0], changes: [.title])
         let result = ExternalSync.confirm(
-            [push], outcomes: [.refused("Item not found")], links: first.links, context: pull.context)
+            [push], outcomes: [.refused("Item not found")], links: first.links, board: first.board,
+            context: pull.context)
         #expect(result.links == first.links)
         #expect(result.refusals == ["Item not found"])
     }
