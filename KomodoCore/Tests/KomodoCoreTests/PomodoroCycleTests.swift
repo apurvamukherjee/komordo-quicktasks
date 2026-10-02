@@ -29,4 +29,15 @@ struct PomodoroCycleTests {
         cycle.record(2_000)
         #expect(cycle.remaining(of: 1_500, at: now, runningSince: nil) == 0)
     }
+
+    @Test func aSavedCycleComesBackAsItWas() throws {
+        var cycle = PomodoroCycle()
+        cycle.finishSprint()
+        cycle.finishSprint()
+        cycle.record(420)
+        let restored = try #require(PomodoroCycle(saved: cycle.saved))
+        #expect(restored == cycle)
+        #expect(PomodoroCycle(saved: "9 -5") == PomodoroCycle(number: 4, worked: 0))
+        #expect(PomodoroCycle(saved: "") == nil)
+    }
 }

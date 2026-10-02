@@ -285,6 +285,9 @@ import SwiftUI
         static let heartbeat = "heartbeat"
         static let onboarded = "onboarded"
         static let selectedList = "selectedList"
+        // The Pomodoro cycle at quit and the day it belongs to, so a relaunch the same day carries on counting.
+        static let pomodoroCycle = "pomodoroCycle"
+        static let pomodoroDay = "pomodoroDay"
     }
 
     init(
@@ -352,6 +355,11 @@ import SwiftUI
             } else if lists.contains(where: { $0.id == value }) {
                 selectedListID = value
             }
+        }
+        if preferences[Preference.pomodoroDay] == today.description,
+            let cycle = preferences[Preference.pomodoroCycle].flatMap(PomodoroCycle.init(saved:))
+        {
+            focus.pomodoro = cycle
         }
     }
 
@@ -517,10 +525,12 @@ import SwiftUI
         savePreference(focusSurface?.rawValue ?? "", for: Preference.liveSurface)
         savePreference(focus.breakEndsAt.map { "\($0.timeIntervalSince1970)" } ?? "", for: Preference.breakEndsAt)
         savePreference("\(Int(focus.breakLength))", for: Preference.breakLength)
+        savePreference(focus.pomodoro.saved, for: Preference.pomodoroCycle)
+        savePreference(today.description, for: Preference.pomodoroDay)
     }
 
     /// The task that was live at quit comes back live but paused, in the surface it was in, and a break that
-    /// hasn't run out carries on. The Pomodoro count starts over.
+    /// hasn't run out carries on. The Pomodoro count carries on too when it's still the same day.
     private func restoreFocus(_ preferences: [String: String]) {
         guard let id = preferences[Preference.liveTask],
             let task = tasks.first(where: { $0.id == id }), task.completedAt == nil

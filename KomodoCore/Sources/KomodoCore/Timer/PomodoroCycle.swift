@@ -13,6 +13,21 @@ public struct PomodoroCycle: Sendable, Equatable {
 
     public init() {}
 
+    /// A cycle saved at quit, kept within 1…4 and never negative.
+    public init(number: Int, worked: TimeInterval) {
+        self.number = min(max(number, 1), Self.sprintsPerSet)
+        self.worked = max(0, worked)
+    }
+
+    /// `number worked`, as a preference keeps it.
+    public var saved: String { "\(number) \(Int(worked))" }
+
+    public init?(saved: String) {
+        let parts = saved.split(separator: " ").compactMap { Double($0) }
+        guard parts.count == 2 else { return nil }
+        self.init(number: Int(parts[0]), worked: parts[1])
+    }
+
     public mutating func record(_ work: TimeInterval) { worked += max(0, work) }
 
     /// The sprint ran its length: the next one starts from zero, and the fifth wraps back to the first.
