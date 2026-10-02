@@ -228,6 +228,19 @@ struct FocusPanelView: View {
                         onDone: { store.toggleDone(task.id) }, onMakeLive: { store.makeLive(task.id) }
                     )
                     .contextMenu { rowMenu(task) }
+                    // Up next is Today's order, so a row dropped on another takes its place there, as on the Board.
+                    .draggable(task.id) {
+                        Text(task.title)
+                            .font(Typography.cardTitle)
+                            .foregroundStyle(Palette.textPrimary)
+                            .padding(Space.s4)
+                            .background(Palette.raised, in: RoundedRectangle(cornerRadius: Radius.card))
+                    }
+                    .dropDestination(for: String.self) { ids, _ in
+                        guard let id = ids.first else { return false }
+                        store.move(id, to: .today, before: task.id)
+                        return true
+                    }
                     .transition(.rise(reduceMotion: reduceMotion))
                 }
             }
@@ -240,6 +253,11 @@ struct FocusPanelView: View {
                 }
             } else {
                 FocusAddTaskButton { isAdding = true }
+                    .dropDestination(for: String.self) { ids, _ in
+                        guard let id = ids.first else { return false }
+                        store.move(id, to: .today)
+                        return true
+                    }
             }
             if !scheduled.isEmpty || isAddingScheduled {
                 scheduledHeader(count: scheduled.count)
