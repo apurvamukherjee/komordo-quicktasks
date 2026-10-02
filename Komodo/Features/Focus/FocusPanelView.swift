@@ -8,6 +8,9 @@ struct FocusPanelView: View {
     @Bindable var store: BoardStore
 
     @State private var isAdding = false
+    @State private var isAddingScheduled = false
+    /// The task just added under Scheduled today, whose time the Schedule popover is open on.
+    @State private var schedulingID: String?
     @State private var isScheduledExpanded = true
     @State private var isDoneExpanded = false
     @State private var isShowingSettings = false
@@ -21,6 +24,12 @@ struct FocusPanelView: View {
             .frame(maxHeight: .infinity, alignment: .top)
             .background { FocusPanelBackground(side: store.panelSide) }
             .preferredColorScheme(.dark)
+            #if DEBUG
+                // `-addScheduled "<title>"` presses Scheduled today's + and adds that task, for captures.
+                .task {
+                    if let title = UserDefaults.standard.string(forKey: "addScheduled") { addScheduled(title) }
+                }
+            #endif
     }
 
     private var panel: some View {
@@ -232,8 +241,15 @@ struct FocusPanelView: View {
             } else {
                 FocusAddTaskButton { isAdding = true }
             }
-            if !scheduled.isEmpty {
+            if !scheduled.isEmpty || isAddingScheduled {
                 scheduledHeader(count: scheduled.count)
+                if isAddingScheduled {
+                    InlineAddField { title in
+                        addScheduled(title)
+                    } onCancel: {
+                        isAddingScheduled = false
+                    }
+                }
                 if isScheduledExpanded {
                     ForEach(scheduled) { task in
                         scheduledRow(task).contextMenu { rowMenu(task) }
@@ -266,13 +282,31 @@ struct FocusPanelView: View {
             .buttonStyle(.plain)
             .accessibilityValue(isScheduledExpanded ? "Expanded" : "Collapsed")
             Spacer()
-            Button("Add scheduled task", systemImage: "plus") {}
+            Button("Add scheduled task", systemImage: "plus") { isAddingScheduled = true }
                 .buttonStyle(.icon(.compact))
-                .disabled(true)
-                .help("Schedule tasks from the Board for now")
+                .help("Add a task at a time today")
+                .popover(
+                    isPresented: Binding(get: { schedulingID != nil }, set: { if !$0 { schedulingID = nil } }),
+                    arrowEdge: .leading
+                ) {
+                    if let id = schedulingID, let task = store.tasks.first(where: { $0.id == id }) {
+                        SchedulePopover(store: store, task: task) { schedulingID = nil }
+                    }
+                }
         }
         .padding(.horizontal, 2)
         .padding(.top, 6)
+    }
+
+    /// The new task lands on the next half hour today, then the Schedule popover opens on its time to change it.
+    private func addScheduled(_ title: String) {
+        isAddingScheduled = false
+        guard let task = store.addTask(title, to: .today) else { return }
+        let parts = store.calendar.dateComponents([.hour, .minute], from: store.now)
+        let minute = min(((parts.hour ?? 0) * 60 + (parts.minute ?? 0)) / 30 * 30 + 30, 23 * 60 + 30)
+        store.setSchedule(task.id, to: BoardStore.Schedule(date: store.today, minute: minute))
+        isScheduledExpanded = true
+        schedulingID = task.id
     }
 
     private func scheduledRow(_ task: TaskItem) -> some View {
