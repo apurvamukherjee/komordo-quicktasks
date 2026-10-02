@@ -457,7 +457,9 @@ Imported tasks are placed by date: none or beyond this week → Backlog, this we
 - An open Todoist task joins the list placed by its date. Its due date and time become the schedule, its deadline the due date, its description the notes, and a duration in minutes the estimate. Completed and deleted tasks aren't imported, and neither is someone else's with **Only my items** on.
 - Tasks made in the list after connecting go to Todoist. Tasks made before stay in Komodo, and so do repeating tasks, since each occurrence would become its own Todoist task.
 - An edit on either side, completion included, reaches the other. Only the changed fields are sent, so an untouched Todoist repeat rule survives. When both sides changed a task since the last sync, the newer edit wins.
-- Deleting in Todoist, or moving the task to another project, only unlinks it here. Deleting here deletes in Todoist only with **Sync deletes** on. A change Todoist refuses is tried again on the next sync, and the card shows why.
+- Deleting in Todoist, or moving the task to another project, only unlinks it here; the task keeps its Todoist badge and never goes back as a new item. Deleting here deletes in Todoist only with **Sync deletes** on. A change Todoist refuses is tried again on the next sync, and the card shows why; a change to a task Todoist has deleted unlinks it instead.
+- Finishing a repeating Todoist task here keeps it done with its sessions, and its next date arrives as a new task.
+- An add is sent under the same command ID every time, so one resent after Komodo quit mid-sync can't make a second Todoist task.
 - An estimate on an undated task stays in Komodo, since Todoist keeps a duration only beside a due date. Todoist has one date and no statuses, so it has no date or status mapping.
 - **Disconnect** forgets the token and the links; imported tasks stay as ordinary tasks. Delete all data disconnects too.
 
