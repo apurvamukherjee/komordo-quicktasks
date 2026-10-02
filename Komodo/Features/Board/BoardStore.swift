@@ -463,10 +463,17 @@ import SwiftUI
     func importCalendarEvents(_ events: [CalendarEvent], calendars: Set<String>, days: ClosedRange<LocalDate>) {
         let listID = lists.first { $0.id == settings.calendarListID }?.id ?? lists.first?.id
         guard let listID else { return }
-        let known = Set((tasks + trash + archived + shelved).map(\.id))
-        let saved = CalendarImport.sync(
-            events, board: tasks, known: known, listID: listID, calendars: calendars, days: days,
-            acceptedOnly: settings.calendarAcceptedOnly, week: week, now: now, calendar: calendar)
+        saveImported(
+            CalendarImport.sync(
+                events, board: tasks, known: knownTaskIDs, listID: listID, calendars: calendars, days: days,
+                acceptedOnly: settings.calendarAcceptedOnly, week: week, now: now, calendar: calendar))
+    }
+
+    /// Every task ID Komodo has, Trash and archive included, so an import never brings one back.
+    var knownTaskIDs: Set<String> { Set((tasks + trash + archived + shelved).map(\.id)) }
+
+    /// Imported and updated tasks in one write, replacing by ID.
+    func saveImported(_ saved: [TaskItem]) {
         guard !saved.isEmpty else { return }
         var updated = tasks
         for task in saved {
@@ -477,6 +484,12 @@ import SwiftUI
             }
         }
         tasks = updated
+        // Finished at the provider: the session ends and Focus mode lets the task go, with no celebration for a
+        // completion made somewhere else.
+        if let id = focus.taskID, saved.contains(where: { $0.id == id && $0.isDone }) {
+            closeSession(id)
+            focus.taskID = nil
+        }
     }
 
     /// Quitting ends the running session, so a relaunch doesn't count the time Komodo was closed.
