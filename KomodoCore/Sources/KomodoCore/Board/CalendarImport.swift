@@ -65,7 +65,7 @@ public enum CalendarImport {
         let wanted = events.filter { !acceptedOnly || $0.isAccepted }
         let byID = Dictionary(board.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         var saved: [TaskItem] = []
-        var nextRank: [Bucket: Double] = [:]
+        var ends = ColumnEnd(board: board, week: week)
 
         for event in wanted {
             let id = taskID(for: event)
@@ -93,12 +93,7 @@ public enum CalendarImport {
                 id: id, listID: listID, title: event.title, bucket: .backlog, rank: 0, estimate: estimate,
                 notes: event.notes, scheduledDate: day, scheduledMinute: minute, source: .calendar,
                 sourceTitle: event.calendarTitle, sourceURL: event.meetingLink, createdAt: now)
-            let column = task.column(in: week)
-            let rank =
-                nextRank[column]
-                ?? (board.filter { $0.column(in: week) == column && !$0.isDone }.map(\.rank).max() ?? 0) + 1
-            task.rank = rank
-            nextRank[column] = rank + 1
+            task.rank = ends.rank(for: task.column(in: week))
             saved.append(task)
         }
 
