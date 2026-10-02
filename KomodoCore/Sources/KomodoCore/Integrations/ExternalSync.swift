@@ -95,6 +95,50 @@ public enum ExternalSync {
         return (saved, links)
     }
 
+    /// One change for the provider.
+    public enum Push: Equatable, Sendable {
+        /// A task made in the list since connecting.
+        case add(TaskItem)
+        case update(externalID: String, task: TaskItem, changes: Set<ExternalItem.Field>)
+        /// A linked task deleted here, with Sync deletes on.
+        case delete(externalID: String)
+    }
+
+    /// What Komodo changed since the links were last agreed.
+    ///
+    /// - Parameters:
+    ///   - board: open and done tasks on the Board.
+    ///   - known: every task ID Komodo has; a linked task missing from it was deleted for good.
+    ///   - trash: the IDs of tasks in Trash.
+    public static func pushes(
+        links: [ExternalLink], board: [TaskItem], known: Set<String>, trash: Set<String>, context: Context
+    ) -> [Push] {
+        let byID = Dictionary(board.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var pushes: [Push] = []
+        for link in links {
+            if let task = byID[link.taskID] {
+                let changes = ExternalItem.changes(from: link.snapshot, to: ExternalItem.snapshot(of: task))
+                if !changes.isEmpty {
+                    pushes.append(.update(externalID: link.externalID, task: task, changes: changes))
+                }
+            } else if context.syncsDeletes, trash.contains(link.taskID) || !known.contains(link.taskID) {
+                pushes.append(.delete(externalID: link.externalID))
+            }
+        }
+        let linked = Set(links.map(\.taskID))
+        // An imported task whose item was deleted keeps its ID, and must not go back as a new one. Repeating tasks
+        // stay here, since every occurrence would become its own item.
+        let prefix = context.taskID(for: "")
+        for task in board
+        where task.listID == context.listID && !linked.contains(task.id) && !task.id.hasPrefix(prefix)
+            && task.source == nil && !task.isDone && task.repeatRule == nil && task.repeatParentID == nil
+            && (task.createdAt ?? .distantPast) >= context.connectedAt
+        {
+            pushes.append(.add(task))
+        }
+        return pushes
+    }
+
     private static func apply(_ item: ExternalItem, to task: inout TaskItem, now: Date) {
         task.title = item.title
         if (task.notes ?? "") != (item.notes ?? "") {

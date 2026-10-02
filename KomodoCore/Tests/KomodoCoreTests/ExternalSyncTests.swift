@@ -141,3 +141,57 @@ struct ExternalSyncPullTests {
         #expect(result.saved.first?.notesRTF == nil)
     }
 }
+
+struct ExternalSyncPushTests {
+    let pull = ExternalSyncPullTests()
+
+    func pushes(
+        _ links: [ExternalLink], _ board: [TaskItem], trash: Set<String> = [], syncsDeletes: Bool = false
+    ) -> [ExternalSync.Push] {
+        var context = pull.context
+        context.syncsDeletes = syncsDeletes
+        let known = Set(board.map(\.id)).union(trash)
+        return ExternalSync.pushes(links: links, board: board, known: known, trash: trash, context: context)
+    }
+
+    @Test func nothingIsSentWhileBothSidesAgree() {
+        let first = pull.imported([pull.item("1", "Write post", day: 0)])
+        #expect(pushes(first.links, first.board).isEmpty)
+    }
+
+    @Test func aLocalEditSendsOnlyTheFieldsThatChanged() {
+        var first = pull.imported([pull.item("1", "Write post", day: 0)])
+        first.board[0].title = "Write the post"
+        first.board[0].completedAt = pull.now
+        first.board[0].sessions = [WorkSession(start: pull.now)]
+        #expect(
+            pushes(first.links, first.board) == [
+                .update(externalID: "1", task: first.board[0], changes: [.title, .done])
+            ])
+    }
+
+    @Test func newTasksInTheListAreSentButOlderAndImportedOnesAreNot() {
+        let new = TaskItem(id: "n", listID: "work", title: "New", bucket: .today, rank: 1, createdAt: pull.now)
+        var old = new
+        old.id = "o"
+        old.createdAt = pull.now.addingTimeInterval(-2 * 86_400)
+        var other = new
+        other.id = "x"
+        other.listID = "personal"
+        var repeating = new
+        repeating.id = "r"
+        repeating.repeatRule = RepeatRule(interval: 1, unit: .day)
+        var unlinked = new
+        unlinked.id = "todoist:9"
+        #expect(pushes([], [new, old, other, repeating, unlinked]) == [.add(new)])
+    }
+
+    @Test func deletesAreSentOnlyWithSyncDeletesOn() {
+        let first = pull.imported([pull.item("1", "Write post"), pull.item("2", "Record demo")])
+        let rest = Array(first.board.dropFirst())
+        #expect(pushes(first.links, rest, trash: ["todoist:1"]).isEmpty)
+        #expect(pushes(first.links, rest, trash: ["todoist:1"], syncsDeletes: true) == [.delete(externalID: "1")])
+        // Purged from Trash before a sync could send it.
+        #expect(pushes(first.links, rest, syncsDeletes: true) == [.delete(externalID: "1")])
+    }
+}

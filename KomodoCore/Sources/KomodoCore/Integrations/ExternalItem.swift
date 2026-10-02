@@ -37,6 +37,22 @@ public struct ExternalItem: Equatable, Sendable {
         self.url = url
     }
 
+    /// The fields that sync both ways, in the order a snapshot keeps them.
+    public enum Field: Int, CaseIterable, Sendable {
+        case title, notes, date, minute, dueDate, estimate, done
+    }
+
+    /// Which fields differ between two snapshots, so a push sends only what was edited: rewriting an untouched due
+    /// date would drop a provider's repeat rule, for one.
+    public static func changes(from old: String, to new: String) -> Set<Field> {
+        let before = old.split(separator: "\u{1F}", omittingEmptySubsequences: false)
+        let after = new.split(separator: "\u{1F}", omittingEmptySubsequences: false)
+        return Set(
+            Field.allCases.filter { field in
+                before.dropFirst(field.rawValue).first != after.dropFirst(field.rawValue).first
+            })
+    }
+
     /// The fields that sync both ways, as one string a link can keep and compare.
     public var snapshot: String {
         Self.snapshot(
