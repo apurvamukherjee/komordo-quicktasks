@@ -9,6 +9,7 @@ import SwiftUI
     private var panel: NSPanel?
     private var timer: FloatingTimerPanel?
     private var setAside: [NSWindow] = []
+    private var isAside = false
 
     func attach(_ store: BoardStore) {
         guard self.store == nil else { return }
@@ -56,10 +57,15 @@ import SwiftUI
     }
 
     private func setHomeAside(_ aside: Bool) {
-        if aside, setAside.isEmpty {
+        guard aside != isAside else { return }
+        isAside = aside
+        if aside {
             setAside = NSApp.windows.filter { $0.isVisible && $0.canBecomeMain }
             for window in setAside { window.orderOut(nil) }
-        } else if !aside, !setAside.isEmpty {
+        } else if setAside.isEmpty {
+            // Home was closed before Start, so there's nothing to bring back; it opens afresh instead.
+            store?.showHome()
+        } else {
             for window in setAside { window.makeKeyAndOrderFront(nil) }
             setAside = []
             NSApp.activate()
