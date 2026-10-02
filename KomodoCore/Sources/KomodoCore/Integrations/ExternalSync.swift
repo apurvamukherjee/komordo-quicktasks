@@ -195,7 +195,7 @@ public enum ExternalSync {
         task.scheduledDate = item.date
         task.scheduledMinute = item.date == nil ? nil : item.minute
         task.dueDate = item.dueDate
-        task.estimate = item.estimate
+        if item.date != nil { task.estimate = item.estimate }
         if item.isDone != task.isDone { task.completedAt = item.isDone ? item.updatedAt ?? now : nil }
         task.sourceURL = item.url
     }

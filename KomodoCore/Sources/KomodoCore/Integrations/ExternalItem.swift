@@ -70,10 +70,13 @@ public struct ExternalItem: Equatable, Sendable {
         title: String, notes: String?, date: LocalDate?, minute: Int?, dueDate: LocalDate?, estimate: TimeInterval?,
         isDone: Bool
     ) -> String {
-        // Whole minutes, since that's all a provider keeps; seconds left over would read as an edit forever.
+        // Whole minutes, since that's all a provider keeps; seconds left over would read as an edit forever. An
+        // undated task's estimate stays out, since Todoist only keeps a duration beside a due date: it would never
+        // agree, and each pull would clear it.
+        let minutes = date == nil ? nil : estimate.map { String(Int(($0 / 60).rounded())) }
         let parts = [
             title, notes ?? "", date?.description ?? "", date == nil ? "" : minute.map(String.init) ?? "",
-            dueDate?.description ?? "", estimate.map { String(Int(($0 / 60).rounded())) } ?? "", isDone ? "1" : "0",
+            dueDate?.description ?? "", minutes ?? "", isDone ? "1" : "0",
         ]
         return parts.joined(separator: "\u{1F}")
     }

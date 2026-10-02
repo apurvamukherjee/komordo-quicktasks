@@ -56,7 +56,7 @@ extension Todoist {
         }
 
         /// The item fields for the changed fields. A duration needs a due date at Todoist, so an estimate on an
-        /// undated task stays in Komodo.
+        /// undated task stays in Komodo (the snapshot leaves it out too).
         static func fields(of task: TaskItem, _ changes: Set<ExternalItem.Field>) -> [String: JSONValue] {
             var args: [String: JSONValue] = [:]
             if changes.contains(.title) { args["content"] = .string(task.title) }

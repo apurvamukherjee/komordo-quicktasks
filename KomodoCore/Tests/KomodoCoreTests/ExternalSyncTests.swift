@@ -228,3 +228,17 @@ struct ExternalSyncConfirmTests {
         #expect(result.refusals == ["Item not found"])
     }
 }
+
+struct ExternalSyncEstimateTests {
+    let pull = ExternalSyncPullTests()
+
+    @Test func anUndatedTaskKeepsItsEstimateThroughARemoteEdit() {
+        var first = pull.imported([pull.item("1", "Write post")])
+        first.board[0].estimate = 1_800
+        #expect(ExternalItem.snapshot(of: first.board[0]) == first.links[0].snapshot)
+        let renamed = pull.item("1", "Write the post", updated: 60)
+        let result = ExternalSync.pull(
+            [renamed], links: first.links, board: first.board, known: [], context: pull.context)
+        #expect(result.saved.first?.estimate == 1_800)
+    }
+}
