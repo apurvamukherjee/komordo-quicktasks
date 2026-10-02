@@ -99,6 +99,19 @@ public final class AppDatabase: Sendable {
                     CREATE INDEX breaks_start ON breaks(started_at);
                     """)
         }
+        // No foreign key on the task either: a link outlives its task so a delete can still reach the provider.
+        // `snapshot` departs from ARCHITECTURE §5: the synced fields as last agreed, which is how a local edit shows,
+        // since not every change to a task stamps `edited_at`.
+        migrator.registerMigration("v5 external links") { db in
+            try db.execute(
+                sql: """
+                    CREATE TABLE external_links (
+                      connection_id TEXT NOT NULL, external_id TEXT NOT NULL, task_id TEXT NOT NULL,
+                      external_updated_at REAL, snapshot TEXT NOT NULL,
+                      PRIMARY KEY (connection_id, external_id)
+                    );
+                    """)
+        }
         return migrator
     }
 
