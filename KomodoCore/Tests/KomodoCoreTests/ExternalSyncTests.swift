@@ -25,3 +25,119 @@ struct ExternalItemTests {
         #expect(Set([item, renamed, done, moved].map(\.snapshot)).count == 4)
     }
 }
+
+struct ExternalSyncPullTests {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        return calendar
+    }
+
+    // Thursday 1 October 2026, 08:00 UTC.
+    let now = Date(timeIntervalSince1970: 1_790_841_600)
+    var today: LocalDate { LocalDate(now, calendar: calendar) }
+    var context: ExternalSync.Context {
+        ExternalSync.Context(
+            connectionID: "todoist", source: .todoist, listID: "work", sourceTitle: "Komodo launch", onlyMine: false,
+            syncsDeletes: false, connectedAt: now.addingTimeInterval(-86_400),
+            week: WeekRange(containing: today, calendar: calendar), now: now)
+    }
+
+    func item(_ id: String, _ title: String, day: Int? = nil, updated: TimeInterval = 0) -> ExternalItem {
+        ExternalItem(
+            id: id, title: title, date: day.map { today.adding(days: $0, calendar: calendar) }, minute: nil,
+            updatedAt: now.addingTimeInterval(updated), url: Todoist.taskURL(id))
+    }
+
+    /// Imports `items` into an empty list and returns the board and links as they'd be saved.
+    func imported(_ items: [ExternalItem]) -> (board: [TaskItem], links: [ExternalLink]) {
+        let result = ExternalSync.pull(items, links: [], board: [], known: [], context: context)
+        return (result.saved, result.links)
+    }
+
+    @Test func newItemsArePlacedByDateWithALinkEach() {
+        let result = imported([item("1", "Write post", day: 0), item("2", "Record demo", day: 2), item("3", "Ideas")])
+        let byTitle = Dictionary(uniqueKeysWithValues: result.board.map { ($0.title, $0) })
+        #expect(byTitle["Write post"]?.column(in: context.week) == .today)
+        #expect(byTitle["Record demo"]?.column(in: context.week) == .week)
+        #expect(byTitle["Ideas"]?.column(in: context.week) == .backlog)
+        #expect(result.board.allSatisfy { $0.source == .todoist && $0.sourceTitle == "Komodo launch" })
+        #expect(result.board.map(\.id) == ["todoist:1", "todoist:2", "todoist:3"])
+        #expect(result.links.map(\.taskID) == result.board.map(\.id))
+    }
+
+    @Test func doneDeletedAndOthersItemsAreNotImported() {
+        var done = item("1", "Done already")
+        done.isDone = true
+        var gone = item("2", "Deleted")
+        gone.isDeleted = true
+        var theirs = item("3", "Someone else's")
+        theirs.isMine = false
+        var mineOnly = context
+        mineOnly.onlyMine = true
+        #expect(
+            ExternalSync.pull([done, gone, theirs], links: [], board: [], known: [], context: mineOnly).saved.isEmpty)
+        #expect(imported([theirs]).board.count == 1)
+    }
+
+    @Test func aTaskDeletedInKomodoIsNotImportedAgain() {
+        let result = ExternalSync.pull(
+            [item("1", "Write post")], links: [], board: [], known: ["todoist:1"], context: context)
+        #expect(result.saved.isEmpty && result.links.isEmpty)
+    }
+
+    @Test func aRemoteEditUpdatesTheTaskAndItsLink() {
+        let first = imported([item("1", "Write post", day: 3)])
+        let edited = item("1", "Write the launch post", day: 0, updated: 60)
+        let result = ExternalSync.pull([edited], links: first.links, board: first.board, known: [], context: context)
+        #expect(result.saved.map(\.title) == ["Write the launch post"])
+        #expect(result.saved.first?.scheduledDate == today)
+        #expect(result.links.first?.snapshot == edited.snapshot)
+        #expect(result.links.first?.remoteUpdatedAt == edited.updatedAt)
+    }
+
+    @Test func aRemoteCompletionFinishesTheTask() {
+        let first = imported([item("1", "Write post")])
+        var done = item("1", "Write post", updated: 60)
+        done.isDone = true
+        let result = ExternalSync.pull([done], links: first.links, board: first.board, known: [], context: context)
+        #expect(result.saved.first?.completedAt == done.updatedAt)
+    }
+
+    @Test func aRemoteDeleteOnlyUnlinks() {
+        var first = imported([item("1", "Write post")])
+        first.board[0].notes = "Outline in my notebook"
+        var gone = item("1", "Write post", updated: 60)
+        gone.isDeleted = true
+        let result = ExternalSync.pull([gone], links: first.links, board: first.board, known: [], context: context)
+        #expect(result.links.isEmpty)
+        #expect(result.saved.first?.source == nil)
+        #expect(result.saved.first?.notes == "Outline in my notebook")
+    }
+
+    @Test func whenBothSidesChangedTheNewerEditWins() {
+        let first = imported([item("1", "Write post")])
+        var local = first.board
+        local[0].title = "Write post tonight"
+        local[0].editedAt = now.addingTimeInterval(120)
+        let older = item("1", "Write post today", updated: 60)
+        let kept = ExternalSync.pull([older], links: first.links, board: local, known: [], context: context)
+        #expect(kept.saved.isEmpty)
+        #expect(kept.links.first?.snapshot == first.links.first?.snapshot)
+        let newer = item("1", "Write post today", updated: 180)
+        let taken = ExternalSync.pull([newer], links: first.links, board: local, known: [], context: context)
+        #expect(taken.saved.map(\.title) == ["Write post today"])
+    }
+
+    @Test func aRemoteNotesEditDropsTheStaleFormatting() {
+        var first = imported([item("1", "Write post")])
+        first.board[0].notes = "Old"
+        first.board[0].notesRTF = Data([1])
+        first.links[0].snapshot = ExternalItem.snapshot(of: first.board[0])
+        var edited = item("1", "Write post", updated: 60)
+        edited.notes = "New"
+        let result = ExternalSync.pull([edited], links: first.links, board: first.board, known: [], context: context)
+        #expect(result.saved.first?.notes == "New")
+        #expect(result.saved.first?.notesRTF == nil)
+    }
+}
