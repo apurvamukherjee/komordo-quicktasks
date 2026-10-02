@@ -3,8 +3,10 @@
 Last updated: 2026-10-02 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
 maintainer), all of Phase 1 except what depends on Gmail (Claude mode, the Review tab, reschedules) and the
 XCUITest smoke tests (they need the maintainer's screen), and most of Phase 2 (Komodo Assistant; voice input and
-voice notes; Todoist sync, tested against documented responses only). Next is the other token integrations
-(Notion, Linear, ClickUp, Asana) and trying Todoist with a real token. §4 lists everything that remains, phase by
+voice notes; Todoist sync, tested against documented responses only). **Version 0.9.0** is the first downloadable
+build: every offline-only gap that needed no token, screen or design decision was closed, timers stopped redrawing
+in hidden windows, and `scripts/make-dmg.sh` makes the styled DMG for GitHub Releases. Next is the maintainer
+testing 0.9.0 end to end, then Gmail → Calendar and the other token integrations (Notion, Linear, ClickUp, Asana). §4 lists everything that remains, phase by
 phase. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new
 commits on top. `CHANGELOG.md` has the full list of what landed.
 
@@ -288,7 +290,8 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 **Phase 2: what's left**
 - **Token integrations** (the next task above).
 - **Light appearance** (DESIGN_SYSTEM §2: "Light is P2"): Light values for every color set, and the Settings
-  appearance choice. Increase Contrast variants are missing too (§5), which DESIGN_SYSTEM §8 expects.
+  appearance choice. Increase Contrast variants are missing too (§5), which DESIGN_SYSTEM §8 expects. Neither has
+  values in the spec yet (§9 question 7).
 - **Real voice:** voice was only tried with a simulated voice; try the microphone once the maintainer allows the
   prompts.
 - **Assistant with Claude:** try once a key is in Settings ▸ AI; check the structured-output schema is accepted
@@ -301,33 +304,40 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - Measure the Release helper (6.4 MB) and app (32 MB) once more and decide whether GRDB should live in one
   shared framework instead of twice.
 
-**Polish carried in §5** (no phase of their own): Sessions' own Lists menu and "Load earlier", list image icons
-and the backup's `assets/`, onboarding's pulsing rings and moving drawings, the Focus Panel's Scheduled today
-**+** and row dragging, the floating card's GIF and "in a row" pill, a declared `.kbak` document type, the shared
-table, suggestion card and page-dot components, and the Reports loading state.
+**Polish carried in §5** (no phase of their own), each waiting on a design decision (§9 question 7) or its
+screen: list image icons and the backup's `assets/`, an Archive screen, onboarding's moving drawings, the floating
+card's GIF and "in a row" pill, the shared table, suggestion card and page-dot components, Komodo's own sounds,
+and the Reports loading state. Done in 0.9.0: Load earlier, the pulsing rings, the panel's Scheduled today **+**
+and row dragging, the won card's sparks, the `.kbak` type, saved list and Pomodoro count, A4 PDFs.
 
-**Maintainer-only steps:** re-record the README demo video (ask first), foreground captures with green switches,
-and trying notifications, global shortcuts, the menu bar, Calendar access, the microphone and a Claude key by
-hand.
+**Maintainer-only steps:** test the 0.9.0 DMG end to end, re-record the README demo video (ask first), foreground
+captures with green switches, and trying notifications, global shortcuts, the menu bar, Calendar access, the
+microphone and a Claude key by hand. Also untried by pointer from 0.9.0: dragging Focus Panel rows, the Scheduled
+today **+** click (tried through `-addScheduled`), and double-clicking a `.kbak` in Finder (tried with `open -a`).
+
+**Release (0.9.0 onward):** CONTRIBUTING.md ▸ Releases. The 0.9.0 DMG is ad hoc signed; Gatekeeper blocks it until
+the `xattr` step in the notes. The Release app measured 34 MB on disk and the DMG 10 MB.
 
 ## 5. Known gaps and placeholders
 
 - **Todoist:**
   - Never tried against the real API: the fixtures follow the documented response shape (§9 question 3).
-  - Completing a repeating Todoist task here sends `item_close`, which moves it to its next date; the next pull
-    then reopens the Komodo task on that date, with its sessions still attached.
-  - A full sync (first connect, or an expired sync token) doesn't report deleted items, so a task whose item was
-    deleted meanwhile stays linked until its item changes.
-  - Todoist sub-tasks come in as ordinary tasks, not as subtasks. Sections, labels and priority aren't read.
-  - One Todoist connection in all; changing the project means Disconnect and Connect again.
-  - A refused change is retried on every sync until it goes through, with the reason on the card.
-  - A push and its confirmation aren't atomic: if Komodo quits between Todoist accepting a new task and the link
-    being saved, the next sync sends it again.
+  - Todoist sub-tasks come in as ordinary tasks, not as subtasks: two-way subtasks need each Komodo subtask
+    linked to its own item. Sections, labels and priority aren't read, since Komodo has nothing to map them to.
+  - One Todoist connection in all; changing the project means Disconnect and Connect again (needs a design for
+    several connections).
+  - A refused change is still retried on every sync, except ITEM_NOT_FOUND, which now unlinks.
+  - A resent add relies on Todoist's documented uuid de-duplication; whether a repeated command returns its
+    `temp_id_mapping` isn't documented, so without one the add takes the unlinked item with the same title from
+    the same answer. Check against a real token.
+  - A completion made in Todoist on a repeating task only moves the Komodo task to the next date (Todoist can't
+    tell it from a reschedule); a completion made in Komodo keeps the finished task and adds the next one.
 - **Persistence:**
-  - The Pomodoro count starts over after a relaunch (see Focus restore below).
+  - The Pomodoro count carries over a relaunch on the same day and starts over on a new day.
   - No `ValueObservation`: nothing else writes the file, and a restore reloads in place. Add it with the MCP
     helper.
-  - The selected list and panel positions aren't saved.
+  - The selected list is saved. Panel positions already were: the floating timer remembers its spot per screen,
+    and the Focus Panel docks to its saved side.
 - **Data & backup:**
   - The Save and Open panels (Export zip, Change, Choose file…) weren't clicked; export, restore and delete were
     tried through the daily backup, `-openRestore`, `-openDeleteAll` and keystrokes, on scratch files only.
@@ -337,18 +347,19 @@ hand.
   - **Protected backups:** tried on a scratch database with `-backupPassword`, which stands in for the Keychain:
     the set sheet typed with `CGEvent.postToPid`, a sealed daily backup, a wrong then right password, and a
     sealed before-restore copy. The real Keychain wasn't touched. An ad hoc signed build may ask for Keychain
-    access after each rebuild; a Developer ID build won't. The export Save panel wasn't clicked. `.kbak` isn't a
-    declared document type, so Finder shows it as a plain file and double-clicking doesn't open Komodo.
+    access after each rebuild; a Developer ID build won't. The export Save panel wasn't clicked. `.kbak` is a
+    declared document type (`app.komodo.backup`); opening one goes to Data & backup's restore.
 - **Onboarding:**
-  - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip has no pulsing rings, and the
+  - Step 6 (Gmail) is left out, so the sheet counts five steps. The Start tip pulses its rings; the
     illustrations don't float or tick (static drawings, so an open sheet costs nothing).
   - Allow was pressed once in a background test, which may have shown the system notification prompt.
 - **Reports:**
-  - Sessions uses the header's list filter rather than its own multi-select Lists menu, and has no "Load earlier"
-    paging; the whole range renders in a lazy stack.
+  - Sessions uses the header's list filter rather than its own multi-select Lists menu (two list filters on one
+    tab would disagree). It shows the newest 100 sessions with Load earlier for 100 more.
   - The custom range popover, the session sheet, hover readouts and export panels weren't driven with the pointer;
     exports were checked through `-exportSessions`, and breaks on a scratch database with `-focusState break`.
-  - PDF pages are Letter. The loading state isn't built, since a local database answers at once.
+  - PDF pages follow the Mac's default paper (A4 here). The loading state isn't built, since a local database
+    answers at once.
 - **Archive:** archived tasks and lists are kept for Reports; nothing shows them yet, and Undo is the only way
   back. A task restored from Trash into an archived list goes quietly onto that list's shelf.
 - **Lists:**
@@ -398,12 +409,13 @@ hand.
 - **Scheduled focus alerts:** only a saved board arms them. A crash can leave one pending until the next launch
   clears it. None has been seen firing on the maintainer's Mac.
 - **Focus Panel:**
-  - The Scheduled today **+** is disabled with a `.help` note.
+  - The Scheduled today **+** adds a task at the next half hour and opens the Schedule popover beside the panel.
   - Rows have Make live, Done, Duplicate and Delete. Schedule, Subtasks, Notes and Move to list open the Home
-    window, so they're left out of the panel's menu, and rows can't be dragged to reorder yet.
+    window, so they're left out of the panel's menu. Rows drag to reorder (not tried with the pointer).
   - Start → panel → Home was only exercised through the launch flags, not by clicking in the running app.
-  - If the Home window was closed before Start, Home has no window to bring back.
-  - The won card's twinkling sparks are left out.
+  - If Home was closed before Start, leaving Focus mode opens it afresh.
+  - Hidden windows' timers idle (`isOffscreen`); with Home visible and a task live, the Board still spends about
+    4% CPU on its one-second layout pass.
 - **Local MCP server:**
   - Driven over stdio against scratch files and seen refreshing a running scratch instance; not yet connected
     from Claude Desktop, Claude Code or Raycast.
@@ -417,7 +429,8 @@ hand.
     system's Calendar access prompt on the maintainer's Mac. Ask before pressing it.
   - A recurring event's occurrences are told apart by external ID plus start, so moving one occurrence makes a
     new task and unlinks the old one.
-  - Unlinking matches a task to its calendar by the calendar's name; two calendars with the same name share it.
+  - A task only knows its calendar's name. A name an unread calendar also uses is left out of unlinking, so such
+    tasks stay linked when their event goes; telling them apart needs the calendar's identifier on the task.
   - Switching a calendar off unlinks its open tasks in range rather than deleting them, as FEATURES §5 says.
 - **Settings ▸ AI:** Test was checked against the Models API with a bogus key (401 → "Anthropic didn't accept
   this key"); a working key and its save to the Keychain weren't tried. The Claude mode warning and the What's
@@ -433,11 +446,12 @@ hand.
   haven't been shown on the maintainer's Mac. Ask before the first real try. The hold gesture on the
   Assistant's mic and the inspector's buttons weren't driven with the pointer.
 - **Gmail status row** in the sidebar is hidden, because Gmail isn't connected (DESIGN_SYSTEM §12).
-- **Components not built yet** (DESIGN_SYSTEM §9): table, integration card, suggestion card, code block. Page
-  dots and the folder picker exist inside onboarding and Data & backup, not as shared components. Build each with the
-  screen that uses it.
+- **Components not built yet** (DESIGN_SYSTEM §9): table and suggestion card (Gmail's Review tab). The integration
+  card and code block exist (`IntegrationCard.swift`, `CodeBlock.swift`). Page dots and the folder picker exist
+  inside onboarding and Data & backup, not as shared components. Build each with the screen that uses it.
 - **README recording** (`board.gif`) still shows the old sidebar mark (clock hand, no check).
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
+- **Archive:** no screen shows archived lists or tasks; it needs a design (§9 question 7).
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
   EstimateParser, BoardLayout, DayPlan, DaySummary and FocusHistory.
@@ -458,6 +472,11 @@ hand.
 | Pomodoros default | On | The maintainer's call, matching `Main.png` and `FocusPanel.png`; FEATURES §4.18 now says On |
 | Sprint-end notification | "Sprint 2 of 4 done" · "Take 5min. Design review is paused." | DESIGN_SYSTEM §14.2 has no sprint-end row; FEATURES §4.10 asks for one |
 | Alert sound | macOS "Glass" | No bundled sounds yet (`success.caf` is named on the canvas) |
+| First release | 0.9.0, ad hoc signed DMG on GitHub Releases | Gmail → Calendar (P0) is parked, so it's a preview; signing waits for a Developer ID (§9 question 6) |
+| DMG labels | Light plates under both icon labels in the background art | Finder draws icon labels black on a custom background, unreadable on Komodo's near-black |
+| Todoist unlink | The task keeps `source = .todoist` and loses its URL | Clearing the source made a Komodo-made task look new, so it was sent back to Todoist |
+| Shared calendar names | Left out of unlinking | Tasks keep only the calendar's name; the safe direction is staying linked |
+| Scheduled today + | Next half hour, then the Schedule popover | The canvas draws only the button; Komodo has no time parsing in titles |
 | Sprint timing | Work across tasks counts toward one sprint; only a full sprint moves the count; a hand break resumes it | FEATURES §4.10–4.11 leave it open; this matches a classic Pomodoro |
 | Single-list badges | Every card in "Work" shows W | `Main.png` mixes S/P/L badges into the Work list; the spec filters to one list |
 | Dated tasks in This week | At the bottom | FEATURES §4.2 |
@@ -717,4 +736,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 4. **Permission prompts:** may the next session show macOS's Calendar, microphone and speech-recognition prompts
    on this Mac to try calendar import and voice for real?
 5. **Claude key:** will the maintainer add one in Settings ▸ AI so the Assistant's Claude path can be tried?
-6. **Release:** when should signing, notarizing and Sparkle happen, and with which Developer ID team?
+6. **Release:** when should signing, notarizing and Sparkle happen, and with which Developer ID team? 0.9.0 is ad
+   hoc signed.
+7. **Designs needed:** Light values and Increase Contrast variants for every color set, an Archive screen (where
+   archived lists and tasks show, and how they come back), how a list picks an image icon, and Komodo's own sound
+   files. Each is code-only once there's a spec.
