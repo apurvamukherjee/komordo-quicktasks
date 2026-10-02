@@ -4,6 +4,21 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Komodo Backup</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.komodo.backup</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -35,5 +50,25 @@
 	<string>Komodo listens while you hold the mic and turns your words into text on this Mac.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Speech is transcribed on this Mac and never leaves it.</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Komodo Backup</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.komodo.backup</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>kbak</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

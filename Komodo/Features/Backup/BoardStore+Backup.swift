@@ -208,5 +208,5 @@ private struct MissingBackupPassword: Error {}
 
 extension UTType {
     /// `.kbak`, a password-protected backup.
-    static let komodoBackup = UTType(filenameExtension: BackupCrypto.fileExtension) ?? .data
+    static let komodoBackup = UTType(exportedAs: "app.komodo.backup")
 }

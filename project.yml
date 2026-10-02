@@ -51,6 +51,18 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: app.komodo.Komodo
             CFBundleURLSchemes: [komodo]
+        # Password-protected backups, so Finder shows them as Komodo's and a double-click opens Restore.
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: app.komodo.backup
+            UTTypeDescription: Komodo Backup
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [kbak]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Komodo Backup
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes: [app.komodo.backup]
     # The hardened runtime blocks Calendar unless the app asks for it (calendar import, FEATURES §5).
     entitlements:
       path: Komodo/Komodo.entitlements
