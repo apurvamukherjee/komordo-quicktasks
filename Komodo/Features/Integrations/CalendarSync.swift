@@ -120,8 +120,12 @@ import SwiftUI
                 return
             }
         #endif
-        let sources = eventStore.calendars(for: .event).filter { chosen.contains($0.calendarIdentifier) }
-        titles = Set(sources.map(\.title))
+        let all = eventStore.calendars(for: .event)
+        let sources = all.filter { chosen.contains($0.calendarIdentifier) }
+        // A task only knows its calendar's name, so a name an unread calendar shares can't say which one a task
+        // came from: its tasks stay linked rather than lose the link because the other calendar wasn't read.
+        let shared = Set(all.filter { !chosen.contains($0.calendarIdentifier) }.map(\.title))
+        titles = Set(sources.map(\.title)).subtracting(shared)
         if sources.isEmpty {
             events = []
         } else {

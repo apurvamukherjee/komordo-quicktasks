@@ -56,7 +56,8 @@ public enum CalendarImport {
     /// - Parameters:
     ///   - board: open and done tasks on the Board.
     ///   - known: every task ID Komodo has, Trash and archive included, so those never come back.
-    ///   - calendars: the calendars that were read, so a task from one that wasn't isn't unlinked.
+    ///   - calendars: the names of the calendars that were read and no unread calendar shares, so a task from one
+    ///     that wasn't read isn't unlinked.
     ///   - days: the first and last day that were read.
     public static func sync(
         _ events: [CalendarEvent], board: [TaskItem], known: Set<String>, listID: String, calendars: Set<String>,
