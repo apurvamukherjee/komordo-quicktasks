@@ -8,12 +8,18 @@ struct SessionsReport: View {
     /// Opens the add or edit sheet; nil entry adds.
     var edit: (SessionLog.Entry?) -> Void
 
+    private static let page = 100
+    /// How many of the newest sessions are shown; Load earlier adds a page.
+    @State private var shown = Self.page
+
     var body: some View {
         let log = SessionLog(store.reportData, range: store.reportRange, includesBreaks: store.reports.showsBreaks)
         VStack(alignment: .leading, spacing: 14) {
             toolbar(log)
             table(log)
         }
+        // A new range or filter starts from its newest page again.
+        .onChange(of: store.reportRange) { shown = Self.page }
     }
 
     private func toolbar(_ log: SessionLog) -> some View {
@@ -74,18 +80,37 @@ struct SessionsReport: View {
         VStack(spacing: 0) {
             ReportTableHeader(columns: columns, titles: ["TASK", "LIST", "#", "DATE", "START", "END", "DURATION", ""])
             LazyVStack(spacing: 0) {
-                ForEach(log.days, id: \.date) { day in
+                ForEach(log.latest(shown), id: \.date) { day in
                     dayDivider(day)
                     ForEach(day.entries) { entry in
                         row(entry)
                     }
                 }
             }
+            if log.entryCount > 0 { footer(log) }
         }
         .padding(.top, 6)
         .padding(.horizontal, Space.s2)
         .padding(.bottom, Space.s1)
         .spotlight(Palette.violet, lifts: false) { CardSurface() }
+    }
+
+    /// Reports.dc.html's footer: how many sessions show, and Load earlier while some don't.
+    private func footer(_ log: SessionLog) -> some View {
+        HStack {
+            Text("Showing \(min(shown, log.entryCount)) of \(log.entryCount) sessions")
+                .font(.system(size: 12).monospacedDigit())
+                .foregroundStyle(Palette.textMuted)
+            Spacer()
+            if shown < log.entryCount {
+                Button("Load earlier") { shown += Self.page }
+                    .buttonStyle(.komodo(.ghost, size: .small))
+            }
+        }
+        .padding(.horizontal, Space.s4)
+        .frame(height: 40)
+        .overlay(alignment: .top) { Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1) }
+        .padding(.top, 4)
     }
 
     /// "SAT, SEP 26 · TODAY" across a hairline, with the day's totals.
