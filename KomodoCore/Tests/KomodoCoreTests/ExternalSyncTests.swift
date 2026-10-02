@@ -195,3 +195,36 @@ struct ExternalSyncPushTests {
         #expect(pushes(first.links, rest, syncsDeletes: true) == [.delete(externalID: "1")])
     }
 }
+
+struct ExternalSyncConfirmTests {
+    let pull = ExternalSyncPullTests()
+
+    @Test func acceptedPushesRewriteTheLinks() {
+        var first = pull.imported([pull.item("1", "Write post"), pull.item("2", "Record demo")])
+        first.board[0].title = "Write the post"
+        let new = TaskItem(id: "n", listID: "work", title: "New", bucket: .today, rank: 1, createdAt: pull.now)
+        let pushes: [ExternalSync.Push] = [
+            .update(externalID: "1", task: first.board[0], changes: [.title]), .delete(externalID: "2"), .add(new),
+        ]
+        let url = Todoist.taskURL("3")
+        let result = ExternalSync.confirm(
+            pushes, outcomes: [.accepted, .accepted, .added(externalID: "3", url: url)], links: first.links,
+            context: pull.context)
+        #expect(result.links.map(\.externalID) == ["1", "3"])
+        #expect(result.links[0].snapshot == ExternalItem.snapshot(of: first.board[0]))
+        #expect(result.links[1].taskID == "n")
+        #expect(result.saved.map(\.id) == ["n"])
+        #expect(result.saved.first?.source == .todoist && result.saved.first?.sourceURL == url)
+        #expect(result.refusals.isEmpty)
+    }
+
+    @Test func aRefusedPushIsTriedAgainNextTime() {
+        var first = pull.imported([pull.item("1", "Write post")])
+        first.board[0].title = "Write the post"
+        let push = ExternalSync.Push.update(externalID: "1", task: first.board[0], changes: [.title])
+        let result = ExternalSync.confirm(
+            [push], outcomes: [.refused("Item not found")], links: first.links, context: pull.context)
+        #expect(result.links == first.links)
+        #expect(result.refusals == ["Item not found"])
+    }
+}

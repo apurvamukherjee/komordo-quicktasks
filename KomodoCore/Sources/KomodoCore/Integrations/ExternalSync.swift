@@ -139,6 +139,52 @@ public enum ExternalSync {
         return pushes
     }
 
+    /// What the provider said to one push.
+    public enum Outcome: Equatable, Sendable {
+        /// A new item, with its ID and where to open it.
+        case added(externalID: String, url: URL?)
+        case accepted
+        /// The reason, as the provider gave it.
+        case refused(String)
+    }
+
+    /// Records what the provider accepted. A refused push leaves its link as it was, so it's tried again on the
+    /// next sync rather than lost.
+    ///
+    /// - Returns: added tasks with their new source, the links afterwards, and the reasons for any refusals.
+    public static func confirm(
+        _ pushes: [Push], outcomes: [Outcome], links: [ExternalLink], context: Context
+    ) -> (saved: [TaskItem], links: [ExternalLink], refusals: [String]) {
+        var links = links
+        var saved: [TaskItem] = []
+        var refusals: [String] = []
+        for (push, outcome) in zip(pushes, outcomes) {
+            if case .refused(let reason) = outcome {
+                refusals.append(reason)
+                continue
+            }
+            switch push {
+            case .add(var task):
+                guard case .added(let externalID, let url) = outcome else { continue }
+                links.append(
+                    ExternalLink(
+                        connectionID: context.connectionID, externalID: externalID, taskID: task.id,
+                        remoteUpdatedAt: nil, snapshot: ExternalItem.snapshot(of: task)))
+                task.source = context.source
+                task.sourceTitle = context.sourceTitle
+                task.sourceURL = url
+                saved.append(task)
+            case .update(let externalID, let task, _):
+                if let index = links.firstIndex(where: { $0.externalID == externalID }) {
+                    links[index].snapshot = ExternalItem.snapshot(of: task)
+                }
+            case .delete(let externalID):
+                links.removeAll { $0.externalID == externalID }
+            }
+        }
+        return (saved, links, refusals)
+    }
+
     private static func apply(_ item: ExternalItem, to task: inout TaskItem, now: Date) {
         task.title = item.title
         if (task.notes ?? "") != (item.notes ?? "") {
