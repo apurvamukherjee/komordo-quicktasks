@@ -23,5 +23,7 @@ enum Motion {
         /// The calm card's glow and its orbiting dot, when only timed tasks are left.
         static let calmGlow: TimeInterval = 5.5
         static let orbit: TimeInterval = 16
+        /// The won card's sparks, each a quarter of the cycle after the last (FocusStates.dc.html).
+        static let twinkle: TimeInterval = 2.4
     }
 }
