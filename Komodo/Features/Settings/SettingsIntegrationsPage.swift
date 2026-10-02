@@ -2,15 +2,14 @@ import AppKit
 import KomodoCore
 import SwiftUI
 
-/// Integrations (DESIGN_SYSTEM §13.17, Settings.dc.html): a card per integration, calendar import's settings
-/// once it's connected, and the providers still to come. Calendars come through macOS Calendar, so one card
-/// covers Google, Microsoft and iCloud alike.
+/// Integrations (DESIGN_SYSTEM §13.17, Settings.dc.html): a card per integration, calendar import's and Todoist's
+/// settings once they're connected, and the providers still to come. Calendars come through macOS Calendar, so
+/// one card covers Google, Microsoft and iCloud alike.
 struct SettingsIntegrationsPage: View {
     @Bindable var store: BoardStore
 
     private static let comingSoon: [(letter: String, name: String, detail: String)] = [
         ("N", "Notion", "Sync a database."),
-        ("T", "Todoist", "Sync one project."),
         ("L", "Linear", "Import a team's issues."),
         ("C", "ClickUp", "Sync spaces, folders, and lists."),
         ("A", "Asana", "Sync projects."),
@@ -18,6 +17,10 @@ struct SettingsIntegrationsPage: View {
 
     private var sync: CalendarSync? { store.calendarSync }
     private var isImporting: Bool { store.settings.importsCalendars && sync?.access == .granted }
+    private var todoist: TodoistSync? { store.todoistSync }
+    private var isTodoistConnected: Bool { store.settings.todoistProjectID != nil }
+
+    @State private var isConnectingTodoist = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -31,6 +34,7 @@ struct SettingsIntegrationsPage: View {
             .padding(.bottom, 14)
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
                 calendarCard
+                todoistCard
                 mcpCard
                 IntegrationCard(
                     name: "Gmail → Calendar",
@@ -43,6 +47,7 @@ struct SettingsIntegrationsPage: View {
                 }
             }
             if isImporting { calendarSettings }
+            if isTodoistConnected { todoistSettings }
             Text("COMING SOON")
                 .font(Typography.label)
                 .tracking(Typography.Tracking.label)
@@ -73,6 +78,14 @@ struct SettingsIntegrationsPage: View {
             }
         }
         .animation(Motion.base, value: isImporting)
+        .animation(Motion.base, value: isTodoistConnected)
+        .sheet(isPresented: $isConnectingTodoist) {
+            TodoistTokenSheet(lists: store.lists, cancel: { isConnectingTodoist = false }) {
+                token, project, listID throws(KeychainError) in
+                try todoist?.connect(token: token, project: project, listID: listID)
+                isConnectingTodoist = false
+            }
+        }
     }
 
     // MARK: Cards
@@ -109,6 +122,44 @@ struct SettingsIntegrationsPage: View {
                     .disabled(sync == nil)
             }
         }
+    }
+
+    @ViewBuilder private var todoistCard: some View {
+        let problem = isTodoistConnected ? store.settings.todoistProblem : nil
+        IntegrationCard(
+            name: "Todoist",
+            detail: problem.map {
+                Text("Sync one project with a list. ") + Text($0).foregroundColor(Palette.dangerText)
+            }
+                ?? Text("Sync one project with a list, both ways."),
+            status: problem != nil ? .attention : isTodoistConnected ? .active("Active") : .none,
+            tint: Palette.textSecondary
+        ) {
+            Text("T")
+        } footer: {
+            if isTodoistConnected {
+                Text(todoistSyncLine)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Palette.textBody)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Sync now") { Task { await todoist?.sync() } }
+                    .buttonStyle(.komodo(.secondary, size: .small, isBusy: todoist?.isSyncing == true))
+            } else {
+                Spacer()
+                Button("Connect") { isConnectingTodoist = true }
+                    .buttonStyle(.komodo(.secondary, size: .small))
+                    .disabled(todoist == nil)
+            }
+        }
+    }
+
+    /// "Komodo launch · Synced 9:41 AM".
+    private var todoistSyncLine: String {
+        let project = store.settings.todoistProjectName
+        guard let last = store.settings.lastTodoistSync else { return project }
+        return project + " · Synced " + last.formatted(.dateTime.hour().minute())
     }
 
     private var mcpCard: some View {
@@ -175,6 +226,49 @@ struct SettingsIntegrationsPage: View {
                     .buttonStyle(.komodo(.ghost, size: .small))
             }
         }
+    }
+
+    // MARK: Todoist
+
+    private var todoistSettings: some View {
+        SettingsGroup(title: "TODOIST") {
+            SettingsRow("Project", detail: "To sync another project, disconnect and connect again.") {
+                Text(store.settings.todoistProjectName)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(Palette.textPrimary)
+            }
+            SettingsRow("Sync with list", detail: "Its tasks join this list, placed by their date.") {
+                SettingsMenuPicker(
+                    title: "Sync with list", selection: todoistListChoice,
+                    options: store.lists.map { ($0.id, $0.name) })
+            }
+            SettingsRow(
+                "Auto sync", detail: "Check Todoist for changes every 5 minutes.",
+                isOn: Binding(get: { store.settings.todoistAutoSync }, set: { store.settings.todoistAutoSync = $0 }))
+            SettingsRow(
+                "Sync deletes",
+                detail: "Deleting a task here deletes it in Todoist too. Deleting in Todoist only unlinks it here.",
+                isOn: Binding(
+                    get: { store.settings.todoistSyncsDeletes }, set: { store.settings.todoistSyncsDeletes = $0 }))
+            SettingsRow(
+                "Only my items", detail: "Skip tasks assigned to someone else.",
+                isOn: Binding(
+                    get: { store.settings.todoistOnlyMine },
+                    set: {
+                        store.settings.todoistOnlyMine = $0
+                        Task { await todoist?.sync() }
+                    }))
+            SettingsRow("Stop syncing", detail: "Tasks already imported stay on the Board.") {
+                Button("Disconnect") { todoist?.disconnect() }
+                    .buttonStyle(.komodo(.ghost, size: .small))
+            }
+        }
+    }
+
+    private var todoistListChoice: Binding<String> {
+        Binding(
+            get: { store.settings.todoistListID ?? store.lists.first?.id ?? "" },
+            set: { store.settings.todoistListID = $0 })
     }
 
     private var accounts: [String] {
