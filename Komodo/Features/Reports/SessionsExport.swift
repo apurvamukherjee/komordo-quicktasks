@@ -23,7 +23,8 @@ extension BoardStore {
         try Data(csv.utf8).write(to: url)
     }
 
-    /// The log on Letter pages, dark text on white so it prints.
+    /// The log on the Mac's default paper (A4 or Letter, from its region or printer), dark text on white so it
+    /// prints.
     func writeSessionsPDF(to url: URL) throws {
         var box = CGRect(origin: .zero, size: SessionsPrintout.pageSize)
         guard let context = CGContext(url as CFURL, mediaBox: &box, nil) else { throw CocoaError(.fileWriteUnknown) }
@@ -58,8 +59,13 @@ extension BoardStore {
 
 /// One printed page of the Sessions log: a title on the first, then rows a day at a time.
 struct SessionsPrintout: View {
-    static let pageSize = CGSize(width: 612, height: 792)
-    static let rowsPerPage = 38
+    static var pageSize: CGSize {
+        let paper = NSPrintInfo.shared.paperSize
+        return paper.width > 0 && paper.height > 0 ? paper : CGSize(width: 612, height: 792)
+    }
+
+    /// 38 on Letter, with the margins and title taking the rest; taller paper gets more.
+    static var rowsPerPage: Int { Int((pageSize.height - 108) / 18) }
 
     enum Line: Hashable {
         case day(String, String)
