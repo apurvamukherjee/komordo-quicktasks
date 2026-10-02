@@ -8,6 +8,24 @@ and the project will use [Semantic Versioning](https://semver.org/) from its fir
 Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
 (DESIGN_HANDOFF §3 build order).
 
+### Todoist sync (Phase 2) — 2026-10-02
+
+#### Added
+- **Todoist** on Settings ▸ Integrations (FEATURES §5, DESIGN_SYSTEM §13.17): a card with Connect, Active and
+  Needs attention, the token sheet from DataSheets.dc.html (Test, project and list pickers, Save to the
+  Keychain), and a TODOIST group with Sync with list, Auto sync, Sync deletes, Only my items and Disconnect.
+- **Two-way sync** of one project with one list: imports placed by date, new tasks sent up, edits and completions
+  both ways with only the changed fields, the newer edit winning a conflict, remote deletes that only unlink, and
+  refused changes retried. Polled every 5 minutes, at launch and on wake, backing off after failures.
+- `external_links` (schema v5) with a snapshot of the synced fields; `ExternalItem` and `ExternalSync` (pull,
+  pushes, confirm) in KomodoCore for every provider to share; Todoist's API v1 sync types, item mapping and
+  commands, with tests against documented responses. A "Todoist" source badge on cards and in the inspector.
+- Debug flags `-sampleTodoist`, `-connectTodoist`, `-openTodoistSheet` and `-todoistToken`.
+
+#### Fixed
+- A task finished elsewhere while it was live now ends its session and leaves Focus mode.
+- Delete all data also removes the Todoist token from the Keychain.
+
 ### Voice input and voice notes (Phase 2) — 2026-10-02
 
 #### Added
