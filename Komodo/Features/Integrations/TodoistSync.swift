@@ -27,6 +27,18 @@ import OSLog
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.syncIfAuto() }
         }
+        #if DEBUG
+            // `-connectTodoist YES` with `-sampleTodoist YES` connects the sample project to the first list.
+            if Self.usesSamples, UserDefaults.standard.bool(forKey: "connectTodoist"), !isConnected,
+                let listID = store.lists.first?.id
+            {
+                do {
+                    try connect(token: "sample", project: Self.sampleProjects[1], listID: listID)
+                } catch {
+                    Self.log.error("Couldn't connect the sample project: \(error)")
+                }
+            }
+        #endif
         loop = Task { [weak self] in
             while !Task.isCancelled {
                 self?.syncIfAuto()

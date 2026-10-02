@@ -82,6 +82,12 @@ struct TodoistTokenSheet: View {
         .onAppear {
             listID = lists.first?.id ?? ""
             if !testedProjects.isEmpty { accept(testedProjects) }
+            #if DEBUG
+                if UserDefaults.standard.string(forKey: "openTodoistSheet") == "tested" {
+                    token = "0123456789abcdef0123456789abcdef0123c91e"
+                    test()
+                }
+            #endif
         }
     }
 

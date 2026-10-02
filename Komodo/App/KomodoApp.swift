@@ -84,6 +84,9 @@ struct SettingsCommand: Commands {
 /// - `-assistantPrompt "<text>"` opens the Assistant and sends the text; add `-assistantApply YES` to press Add
 ///   once the preview arrives. `-assistantListening YES` opens it listening; `-voiceSample "<text>"` speaks
 ///   that text instead of the microphone, and `-voiceNote <seconds>` with `-openInspector` records a voice note.
+/// - `-sampleTodoist YES` stands in for Todoist with three projects and three tasks; `-connectTodoist YES` connects
+///   the sample project to the first list, and `-openTodoistSheet YES` (or `tested`) shows the token sheet on
+///   Integrations. `-todoistToken <token>` stands in for the Keychain's token.
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {

@@ -79,6 +79,12 @@ struct SettingsIntegrationsPage: View {
         }
         .animation(Motion.base, value: isImporting)
         .animation(Motion.base, value: isTodoistConnected)
+        .task {
+            #if DEBUG
+                // `-openTodoistSheet YES` (or `tested`) shows the token sheet for captures without the pointer.
+                isConnectingTodoist = UserDefaults.standard.string(forKey: "openTodoistSheet") != nil
+            #endif
+        }
         .sheet(isPresented: $isConnectingTodoist) {
             TodoistTokenSheet(lists: store.lists, cancel: { isConnectingTodoist = false }) {
                 token, project, listID throws(KeychainError) in
