@@ -154,7 +154,9 @@ import OSLog
         token: String, from syncToken: String?, commands: [Todoist.Command]
     ) async throws(TodoistError) -> Todoist.SyncResponse {
         #if DEBUG
-            if Self.usesSamples { return Self.sampleResponse(commands: commands, from: syncToken) }
+            if Self.usesSamples, let store {
+                return Self.sampleResponse(commands: commands, from: syncToken, today: store.today)
+            }
         #endif
         return try await TodoistClient(token: token).sync(
             from: syncToken, resources: ["items", "user"], commands: commands)
@@ -213,9 +215,11 @@ import OSLog
             Todoist.Project(id: "sample-home", name: "Home"),
         ]
 
-        /// The first sync reads three tasks; later ones accept every command and change nothing.
-        static func sampleResponse(commands: [Todoist.Command], from syncToken: String?) -> Todoist.SyncResponse {
-            let today = LocalDate(Date(), calendar: .current)
+        /// The first sync reads three tasks, dated from the board's own day so `-sampleTime` places them as it
+        /// would real ones; later syncs accept every command and change nothing.
+        static func sampleResponse(
+            commands: [Todoist.Command], from syncToken: String?, today: LocalDate
+        ) -> Todoist.SyncResponse {
             let items =
                 syncToken == nil
                 ? [
