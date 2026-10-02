@@ -116,3 +116,71 @@ struct TodoistItemTests {
         #expect(demo.notes == nil && demo.date == nil && demo.estimate == nil)
     }
 }
+
+struct TodoistCommandTests {
+    private let day = LocalDate(year: 2026, month: 10, day: 2)
+
+    private func numbered() -> () -> String {
+        var next = 0
+        return {
+            next += 1
+            return "c4a1f6b0-0000-4000-8000-00000000000\(next)"
+        }
+    }
+
+    @Test func aNewTaskIsAddedToTheProjectUnderItsOwnID() throws {
+        let task = TaskItem(
+            id: "komodo-task-1", listID: "work", title: "Book flights", bucket: .week, rank: 1, estimate: 1_800,
+            notes: "Window seat", scheduledDate: day, scheduledMinute: 570,
+            dueDate: day.adding(days: 3, calendar: .current))
+        let batch = Todoist.Batch([.add(task)], projectID: "6Jf8VQXxpwv56VQ8", uuid: numbered())
+        let command = try #require(batch.commands.first)
+        #expect(command.type == "item_add" && command.tempID == "komodo-task-1")
+        #expect(command.args["content"] == .string("Book flights"))
+        #expect(command.args["description"] == .string("Window seat"))
+        #expect(command.args["project_id"] == .string("6Jf8VQXxpwv56VQ8"))
+        #expect(command.args["due"] == .object(["date": .string("2026-10-02T09:30:00")]))
+        #expect(command.args["deadline"] == .object(["date": .string("2026-10-05")]))
+        #expect(command.args["duration"] == .object(["amount": .int(30), "unit": .string("minute")]))
+    }
+
+    @Test func anUpdateSendsOnlyWhatChangedAndCompletesSeparately() {
+        var task = TaskItem(
+            id: "todoist:1", listID: "work", title: "Write post", bucket: .today, rank: 1, estimate: 600)
+        task.completedAt = .now
+        let batch = Todoist.Batch(
+            [.update(externalID: "1", task: task, changes: [.title, .done, .estimate])], projectID: "p",
+            uuid: numbered())
+        #expect(batch.commands.map(\.type) == ["item_update", "item_close"])
+        // No due date, so the estimate isn't sent.
+        #expect(batch.commands[0].args == ["id": .string("1"), "content": .string("Write post")])
+        task.completedAt = nil
+        let reopened = Todoist.Batch([.update(externalID: "1", task: task, changes: [.done])], projectID: "p")
+        #expect(reopened.commands.map(\.type) == ["item_uncomplete"])
+    }
+
+    @Test func clearingADateClearsTheDue() {
+        let task = TaskItem(id: "todoist:1", listID: "work", title: "Write post", bucket: .today, rank: 1)
+        let batch = Todoist.Batch([.update(externalID: "1", task: task, changes: [.date, .minute])], projectID: "p")
+        #expect(batch.commands.first?.args["due"] == .null)
+    }
+
+    @Test func eachPushGetsTheOutcomeOfItsCommands() throws {
+        let task = TaskItem(id: "komodo-task-1", listID: "work", title: "Book flights", bucket: .week, rank: 1)
+        let batch = Todoist.Batch(
+            [.add(task), .delete(externalID: "6X7rfFVPjhvv84XG")], projectID: "p", uuid: numbered())
+        let outcomes = batch.outcomes(try TodoistFixtures.decode(TodoistFixtures.commandResults))
+        #expect(
+            outcomes == [
+                .added(externalID: "6X7rnpVGgr3gHJ9q", url: Todoist.taskURL("6X7rnpVGgr3gHJ9q")),
+                .refused("Item not found"),
+            ])
+    }
+
+    @Test func commandsEncodeAsTodoistReadsThem() throws {
+        let command = Todoist.Command(
+            type: "item_delete", uuid: "u", tempID: nil, args: ["id": .string("1")])
+        let json = String(decoding: try JSONEncoder().encode(command), as: UTF8.self)
+        #expect(json.contains(#""type":"item_delete""#) && json.contains(#""args":{"id":"1"}"#))
+    }
+}
