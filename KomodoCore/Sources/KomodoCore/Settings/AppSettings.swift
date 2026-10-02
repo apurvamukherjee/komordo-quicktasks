@@ -58,6 +58,25 @@ public struct AppSettings: Equatable, Sendable {
     public var calendarAcceptedOnly = false
     public var lastCalendarSync: Date?
 
+    // Todoist (FEATURES §5); the token is in the Keychain, never here.
+    /// The project synced with a list; nil while Todoist isn't connected.
+    public var todoistProjectID: String?
+    public var todoistProjectName = ""
+    /// The list the project syncs with; nil means the first list.
+    public var todoistListID: String?
+    public var todoistAutoSync = true
+    public var todoistSyncsDeletes = false
+    public var todoistOnlyMine = false
+    /// Where the last pull left off; nil asks Todoist for everything.
+    public var todoistSyncToken: String?
+    /// The account's own ID, for "Only my items".
+    public var todoistUserID: String?
+    /// Tasks made in the list before this stay in Komodo.
+    public var todoistConnectedAt: Date?
+    public var lastTodoistSync: Date?
+    /// Why the last sync failed, or what Todoist refused, until a sync goes through cleanly.
+    public var todoistProblem: String?
+
     // AI (DESIGN_SYSTEM §13.23)
     /// A Claude key is saved in the Keychain; the key itself never enters the database.
     public var hasClaudeKey = false
@@ -122,6 +141,17 @@ public struct AppSettings: Equatable, Sendable {
         static let calendarWeeks = "calendarWeeks"
         static let calendarAccepted = "calendarAcceptedOnly"
         static let calendarSync = "lastCalendarSync"
+        static let todoistProject = "todoistProjectID"
+        static let todoistProjectName = "todoistProjectName"
+        static let todoistList = "todoistListID"
+        static let todoistAutoSync = "todoistAutoSync"
+        static let todoistDeletes = "todoistSyncsDeletes"
+        static let todoistOnlyMine = "todoistOnlyMine"
+        static let todoistToken = "todoistSyncToken"
+        static let todoistUser = "todoistUserID"
+        static let todoistConnected = "todoistConnectedAt"
+        static let todoistSync = "lastTodoistSync"
+        static let todoistProblem = "todoistProblem"
         static let shortcutPrefix = "shortcut."
     }
 
@@ -175,6 +205,18 @@ public struct AppSettings: Equatable, Sendable {
         }
         bool(Key.calendarAccepted, &calendarAcceptedOnly)
         lastCalendarSync = stored[Key.calendarSync].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
+        func text(_ key: String) -> String? { stored[key].flatMap { $0.isEmpty ? nil : $0 } }
+        todoistProjectID = text(Key.todoistProject)
+        todoistProjectName = stored[Key.todoistProjectName] ?? ""
+        todoistListID = text(Key.todoistList)
+        bool(Key.todoistAutoSync, &todoistAutoSync)
+        bool(Key.todoistDeletes, &todoistSyncsDeletes)
+        bool(Key.todoistOnlyMine, &todoistOnlyMine)
+        todoistSyncToken = text(Key.todoistToken)
+        todoistUserID = text(Key.todoistUser)
+        todoistConnectedAt = stored[Key.todoistConnected].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
+        lastTodoistSync = stored[Key.todoistSync].flatMap(Double.init).map(Date.init(timeIntervalSince1970:))
+        todoistProblem = text(Key.todoistProblem)
         for action in GlobalShortcut.allCases {
             if let combo = stored[Key.shortcutPrefix + action.rawValue].flatMap(KeyCombo.init(stored:)) {
                 shortcuts[action] = combo
@@ -223,6 +265,17 @@ public struct AppSettings: Equatable, Sendable {
             Key.calendarWeeks: String(calendarWeeks),
             Key.calendarAccepted: flag(calendarAcceptedOnly),
             Key.calendarSync: lastCalendarSync.map { String($0.timeIntervalSince1970) } ?? "",
+            Key.todoistProject: todoistProjectID ?? "",
+            Key.todoistProjectName: todoistProjectName,
+            Key.todoistList: todoistListID ?? "",
+            Key.todoistAutoSync: flag(todoistAutoSync),
+            Key.todoistDeletes: flag(todoistSyncsDeletes),
+            Key.todoistOnlyMine: flag(todoistOnlyMine),
+            Key.todoistToken: todoistSyncToken ?? "",
+            Key.todoistUser: todoistUserID ?? "",
+            Key.todoistConnected: todoistConnectedAt.map { String($0.timeIntervalSince1970) } ?? "",
+            Key.todoistSync: lastTodoistSync.map { String($0.timeIntervalSince1970) } ?? "",
+            Key.todoistProblem: todoistProblem ?? "",
         ]
         for action in GlobalShortcut.allCases {
             result[Key.shortcutPrefix + action.rawValue] = shortcuts[action]?.storedValue ?? ""

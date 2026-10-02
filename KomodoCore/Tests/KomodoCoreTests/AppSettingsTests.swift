@@ -54,6 +54,17 @@ struct AppSettingsTests {
         settings.calendarWeeks = 3
         settings.calendarAcceptedOnly = true
         settings.lastCalendarSync = Date(timeIntervalSince1970: 1_790_090_000)
+        settings.todoistProjectID = "6Jf8VQXxpwv56VQ8"
+        settings.todoistProjectName = "Komodo launch"
+        settings.todoistListID = "work"
+        settings.todoistAutoSync = false
+        settings.todoistSyncsDeletes = true
+        settings.todoistOnlyMine = true
+        settings.todoistSyncToken = "TnYUZEpuzf2FMA9qzyY3j4xky6dXiYejmSO85S5paZ_a9y1FI85mBbIWZGpW"
+        settings.todoistUserID = "2671355"
+        settings.todoistConnectedAt = Date(timeIntervalSince1970: 1_790_000_100)
+        settings.lastTodoistSync = Date(timeIntervalSince1970: 1_790_090_100)
+        settings.todoistProblem = "Item not found"
         settings.shortcuts[.findTimer] = KeyCombo(keyCode: 3, modifiers: [.control, .option], key: "f")
         #expect(AppSettings(stored: settings.stored) == settings)
     }
