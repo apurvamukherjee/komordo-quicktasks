@@ -42,14 +42,25 @@ public enum ExternalSync {
     /// - Parameters:
     ///   - board: open and done tasks on the Board.
     ///   - known: every task ID Komodo has, Trash and archive included, so those never come back.
+    ///   - isEverything: `items` is every open item rather than what changed, as in a full sync, so a linked item
+    ///     missing from it was deleted (or finished) meanwhile.
     /// - Returns: the tasks to save and the connection's links afterwards.
     public static func pull(
-        _ items: [ExternalItem], links: [ExternalLink], board: [TaskItem], known: Set<String>, context: Context
+        _ items: [ExternalItem], links: [ExternalLink], board: [TaskItem], known: Set<String>, context: Context,
+        isEverything: Bool = false
     ) -> (saved: [TaskItem], links: [ExternalLink]) {
         var links = links
         var saved: [TaskItem] = []
         var ends = ColumnEnd(board: board, week: context.week)
         let byID = Dictionary(board.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var items = items
+        if isEverything {
+            // A full sync lists no deletions, so a missing item would otherwise stay linked until it changed.
+            let listed = Set(items.map(\.id))
+            items += links.filter { !listed.contains($0.externalID) }.map {
+                ExternalItem(id: $0.externalID, title: "", isDeleted: true)
+            }
+        }
 
         for item in items {
             if let index = links.firstIndex(where: { $0.externalID == item.id }) {

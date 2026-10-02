@@ -140,7 +140,7 @@ import OSLog
         let userID = response.user?.id ?? store.settings.todoistUserID
         let pulled = ExternalSync.pull(
             response.items(in: projectID, userID: userID, calendar: store.calendar), links: confirmed.links,
-            board: store.tasks, known: store.knownTaskIDs, context: context)
+            board: store.tasks, known: store.knownTaskIDs, context: context, isEverything: response.fullSync)
         store.saveImported(pulled.saved)
         saveLinks(pulled.links)
         store.settings.todoistSyncToken = response.syncToken

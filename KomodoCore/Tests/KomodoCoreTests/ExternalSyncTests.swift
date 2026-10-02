@@ -120,6 +120,16 @@ struct ExternalSyncPullTests {
             ).isEmpty)
     }
 
+    @Test func aFullSyncUnlinksItemsItNoLongerLists() {
+        let first = imported([item("1", "Write post"), item("2", "Record demo")])
+        let result = ExternalSync.pull(
+            [item("1", "Write post")], links: first.links, board: first.board, known: [], context: context,
+            isEverything: true)
+        #expect(result.links.map(\.externalID) == ["1"])
+        #expect(result.saved.map(\.title) == ["Record demo"])
+        #expect(result.saved.first?.sourceURL == nil)
+    }
+
     @Test func whenBothSidesChangedTheNewerEditWins() {
         let first = imported([item("1", "Write post")])
         var local = first.board
