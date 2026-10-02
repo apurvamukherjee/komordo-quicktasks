@@ -184,3 +184,12 @@ struct TodoistCommandTests {
         #expect(json.contains(#""type":"item_delete""#) && json.contains(#""args":{"id":"1"}"#))
     }
 }
+
+struct TodoistProjectTests {
+    @Test func itemsInOtherProjectsCountAsGone() throws {
+        var response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
+        response.items[1].projectID = "6Jf8VQXxpwv56VQ7"
+        let items = response.items(in: "6Jf8VQXxpwv56VQ8", userID: "2671355", calendar: .current)
+        #expect(items.map(\.isDeleted) == [false, true])
+    }
+}

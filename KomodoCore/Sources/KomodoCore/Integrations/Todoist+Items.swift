@@ -40,3 +40,15 @@ extension ExternalItem {
             updatedAt: item.updatedAt.flatMap(Todoist.instant), url: Todoist.taskURL(item.id))
     }
 }
+
+extension Todoist.SyncResponse {
+    /// The changed items, as Komodo sees them from one project: an item moved to another project counts as deleted,
+    /// so its task is unlinked rather than left syncing with a project it's no longer in.
+    public func items(in projectID: String, userID: String?, calendar: Calendar) -> [ExternalItem] {
+        items.map { item in
+            var external = ExternalItem(item, userID: userID, calendar: calendar)
+            if item.projectID != projectID { external.isDeleted = true }
+            return external
+        }
+    }
+}
