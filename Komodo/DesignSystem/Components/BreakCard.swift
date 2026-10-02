@@ -9,8 +9,10 @@ struct BreakCard: View {
     var onSkip: () -> Void
     var onAddTwoMinutes: () -> Void
 
+    @Environment(\.isOffscreen) private var isOffscreen
+
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(.periodic(from: .now, by: Motion.tick(isMoving: true, isOffscreen: isOffscreen))) { context in
             content(remaining: max(0, endsAt.timeIntervalSince(context.date)))
         }
     }

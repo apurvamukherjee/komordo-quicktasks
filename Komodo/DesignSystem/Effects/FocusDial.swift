@@ -66,10 +66,11 @@ struct FocusDial<Center: View>: View {
     @ViewBuilder var center: (_ elapsed: TimeInterval) -> Center
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isOffscreen) private var isOffscreen
 
     var body: some View {
         // A paused clock doesn't change, so it needn't redraw every second.
-        let interval: TimeInterval = clock.isRunning ? 1 : 3600
+        let interval = Motion.tick(isMoving: clock.isRunning, isOffscreen: isOffscreen)
         TimelineView(.periodic(from: clock.runningSince ?? .now, by: interval)) { context in
             let elapsed = clock.elapsed(at: context.date)
             let progress = estimate > 0 ? min(1, elapsed / estimate) : 0

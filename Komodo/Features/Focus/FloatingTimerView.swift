@@ -23,7 +23,8 @@ struct FloatingTimerView: View {
         let clock = store.liveTask.map { store.focusClock(for: $0) }
         // Ticks while time moves; a paused or waiting pill has nothing to redraw each second.
         let moving = clock?.isRunning == true || store.breakEndsAtWallClock != nil
-        TimelineView(.periodic(from: clock?.runningSince ?? .now, by: moving ? 1 : 3600)) { context in
+        let interval = Motion.tick(isMoving: moving, isOffscreen: store.focusSurface != .floatingTimer)
+        TimelineView(.periodic(from: clock?.runningSince ?? .now, by: interval)) { context in
             pill(at: context.date, clock: clock)
         }
         .padding(Space.s6)

@@ -9,6 +9,7 @@ struct InspectorDetails: View {
 
     @State private var isEditingTaken = false
     @State private var isScheduling = false
+    @Environment(\.isOffscreen) private var isOffscreen
 
     private var isRunning: Bool { store.isRunning(task) }
 
@@ -93,7 +94,9 @@ struct InspectorDetails: View {
     @ViewBuilder private var taken: some View {
         if isRunning {
             let clock = store.focusClock(for: task)
-            TimelineView(.periodic(from: clock.runningSince ?? .now, by: 1)) { context in
+            TimelineView(
+                .periodic(from: clock.runningSince ?? .now, by: Motion.tick(isMoving: true, isOffscreen: isOffscreen))
+            ) { context in
                 Text(TimerFormat.clock(Int(clock.elapsed(at: context.date))))
                     .font(.system(size: 13, weight: .bold).monospacedDigit())
                     .foregroundStyle(Palette.limeText)

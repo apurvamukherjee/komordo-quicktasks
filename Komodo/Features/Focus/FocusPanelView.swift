@@ -24,6 +24,8 @@ struct FocusPanelView: View {
             .frame(maxHeight: .infinity, alignment: .top)
             .background { FocusPanelBackground(side: store.panelSide) }
             .preferredColorScheme(.dark)
+            // The panel's window stays alive behind the floating timer and Home.
+            .environment(\.isOffscreen, store.focusSurface != .panel)
             #if DEBUG
                 // `-addScheduled "<title>"` presses Scheduled today's + and adds that task, for captures.
                 .task {
@@ -394,9 +396,12 @@ struct FocusPanelView: View {
 private struct FocusModeChip: View {
     var store: BoardStore
 
+    @Environment(\.isOffscreen) private var isOffscreen
+
     var body: some View {
         let clock = store.liveTask.map { store.focusClock(for: $0) }
-        TimelineView(.periodic(from: .now, by: clock?.isRunning == true ? 1 : 3600)) { context in
+        let interval = Motion.tick(isMoving: clock?.isRunning == true, isOffscreen: isOffscreen)
+        TimelineView(.periodic(from: .now, by: interval)) { context in
             chip(at: context.date, clock: clock)
         }
     }

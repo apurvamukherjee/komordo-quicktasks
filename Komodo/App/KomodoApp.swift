@@ -10,6 +10,8 @@ struct KomodoApp: App {
         Window("Komodo", id: "home") {
             HomeView(store: store)
                 .frame(minWidth: Layout.homeMin.width, minHeight: Layout.homeMin.height)
+                // Focus mode sets Home aside, and its live card would otherwise keep redrawing unseen.
+                .environment(\.isOffscreen, store.focusSurface != nil)
                 .onAppear { appDelegate.attach(store) }
                 #if DEBUG
                     .openGalleryOnLaunchIfRequested()

@@ -177,6 +177,8 @@ struct InspectorLiveHeader: View {
     var store: BoardStore
     var task: TaskItem
 
+    @Environment(\.isOffscreen) private var isOffscreen
+
     var body: some View {
         let clock = store.focusClock(for: task)
         let estimate = task.estimate ?? 3_600
@@ -191,7 +193,10 @@ struct InspectorLiveHeader: View {
                 .font(.system(size: 10, weight: .heavy))
                 .tracking(0.8)
                 .foregroundStyle(clock.isRunning ? Palette.limeText : Palette.textSecondary)
-                TimelineView(.periodic(from: clock.runningSince ?? .now, by: 1)) { context in
+                TimelineView(
+                    .periodic(
+                        from: clock.runningSince ?? .now, by: Motion.tick(isMoving: true, isOffscreen: isOffscreen))
+                ) { context in
                     OdometerText(
                         TimerFormat.remaining(estimate: estimate, elapsed: clock.elapsed(at: context.date)),
                         colon: .steady(opacity: 0.6)

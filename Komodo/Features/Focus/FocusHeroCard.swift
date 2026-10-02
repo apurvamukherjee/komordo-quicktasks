@@ -9,9 +9,12 @@ struct FocusHeroCard: View {
     var clock: FocusClock
     var actions: ControlBarActions
 
+    @Environment(\.isOffscreen) private var isOffscreen
+
     var body: some View {
         // A paused clock doesn't change, so there's nothing to redraw each second.
-        TimelineView(.periodic(from: clock.runningSince ?? .now, by: clock.isRunning ? 1 : 3600)) { context in
+        let interval = Motion.tick(isMoving: clock.isRunning, isOffscreen: isOffscreen)
+        TimelineView(.periodic(from: clock.runningSince ?? .now, by: interval)) { context in
             FocusHeroContent(model: model, clock: clock, date: context.date, actions: actions)
         }
     }
