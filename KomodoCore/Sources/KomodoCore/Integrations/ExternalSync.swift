@@ -77,6 +77,28 @@ public enum ExternalSync {
                 links[index].remoteUpdatedAt = item.updatedAt
                 // In Trash or archived: left alone until it's back.
                 guard var task = byID[link.taskID], item.snapshot != link.snapshot else { continue }
+                if task.isDone, !item.isDone, item.repeats {
+                    // Completing a repeating item moves it to its next date. The finished task keeps its sessions
+                    // as history, and the next occurrence becomes a task of its own.
+                    unlink(&task)
+                    saved.append(task)
+                    links.remove(at: index)
+                    let id = context.taskID(for: "\(item.id)@\(item.date?.description ?? "")")
+                    guard !known.contains(id), !saved.contains(where: { $0.id == id }) else { continue }
+                    var next = TaskItem(
+                        id: id, listID: task.listID, title: item.title, bucket: .backlog, rank: 0,
+                        createdAt: context.now)
+                    apply(item, to: &next, now: context.now)
+                    next.source = context.source
+                    next.sourceTitle = context.sourceTitle
+                    next.rank = ends.rank(for: next.column(in: context.week))
+                    saved.append(next)
+                    links.append(
+                        ExternalLink(
+                            connectionID: context.connectionID, externalID: item.id, taskID: id,
+                            remoteUpdatedAt: item.updatedAt, snapshot: item.snapshot))
+                    continue
+                }
                 let editedHere = ExternalItem.snapshot(of: task) != link.snapshot
                 // Both sides changed: the newer edit wins. A task with no edit time loses, since a provider's
                 // `updated_at` is always known.

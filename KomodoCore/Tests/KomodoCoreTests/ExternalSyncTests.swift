@@ -130,6 +130,23 @@ struct ExternalSyncPullTests {
         #expect(result.saved.first?.sourceURL == nil)
     }
 
+    @Test func finishingARepeatingItemKeepsTheTaskAndAddsTheNextOne() {
+        var first = imported([item("1", "Water plants", day: 0)])
+        first.board[0].completedAt = now
+        first.board[0].sessions = [WorkSession(start: now.addingTimeInterval(-600), end: now)]
+        first.links[0].snapshot = ExternalItem.snapshot(of: first.board[0])
+        var next = item("1", "Water plants", day: 7, updated: 60)
+        next.repeats = true
+        let result = ExternalSync.pull([next], links: first.links, board: first.board, known: [], context: context)
+        #expect(result.saved.count == 2)
+        let done = result.saved[0]
+        #expect(done.id == first.board[0].id && done.isDone && done.sessions.count == 1)
+        let upcoming = result.saved[1]
+        #expect(!upcoming.isDone && upcoming.scheduledDate == today.adding(days: 7, calendar: calendar))
+        #expect(upcoming.sessions.isEmpty && upcoming.source == .todoist)
+        #expect(result.links.map(\.taskID) == [upcoming.id])
+    }
+
     @Test func whenBothSidesChangedTheNewerEditWins() {
         let first = imported([item("1", "Write post")])
         var local = first.board
