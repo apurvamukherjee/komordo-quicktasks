@@ -121,8 +121,13 @@ import SwiftUI
             scheduleReminderSync()
         }
     }
-    /// nil shows All lists.
-    var selectedListID: String?
+    /// nil shows All lists. Kept for the next launch.
+    var selectedListID: String? {
+        didSet {
+            guard selectedListID != oldValue else { return }
+            savePreference(selectedListID ?? "", for: Preference.selectedList)
+        }
+    }
     private(set) var focus = Focus() {
         // Whatever moved the break's end, the break-over alert and the break's record follow it.
         didSet {
@@ -279,6 +284,7 @@ import SwiftUI
         static let breakLength = "breakLength"
         static let heartbeat = "heartbeat"
         static let onboarded = "onboarded"
+        static let selectedList = "selectedList"
     }
 
     init(
@@ -338,6 +344,14 @@ import SwiftUI
         settings = AppSettings(stored: preferences)
         if let value = preferences[Preference.dismissedRepeats], !value.isEmpty {
             dismissedChildren = Set(value.split(separator: "\n").map(String.init))
+        }
+        if let value = preferences[Preference.selectedList] {
+            // An empty value is All lists; a list since archived or deleted falls back to the first.
+            if value.isEmpty {
+                selectedListID = nil
+            } else if lists.contains(where: { $0.id == value }) {
+                selectedListID = value
+            }
         }
     }
 
