@@ -96,6 +96,7 @@ struct BoardToolbar: View {
                 .help(startHelp)
                 // ⌘⇧B brings Komodo forward and Return starts (FEATURES §4.8).
                 .keyboardShortcut(.defaultAction)
+                .pulseRings(Palette.lime, cornerRadius: Radius.control + 3, isOn: store.showsStartTip)
                 .popover(isPresented: $store.showsStartTip, arrowEdge: .bottom) { StartTip(store: store) }
         }
         .padding(.leading, Space.s6)
