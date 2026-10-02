@@ -1,12 +1,45 @@
 # Changelog
 
 All notable changes to Komodo. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and the project will use [Semantic Versioning](https://semver.org/) from its first release.
+and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Nothing is released yet. Everything below is on `main`, grouped by milestone in the order it landed
-(DESIGN_HANDOFF §3 build order).
+Nothing yet.
+
+## [0.9.0] — 2026-10-02
+
+The first downloadable build: everything that works offline, as a DMG on GitHub Releases. Gmail → Calendar is
+still parked, so this is a preview. Milestones are grouped below in the order they landed (DESIGN_HANDOFF §3
+build order).
+
+### Offline polish and the first DMG — 2026-10-02
+
+#### Added
+- **Scheduled today +** in the Focus Panel: the new task lands on the next half hour and the Schedule popover opens
+  on its time. Debug flag `-addScheduled "<title>"`.
+- **Drag to reorder** the Focus Panel's Up next rows, as on the Board.
+- **Twinkling sparks** around the won card, and **pulse rings** around Start while the Start tip shows, both as
+  Core Animation layers and off under Reduce Motion.
+- **Load earlier** in Sessions: the newest 100 sessions, then 100 more per press ("Showing N of M sessions").
+- **`.kbak` is Komodo's document type**: Finder shows "Komodo Backup", and double-clicking one opens Restore in
+  Settings ▸ Data & backup.
+- The selected list and a same-day **Pomodoro count** survive a relaunch.
+- Sessions PDFs print on the Mac's default paper (A4 or Letter).
+- `scripts/make-dmg.sh` and its background art: a styled install window with only Komodo and Applications in it.
+
+#### Changed
+- Version 0.9.0, build 1.
+- Hidden windows stop redrawing their timers: with a task live, the Focus Panel went from 5.5% to 2.9% CPU and
+  the floating timer from 4.6% to 1.7% (optimized build, 20 s average).
+
+#### Fixed
+- Todoist: a finished repeating task stays done with its sessions, and its next date arrives as a new task.
+- Todoist: a task deleted there no longer comes back as a new item when it was made in Komodo.
+- Todoist: a full sync unlinks items it no longer lists, a change to an item Todoist deleted unlinks instead of
+  retrying forever, and an add resent after a crash can't make a second copy.
+- Calendar import: tasks from a calendar sharing its name with an unread one keep their link.
+- Leaving Focus mode reopens Home when it was closed before Start.
 
 ### Todoist sync (Phase 2) — 2026-10-02
 
