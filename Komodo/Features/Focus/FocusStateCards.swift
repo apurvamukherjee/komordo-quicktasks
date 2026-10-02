@@ -269,6 +269,7 @@ struct FocusWonCard: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22.5, style: .continuous))
+        .twinkle()
         .padding(1.5)
         .background(
             LinearGradient(
