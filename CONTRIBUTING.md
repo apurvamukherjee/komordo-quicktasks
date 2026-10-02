@@ -60,3 +60,21 @@ The README is Komodo's front page, so it must always show the product as it is t
 5. **Keep it about the product.** The README describes Komodo and how to build it. It never credits the tools
    used to write it.
 6. Commit the README update as `docs(readme): …`.
+
+## Releases
+
+Releases are DMGs attached to GitHub Releases, published from the maintainer's account.
+
+1. Set `MARKETING_VERSION` (MAJOR.MINOR.PATCH) and bump `CURRENT_PROJECT_VERSION` in `project.yml`, and give the
+   version its section in `CHANGELOG.md`.
+2. Build the image with `scripts/make-dmg.sh`. It writes `dist/Komodo.dmg` and a dated copy in `new-releases/`
+   (both ignored by git), and refuses to finish if Finder didn't record the window layout or the volume holds
+   anything but Komodo and Applications. Finder opens the window for a moment while it runs.
+3. Once the commits are on `origin/main`, publish with the dated copy:
+   ```bash
+   gh release create v0.9.0 new-releases/Komodo-0.9.0-build1-….dmg --title "Komodo 0.9.0" --notes-file notes.md
+   ```
+4. Change the art only by editing and running `swift scripts/dmg/render-background.swift`, then commit the PNGs.
+
+Until Developer ID signing and notarizing land (ARCHITECTURE §15), builds are ad hoc signed and the release notes
+carry the `xattr -dr com.apple.quarantine /Applications/Komodo.app` step.
