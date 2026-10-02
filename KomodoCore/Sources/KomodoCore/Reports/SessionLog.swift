@@ -70,6 +70,20 @@ public struct SessionLog: Equatable, Sendable {
     }
 
     public var entryCount: Int { days.reduce(0) { $0 + $1.entries.count } }
+
+    /// The newest `count` sessions, for Sessions' "Load earlier" paging. A day cut short keeps its latest sessions
+    /// and its whole day's totals.
+    public func latest(_ count: Int) -> [Day] {
+        var left = max(0, count)
+        var shown: [Day] = []
+        for day in days where left > 0 {
+            var day = day
+            if day.entries.count > left { day.entries = Array(day.entries.suffix(left)) }
+            left -= day.entries.count
+            shown.append(day)
+        }
+        return shown
+    }
     public var work: TimeInterval { days.reduce(0) { $0 + $1.work } }
     /// Distinct tasks worked on.
     public var taskCount: Int {

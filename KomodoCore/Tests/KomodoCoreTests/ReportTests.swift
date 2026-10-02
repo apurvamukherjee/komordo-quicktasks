@@ -155,6 +155,13 @@ struct ReportTests {
         #expect(log.entryCount == 5)
         #expect(log.taskCount == 2)
         #expect(SessionLog(data, range: week, includesBreaks: false).entryCount == 3)
+        // Paging takes the newest sessions; a day cut short keeps its latest ones and its whole totals.
+        let page = log.latest(3)
+        #expect(page.map(\.date) == [today, day(24)])
+        #expect(page[1].entries.map(\.id) == ["break:b1"])
+        #expect(page[1].work == 1800)
+        #expect(log.latest(99) == log.days)
+        #expect(log.latest(0).isEmpty)
     }
 
     @Test func sessionLogExportsCSVOldestFirst() {
