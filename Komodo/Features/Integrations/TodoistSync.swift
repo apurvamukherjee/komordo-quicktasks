@@ -135,7 +135,8 @@ import OSLog
 
         let context = context(for: store)
         let confirmed = ExternalSync.confirm(
-            pushes, outcomes: batch.outcomes(response), links: links, board: store.tasks, context: context)
+            pushes, outcomes: batch.outcomes(response, linked: Set(links.map(\.externalID))), links: links,
+            board: store.tasks, context: context)
         store.saveImported(confirmed.saved)
         let userID = response.user?.id ?? store.settings.todoistUserID
         let pulled = ExternalSync.pull(

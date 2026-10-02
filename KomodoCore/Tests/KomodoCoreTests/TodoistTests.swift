@@ -168,13 +168,42 @@ struct TodoistCommandTests {
     @Test func eachPushGetsTheOutcomeOfItsCommands() throws {
         let task = TaskItem(id: "komodo-task-1", listID: "work", title: "Book flights", bucket: .week, rank: 1)
         let batch = Todoist.Batch(
-            [.add(task), .delete(externalID: "6X7rfFVPjhvv84XG")], projectID: "p", uuid: numbered())
-        let outcomes = batch.outcomes(try TodoistFixtures.decode(TodoistFixtures.commandResults))
+            [.add(task), .delete(externalID: "6X7rfFVPjhvv84XG"), .delete(externalID: "6X7rM8997g3RQmvh")],
+            projectID: "p", uuid: numbered())
+        // Adds carry their own UUID, so the numbered ones start at the first delete.
+        var response = try TodoistFixtures.decode(TodoistFixtures.commandResults)
+        response.syncStatus = [
+            batch.commands[0].uuid: .ok,
+            batch.commands[1].uuid: try #require(response.syncStatus[batch.commands[2].uuid]),
+            batch.commands[2].uuid: .failed("Too many requests"),
+        ]
         #expect(
-            outcomes == [
+            batch.outcomes(response) == [
                 .added(externalID: "6X7rnpVGgr3gHJ9q", url: Todoist.taskURL("6X7rnpVGgr3gHJ9q")),
-                .gone,
+                .gone, .refused("Too many requests"),
             ])
+    }
+
+    @Test func anAddIsTheSameCommandEveryTimeItsSent() {
+        let task = TaskItem(id: "komodo-task-1", listID: "work", title: "Book flights", bucket: .week, rank: 1)
+        let first = Todoist.Batch([.add(task)], projectID: "p")
+        let again = Todoist.Batch([.add(task)], projectID: "p")
+        #expect(first.commands[0].uuid == again.commands[0].uuid)
+        #expect(UUID(uuidString: first.commands[0].uuid) != nil)
+        let other = TaskItem(id: "komodo-task-2", listID: "work", title: "Book flights", bucket: .week, rank: 1)
+        #expect(Todoist.Batch([.add(other)], projectID: "p").commands[0].uuid != first.commands[0].uuid)
+    }
+
+    @Test func aResentAddWithoutItsMappingFindsItsItem() throws {
+        let task = TaskItem(id: "komodo-task-1", listID: "work", title: "Record the demo", bucket: .week, rank: 1)
+        let batch = Todoist.Batch([.add(task)], projectID: "p")
+        var response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
+        response.syncStatus[batch.commands[0].uuid] = .ok
+        #expect(
+            batch.outcomes(response) == [
+                .added(externalID: "6X7rfFVPjhvv84XG", url: Todoist.taskURL("6X7rfFVPjhvv84XG"))
+            ])
+        #expect(batch.outcomes(response, linked: ["6X7rfFVPjhvv84XG"]) == [.refused("Todoist didn't return an ID")])
     }
 
     @Test func commandsEncodeAsTodoistReadsThem() throws {
@@ -183,16 +212,16 @@ struct TodoistCommandTests {
         let json = String(decoding: try JSONEncoder().encode(command), as: UTF8.self)
         #expect(json.contains(#""type":"item_delete""#) && json.contains(#""args":{"id":"1"}"#))
     }
+}
 
+struct TodoistProjectTests {
     @Test func aRecurringDueMarksTheItemAsRepeating() throws {
         var response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
         response.items[0].due?.isRecurring = true
         let items = response.items(in: "6Jf8VQXxpwv56VQ8", userID: "2671355", calendar: .current)
         #expect(items.map(\.repeats) == [true, false])
     }
-}
 
-struct TodoistProjectTests {
     @Test func itemsInOtherProjectsCountAsGone() throws {
         var response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
         response.items[1].projectID = "6Jf8VQXxpwv56VQ7"

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 extension Todoist {
@@ -32,7 +33,7 @@ extension Todoist {
                 case .add(let task):
                     var args = Self.fields(of: task, Set(ExternalItem.Field.allCases))
                     args["project_id"] = .string(projectID)
-                    group.append(Command(type: "item_add", uuid: uuid(), tempID: task.id, args: args))
+                    group.append(Command(type: "item_add", uuid: Self.addUUID(task.id), tempID: task.id, args: args))
                 case .update(let externalID, let task, let changes):
                     var args = Self.fields(of: task, changes)
                     if !args.isEmpty {
@@ -53,6 +54,21 @@ extension Todoist {
             }
             self.commands = commands
             self.groups = groups
+        }
+
+        /// The same for every send of one task. Todoist never runs a command twice, so if Komodo quits after
+        /// Todoist added the item but before the link was saved, sending it again can't add a second one.
+        static func addUUID(_ taskID: String) -> String {
+            var bytes = Array(SHA256.hash(data: Data("item_add:\(taskID)".utf8)).prefix(16))
+            // Version 5 and the RFC 4122 variant, so it reads as an ordinary name-based UUID.
+            bytes[6] = bytes[6] & 0x0F | 0x50
+            bytes[8] = bytes[8] & 0x3F | 0x80
+            return UUID(
+                uuid: (
+                    bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9],
+                    bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+                )
+            ).uuidString.lowercased()
         }
 
         /// The item fields for the changed fields. A duration needs a due date at Todoist, so an estimate on an
@@ -81,7 +97,9 @@ extension Todoist {
         }
 
         /// One outcome per push: refused if any of its commands was, with Todoist's reason.
-        public func outcomes(_ response: SyncResponse) -> [ExternalSync.Outcome] {
+        ///
+        /// - Parameter linked: the item IDs already linked, so a resent add finds its item among the rest.
+        public func outcomes(_ response: SyncResponse, linked: Set<String> = []) -> [ExternalSync.Outcome] {
             zip(pushes, groups).map { push, group in
                 for id in group {
                     switch response.syncStatus[id] {
@@ -92,7 +110,15 @@ extension Todoist {
                     }
                 }
                 guard case .add(let task) = push else { return .accepted }
-                guard let id = response.tempIDMapping[task.id] else { return .refused("Todoist didn't return an ID") }
+                // A resent add isn't run again, and the docs don't promise its mapping comes back with it. Its
+                // item is then among the changes since the last saved token, unlinked and under the same title.
+                let id =
+                    response.tempIDMapping[task.id]
+                    ?? response.items.first {
+                        $0.content == task.title && !linked.contains($0.id)
+                            && !response.tempIDMapping.values.contains($0.id)
+                    }?.id
+                guard let id else { return .refused("Todoist didn't return an ID") }
                 return .added(externalID: id, url: Todoist.taskURL(id))
             }
         }
