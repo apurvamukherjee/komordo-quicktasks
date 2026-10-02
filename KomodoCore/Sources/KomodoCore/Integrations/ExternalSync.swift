@@ -175,12 +175,14 @@ public enum ExternalSync {
         /// A new item, with its ID and where to open it.
         case added(externalID: String, url: URL?)
         case accepted
+        /// The item no longer exists there, so trying again can't help.
+        case gone
         /// The reason, as the provider gave it.
         case refused(String)
     }
 
     /// Records what the provider accepted. A refused push leaves its link as it was, so it's tried again on the
-    /// next sync rather than lost.
+    /// next sync rather than lost; one whose item is gone unlinks instead, since it would be refused forever.
     ///
     /// - Parameter board: the Board now. A new item's task gains its source as it is now, since it may have been
     ///   edited while the push was out.
@@ -194,6 +196,22 @@ public enum ExternalSync {
         for (push, outcome) in zip(pushes, outcomes) {
             if case .refused(let reason) = outcome {
                 refusals.append(reason)
+                continue
+            }
+            if outcome == .gone {
+                // As if it had been deleted there: unlinked, and the task stays.
+                switch push {
+                case .update(let externalID, let sent, _):
+                    links.removeAll { $0.externalID == externalID }
+                    if var task = board.first(where: { $0.id == sent.id }) {
+                        unlink(&task)
+                        saved.append(task)
+                    }
+                case .delete(let externalID):
+                    links.removeAll { $0.externalID == externalID }
+                case .add:
+                    break
+                }
                 continue
             }
             switch push {

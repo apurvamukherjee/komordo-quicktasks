@@ -176,9 +176,17 @@ public enum Todoist {
     public enum CommandStatus: Decodable, Equatable, Sendable {
         case ok
         case failed(String)
+        /// `ITEM_NOT_FOUND`: deleted at Todoist since the last sync.
+        case notFound
 
         private struct Failure: Decodable {
             var error: String
+            var errorTag: String?
+
+            enum CodingKeys: String, CodingKey {
+                case error
+                case errorTag = "error_tag"
+            }
         }
 
         public init(from decoder: any Decoder) throws {
@@ -186,7 +194,8 @@ public enum Todoist {
             if let text = try? container.decode(String.self) {
                 self = text == "ok" ? .ok : .failed(text)
             } else {
-                self = .failed(try container.decode(Failure.self).error)
+                let failure = try container.decode(Failure.self)
+                self = failure.errorTag == "ITEM_NOT_FOUND" ? .notFound : .failed(failure.error)
             }
         }
     }

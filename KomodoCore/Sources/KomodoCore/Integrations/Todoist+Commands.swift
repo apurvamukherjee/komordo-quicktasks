@@ -86,6 +86,7 @@ extension Todoist {
                 for id in group {
                     switch response.syncStatus[id] {
                     case .ok: continue
+                    case .notFound: return .gone
                     case .failed(let reason): return .refused(reason)
                     case nil: return .refused("Todoist didn't answer")
                     }

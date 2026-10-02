@@ -75,7 +75,7 @@ struct TodoistTests {
     @Test func commandResultsReadOkFailuresAndNewIDs() throws {
         let response = try TodoistFixtures.decode(TodoistFixtures.commandResults)
         #expect(response.syncStatus["c4a1f6b0-0000-4000-8000-000000000001"] == .ok)
-        #expect(response.syncStatus["c4a1f6b0-0000-4000-8000-000000000002"] == .failed("Item not found"))
+        #expect(response.syncStatus["c4a1f6b0-0000-4000-8000-000000000002"] == .notFound)
         #expect(response.tempIDMapping == ["komodo-task-1": "6X7rnpVGgr3gHJ9q"])
         #expect(response.projects.isEmpty)
     }
@@ -173,7 +173,7 @@ struct TodoistCommandTests {
         #expect(
             outcomes == [
                 .added(externalID: "6X7rnpVGgr3gHJ9q", url: Todoist.taskURL("6X7rnpVGgr3gHJ9q")),
-                .refused("Item not found"),
+                .gone,
             ])
     }
 

@@ -264,6 +264,17 @@ struct ExternalSyncConfirmTests {
         #expect(result.links == first.links)
         #expect(result.refusals == ["Item not found"])
     }
+
+    @Test func aPushToAnItemThatsGoneUnlinksInsteadOfRetrying() {
+        var first = pull.imported([pull.item("1", "Write post"), pull.item("2", "Record demo")])
+        first.board[0].title = "Write the post"
+        let result = ExternalSync.confirm(
+            [.update(externalID: "1", task: first.board[0], changes: [.title]), .delete(externalID: "2")],
+            outcomes: [.gone, .gone], links: first.links, board: first.board, context: pull.context)
+        #expect(result.links.isEmpty && result.refusals.isEmpty)
+        #expect(result.saved.map(\.title) == ["Write the post"])
+        #expect(result.saved.first?.sourceURL == nil)
+    }
 }
 
 struct ExternalSyncEstimateTests {
