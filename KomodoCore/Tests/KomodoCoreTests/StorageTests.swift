@@ -96,3 +96,17 @@ struct StorageTests {
         #expect(LocalDate(iso: "2026-13-02") == nil)
     }
 }
+
+struct ExternalLinkStorageTests {
+    @Test func linksRoundTripPerConnection() throws {
+        let database = try AppDatabase.inMemory()
+        let link = ExternalLink(
+            connectionID: "todoist", externalID: "6X7", taskID: "todoist:6X7",
+            remoteUpdatedAt: Date(timeIntervalSince1970: 1_790_000_000), snapshot: "Write report")
+        try database.setLinks([link], for: "todoist")
+        try database.setLinks([], for: "linear")
+        #expect(try database.links(for: "todoist") == [link])
+        try database.setLinks([], for: "todoist")
+        #expect(try database.links(for: "todoist").isEmpty)
+    }
+}
