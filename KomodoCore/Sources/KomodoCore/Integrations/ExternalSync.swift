@@ -58,9 +58,7 @@ public enum ExternalSync {
                     // FEATURES §5: deleting at the provider only unlinks, keeping notes and sessions.
                     links.remove(at: index)
                     if var task = byID[link.taskID] {
-                        task.source = nil
-                        task.sourceTitle = nil
-                        task.sourceURL = nil
+                        unlink(&task)
                         saved.append(task)
                     }
                     continue
@@ -186,6 +184,12 @@ public enum ExternalSync {
             }
         }
         return (saved, links, refusals)
+    }
+
+    /// The task stays as it is, still marked as from the provider: that keeps it from going back as a new item, and
+    /// it no longer opens there.
+    private static func unlink(_ task: inout TaskItem) {
+        task.sourceURL = nil
     }
 
     private static func apply(_ item: ExternalItem, to task: inout TaskItem, now: Date) {

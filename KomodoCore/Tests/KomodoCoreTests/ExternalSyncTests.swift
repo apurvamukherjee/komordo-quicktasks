@@ -111,8 +111,13 @@ struct ExternalSyncPullTests {
         gone.isDeleted = true
         let result = ExternalSync.pull([gone], links: first.links, board: first.board, known: [], context: context)
         #expect(result.links.isEmpty)
-        #expect(result.saved.first?.source == nil)
+        // Still marked as from Todoist, so it isn't sent back as a new item, but it no longer opens there.
+        #expect(result.saved.first?.source == .todoist && result.saved.first?.sourceURL == nil)
         #expect(result.saved.first?.notes == "Outline in my notebook")
+        #expect(
+            ExternalSync.pushes(
+                links: result.links, board: result.saved, known: [], trash: [], context: context
+            ).isEmpty)
     }
 
     @Test func whenBothSidesChangedTheNewerEditWins() {
