@@ -1,18 +1,32 @@
 import KomodoCore
 import SwiftUI
 
-/// SOURCE · GMAIL: who the task came from and a link back to the email. Only for tasks from Gmail or a calendar.
+/// SOURCE · GMAIL: who the task came from and a link back to it. Only for tasks from Gmail, a calendar or Todoist.
 struct InspectorSource: View {
     var task: TaskItem
     var source: TaskSource
 
     @Environment(\.openURL) private var openURL
 
-    private var name: String { source == .gmail ? "Gmail" : "Calendar" }
+    private var name: String {
+        switch source {
+        case .gmail: "Gmail"
+        case .calendar: "Calendar"
+        case .todoist: "Todoist"
+        }
+    }
+
+    private var icon: String {
+        switch source {
+        case .gmail: "envelope"
+        case .calendar: "calendar"
+        case .todoist: "checklist"
+        }
+    }
 
     var body: some View {
         HStack(spacing: Space.s3) {
-            Image(systemName: source == .gmail ? "envelope" : "calendar")
+            Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Palette.ember)
                 .frame(width: 34, height: 34)
