@@ -14,6 +14,8 @@ public struct ExternalItem: Equatable, Sendable {
     public var isDeleted: Bool
     /// Assigned to the user, or to nobody (FEATURES §5 "Only my items").
     public var isMine: Bool
+    /// The provider moves a repeating item to its next date when it's completed, instead of keeping it done.
+    public var repeats: Bool
     public var updatedAt: Date?
     /// Where to open it at the provider.
     public var url: URL?
@@ -21,7 +23,7 @@ public struct ExternalItem: Equatable, Sendable {
     public init(
         id: String, title: String, notes: String? = nil, date: LocalDate? = nil, minute: Int? = nil,
         dueDate: LocalDate? = nil, estimate: TimeInterval? = nil, isDone: Bool = false, isDeleted: Bool = false,
-        isMine: Bool = true, updatedAt: Date? = nil, url: URL? = nil
+        isMine: Bool = true, repeats: Bool = false, updatedAt: Date? = nil, url: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -33,6 +35,7 @@ public struct ExternalItem: Equatable, Sendable {
         self.isDone = isDone
         self.isDeleted = isDeleted
         self.isMine = isMine
+        self.repeats = repeats
         self.updatedAt = updatedAt
         self.url = url
     }

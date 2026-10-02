@@ -183,6 +183,13 @@ struct TodoistCommandTests {
         let json = String(decoding: try JSONEncoder().encode(command), as: UTF8.self)
         #expect(json.contains(#""type":"item_delete""#) && json.contains(#""args":{"id":"1"}"#))
     }
+
+    @Test func aRecurringDueMarksTheItemAsRepeating() throws {
+        var response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
+        response.items[0].due?.isRecurring = true
+        let items = response.items(in: "6Jf8VQXxpwv56VQ8", userID: "2671355", calendar: .current)
+        #expect(items.map(\.repeats) == [true, false])
+    }
 }
 
 struct TodoistProjectTests {

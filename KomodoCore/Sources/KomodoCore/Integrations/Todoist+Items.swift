@@ -36,7 +36,7 @@ extension ExternalItem {
             dueDate: item.deadline.flatMap { LocalDate(iso: String($0.date.prefix(10))) },
             estimate: item.duration.flatMap { $0.unit == "minute" ? TimeInterval($0.amount * 60) : nil },
             isDone: item.checked, isDeleted: item.isDeleted,
-            isMine: item.responsibleUID == nil || item.responsibleUID == userID,
+            isMine: item.responsibleUID == nil || item.responsibleUID == userID, repeats: item.due?.isRecurring == true,
             updatedAt: item.updatedAt.flatMap(Todoist.instant), url: Todoist.taskURL(item.id))
     }
 }
