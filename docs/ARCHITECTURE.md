@@ -134,6 +134,7 @@ enum TimerState: Equatable, Sendable {
 ```
 
 - **Elapsed time** is `accumulated + (now − startedAt)`. `TimelineView` redraws once a second. Nothing counts ticks, so the clock can't drift or stall.
+- **Redraws off screen:** SwiftUI keeps running the views of an ordered-out window, so every one-second timeline takes its cadence from `Motion.tick(isMoving:isOffscreen:)`, and Home, the Focus Panel and the floating timer set the `isOffscreen` environment value from the store's focus surface. A window Focus mode set aside redraws hourly instead of every second.
 - **Sessions:** every transition writes the `sessions` row, and a heartbeat updates `heartbeat_at` every 30 s.
 - **Crash recovery:** an open session is closed at its last heartbeat, and the user is asked "Resume *task*?".
 - **Sleep:** `NSWorkspace.willSleepNotification` / `didWakeNotification`. After a gap of more than 5 min the app asks "You were away 47 min. Count it or discard it?"
@@ -463,6 +464,11 @@ Each view file holds its own `#Preview`. Logic lives in `KomodoCore`, so it can 
 5. Publish updates through a Sparkle `appcast.xml` signed with EdDSA, hosted as a static file next to the DMG.
 
 The download page says "Requires a Mac with Apple silicon and macOS 14 or later".
+
+**Until steps 2–5 land (preview releases):** `scripts/make-dmg.sh` builds Release, ad hoc signs it, and makes a
+styled DMG (background art inside the app bundle, an Applications link, Finder's recorded layout, checked on the
+converted image). It goes to GitHub Releases from the maintainer's account, and the notes give the
+`xattr -dr com.apple.quarantine` step. CONTRIBUTING.md ▸ Releases has the steps.
 
 ## 16. Build phases
 
