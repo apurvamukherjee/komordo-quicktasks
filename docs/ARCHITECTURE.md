@@ -216,7 +216,9 @@ CREATE TABLE gmail_scans (             -- never any email content
 
 CREATE TABLE external_links (
   task_id TEXT NOT NULL, connection_id TEXT NOT NULL, external_id TEXT NOT NULL,
-  external_updated_at TEXT, PRIMARY KEY (connection_id, external_id)
+  external_updated_at REAL,            -- as built: seconds, like every other instant
+  snapshot TEXT NOT NULL,              -- the synced fields as both sides last agreed
+  PRIMARY KEY (connection_id, external_id)
 );
 
 CREATE TABLE preferences (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL);
@@ -388,6 +390,7 @@ protocol ProviderAdapter: Sendable {
 - **Calendars:** calendar import reads macOS Calendar through EventKit (`requestFullAccessToEvents`, the `com.apple.security.personal-information.calendars` entitlement, `NSCalendarsFullAccessUsageDescription`) instead of a Google or Microsoft adapter, so it needs no OAuth client or tokens. `CalendarImport` in KomodoCore turns events into tasks with IDs `calendar:<external ID>@<start>`.
 - **Auth:** Google (for Gmail) and Microsoft sign in through `ASWebAuthenticationSession` with PKCE. Notion, Todoist, Linear, ClickUp, and Asana use a **personal API token** pasted in Settings, because their OAuth requires a client secret that can't be kept in an app. Every token lives in the Keychain.
 - **Mapping and conflicts:** items map to tasks through `external_links`. The newer `updated_at` wins, and a remote delete only unlinks (FEATURES §5).
+- **As built (Todoist):** there's no `ProviderAdapter` protocol yet, since one provider doesn't need it. Each provider's items become `ExternalItem`s, and `ExternalSync` in KomodoCore holds the rules as pure functions: `pushes` (Komodo's changes since the links were agreed), `confirm` (what the provider accepted) and `pull` (the provider's changes). `external_links` keeps a `snapshot` of the synced fields as both sides last agreed, because many board changes never stamp `edited_at`; comparing snapshots finds local edits and sends only the changed fields. Todoist uses one request to its API v1 sync endpoint (`/api/v1/sync`) per poll, with commands and an incremental `sync_token`. The connection lives in `AppSettings` (preferences) rather than the `connections` table, which one account per provider doesn't need. Imported tasks get the ID `todoist:<item id>`, so a lost link can't import one twice. The protocol should come with the second provider.
 
 ## 9. On-device assistant and voice (P2)
 - **Komodo Assistant:** uses the on-device model when available, otherwise Claude with the user's key. It only **proposes** changes. The user confirms them in a preview, and they go through the normal stores.
@@ -475,5 +478,6 @@ The download page says "Requires a Mac with Apple silicon and macOS 14 or later"
 - **0b:** done.
 - **1:** done except Claude mode, the Review tab and reschedules (all part of Gmail → Calendar) and the XCUITest
   smoke tests. Calendar import reads macOS Calendar through EventKit rather than Google and Microsoft APIs.
-- **2:** Komodo Assistant and voice are done; the five task-tool integrations and the Light appearance remain.
+- **2:** Komodo Assistant, voice and Todoist are done; Todoist is tested against documented responses only, until a
+  sandbox token is tried. Notion, Linear, ClickUp, Asana and the Light appearance remain.
 - **Release** (§15): not started.
