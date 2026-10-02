@@ -2,8 +2,9 @@
 
 Last updated: 2026-10-02 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
 maintainer), all of Phase 1 except what depends on Gmail (Claude mode, the Review tab, reschedules) and the
-XCUITest smoke tests (they need the maintainer's screen), and the first two thirds of Phase 2 (Komodo Assistant;
-voice input and voice notes). Next is Phase 2's token integrations. §4 lists everything that remains, phase by
+XCUITest smoke tests (they need the maintainer's screen), and most of Phase 2 (Komodo Assistant; voice input and
+voice notes; Todoist sync, tested against documented responses only). Next is the other token integrations
+(Notion, Linear, ClickUp, Asana) and trying Todoist with a real token. §4 lists everything that remains, phase by
 phase. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new
 commits on top. `CHANGELOG.md` has the full list of what landed.
 
@@ -25,8 +26,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": Phase 2's token integrations (Notion, Todoist, Linear,
-ClickUp, Asana); ask me §9's questions first, since each needs my test token. §4 lists every phase that remains.
+Then continue from docs/HANDOFF.md §4 "Next task": the remaining token integrations (Notion, Linear, ClickUp,
+Asana) on top of Todoist's ExternalSync core; ask me §9's questions first, since each needs my test token. §4 lists every phase that remains.
 The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. My own Komodo may be running: check
@@ -71,7 +72,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P1 | Settings ▸ AI | ✅ | 2026-10-02; Apple Intelligence status, Claude key (Keychain, free check), model |
 | P2 | Komodo Assistant | ✅ | 2026-10-02; on-device or Claude, editable preview, @ commands, one Undo |
 | P2 | Voice input and voice notes | ✅ | 2026-10-02; on-device dictation; tried with a simulated voice only |
-| P2 | **Token integrations** | ⏭ **Next** | Notion · Todoist · Linear · ClickUp · Asana; see §4 |
+| P2 | Todoist sync | ✅ | 2026-10-02; two-way, one project per list; documented responses only, no real token yet |
+| P2 | **Token integrations** | ⏭ **Next** | Notion · Linear · ClickUp · Asana; see §4 |
 | P1 | Claude mode, Review tab, reschedules | ⏸ Parked | They're parts of Gmail → Calendar (FEATURES §4.0) |
 | P2 | Light appearance | ⏳ Later | DESIGN_SYSTEM §2: dark only so far |
 | — | Release: signing, notarizing, DMG, Sparkle | ⏳ Later | ARCHITECTURE §15; needs the maintainer's Developer ID |
@@ -82,8 +84,8 @@ Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Fl
 Palette, Settings (General, Focus, Alerts & sounds, Celebration, Shortcuts, Integrations, Data & backup, AI,
 Local MCP server, About), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5 and the
 Start tip), Reports, Assistant (all five states). Screens left: Gmail (connect, Overview, Settings, Activity,
-Review) and onboarding step 6, all parked with Gmail; Settings ▸ Gmail → Calendar (dimmed in the sidebar); the
-token sheet for the task-tool integrations. Reports states left: loading (nothing loads slowly on a local
+Review) and onboarding step 6, all parked with Gmail; Settings ▸ Gmail → Calendar (dimmed in the sidebar). The
+token sheet is built for Todoist; the other providers reuse it. Reports states left: loading (nothing loads slowly on a local
 database).
 
 ---
@@ -125,7 +127,9 @@ Komodo/
                       BoardStore+Reports (ReportsState)
   Features/Backup/    BoardStore+Backup (export, daily backup, restore, delete all, protection), BackupSheets
                       (restore confirm, restore errors, typed delete, set and enter password), BackupPassword
-  Features/Integrations/ CalendarSync (EventKit: access, calendars, sync on launch, change and day rollover)
+  Features/Integrations/ CalendarSync (EventKit: access, calendars, sync on launch, change and day rollover),
+                      TodoistSync (poll loop, connect, disconnect, one sync round), TodoistClient (sync
+                      endpoint, TodoistError), TodoistToken (Keychain), TodoistTokenSheet
   Features/AI/        AppleIntelligence (FoundationModels status), ClaudeKey (Keychain item + free key check),
                       AssistantBrain (on-device guided generation or Claude structured output)
   Features/Assistant/ AssistantModel (conversation state), AssistantPanel (popover, rows, listening, waveform),
@@ -231,6 +235,11 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Calendar import:** `CalendarSync` reads EventKit and hands `CalendarEvent`s to
   `BoardStore.importCalendarEvents`, which runs the pure `CalendarImport.sync` rule. Task IDs are
   `calendar:<external ID>@<start>`.
+- **Todoist:** each poll, `TodoistSync` asks `ExternalSync.pushes` what changed here since the links in
+  `external_links` were agreed, sends them as `Todoist.Batch` commands in the same `/api/v1/sync` request that
+  reads Todoist's changes, then runs `confirm` (what Todoist accepted) and `pull` (Todoist's changes), saving tasks
+  through `BoardStore.saveImported`. Imported task IDs are `todoist:<item id>`. The connection's settings and
+  sync token live in `AppSettings`; the token is `KeychainSecret.todoistToken`.
 - **Assistant:** a brain returns an `AssistantPlan`; `AssistantResolver` keeps it to the user's words (per-phrase
   values, `@` commands, grounding, skipped phrases) and builds the preview; `applyAssistant` saves it with one undo.
   The resolver, not the model, decides days, times and lengths.
@@ -241,20 +250,21 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ## 4. Next task, and everything that remains
 
-### Next task: token integrations (Phase 2)
+### Next task: the remaining token integrations (Phase 2)
 
-**Notion · Todoist · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8, DESIGN_SYSTEM §13.17):
-- A `ProviderAdapter` per provider, personal tokens in the Keychain (`KeychainSecret`), and the token sheet on
-  Integrations: "Paste your API token", a "Where to find it" link, [Test] and [Save]. The cards sit in COMING SOON
-  today.
-- Two-way where FEATURES says so (Notion, Todoist, ClickUp, Asana), Linear → Komodo only. Polling every 5–10 min
-  with a catch-up on launch and wake; an `external_links` table (a schema migration); the newer `updated_at` wins;
-  a remote delete only unlinks.
-- The common settings: Auto sync, Sync now, Sync deletes, Only my items, Date mapping, Status mapping; one account
-  per provider per list; imported tasks placed by date.
-- Build the mapping rules in KomodoCore with tests against recorded API responses. Each provider needs the
-  maintainer's test token to try for real (§9), and the current API version should be checked against the
-  provider's docs before writing its client.
+**Notion · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8, DESIGN_SYSTEM §13.17), on Todoist's core:
+- `external_links` (schema v5), `ExternalItem` and `ExternalSync` (pull, pushes, confirm) already exist and are
+  provider-neutral. Each provider needs its response types, a mapping to `ExternalItem`, a way to send pushes,
+  a client, a `KeychainSecret`, a sync service and its card. With the second provider, pull the shared parts of
+  `TodoistSync` into a `ProviderAdapter` protocol (ARCHITECTURE §8) instead of copying it.
+- Linear is Linear → Komodo only: call `pull` and skip `pushes`. Notion, ClickUp and Asana have start and due
+  dates and statuses, so they need the Date mapping and Status mapping settings Todoist doesn't.
+- Notion's checkbox properties become subtasks (FEATURES §5), which `ExternalItem` doesn't carry yet.
+- Check each provider's current API version against its docs first. Each needs the maintainer's test token to
+  try for real (§9).
+- **Todoist with a real token:** once the maintainer shares one, connect a scratch database to a throwaway
+  project and try import, an edit each way, a completion each way, Sync deletes and a refused change. Record a
+  real response to replace the documented-shape fixtures in `TodoistTests`.
 
 ### Everything that remains, by phase
 
@@ -302,6 +312,17 @@ hand.
 
 ## 5. Known gaps and placeholders
 
+- **Todoist:**
+  - Never tried against the real API: the fixtures follow the documented response shape (§9 question 3).
+  - Completing a repeating Todoist task here sends `item_close`, which moves it to its next date; the next pull
+    then reopens the Komodo task on that date, with its sessions still attached.
+  - A full sync (first connect, or an expired sync token) doesn't report deleted items, so a task whose item was
+    deleted meanwhile stays linked until its item changes.
+  - Todoist sub-tasks come in as ordinary tasks, not as subtasks. Sections, labels and priority aren't read.
+  - One Todoist connection in all; changing the project means Disconnect and Connect again.
+  - A refused change is retried on every sync until it goes through, with the reason on the card.
+  - A push and its confirmation aren't atomic: if Komodo quits between Todoist accepting a new task and the link
+    being saved, the next sync sends it again.
 - **Persistence:**
   - The Pomodoro count starts over after a relaunch (see Focus restore below).
   - No `ValueObservation`: nothing else writes the file, and a restore reloads in place. Add it with the MCP
@@ -537,6 +558,14 @@ hand.
 | Calendar sync timing | EventKit's change notification, launch, day rollover, Sync now | Replaces ARCHITECTURE's 5 min poll; Calendar says when something changed |
 | Imported events | The event wins for title, time and length; Komodo's notes are kept; done tasks are left alone | FEATURES §5 says the newer change wins; an event has no edit time EventKit exposes reliably |
 | Integrations page | One Calendar import card; Gmail as coming soon | DESIGN_SYSTEM §13.17 drew Google and Microsoft calendar cards |
+| Todoist API | v1 sync endpoint for reads and writes | One request a poll, and incremental changes include completions and deletes, which the task list endpoints don't |
+| Todoist connection | In `AppSettings`, not ARCHITECTURE §5's `connections` table | One account per provider needs no table or second migration |
+| External links | A `snapshot` of the synced fields per link | Drags, completions and other board changes don't stamp `edited_at`, so it couldn't find local edits |
+| Todoist pushes | Only the changed fields | Rewriting an untouched due date would drop a Todoist repeat rule |
+| Todoist estimates | An undated task's estimate stays in Komodo | Todoist keeps a duration only beside a due date |
+| Todoist pushes new tasks | Only tasks made in the list after connecting, not repeating ones | Connecting shouldn't copy a whole list into Todoist; each occurrence would become its own task |
+| Todoist date and status mapping | Not offered | Todoist has one date and no statuses (FEATURES §5's settings assume both) |
+| Token sheet | Project and list pickers after a passed test; Test inside the field | DataSheets.dc.html shows neither, but one project per list needs the choice; the field matches §10.6's Claude key field |
 | Claude models | `claude-opus-5-5` (default) and `claude-sonnet-5-5` | The canvas names `claude-opus-5` and `claude-sonnet-5`, now a generation old |
 | Claude key check | `GET /v1/models/<model>` | Free, and tells a bad key from a model the key can't use |
 | AI page before Gmail | Use Claude for disabled; no Claude mode warning or payload explainer | Both describe Gmail's Claude mode, which isn't built |
@@ -565,7 +594,7 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 - **Commits:** Conventional Commits with scopes used so far: `core`, `app`, `design-system`, `effects`,
   `components`, `gallery`, `board`, `readme`, `media`, `settings`, `focus`, `menubar`, `alerts`, `trash`,
   `handoff`, `backup`, `mcp`, `ai`, `assistant`, `voice`, `inspector`, `features`, `architecture`, `changelog`,
-  `contributing`. Commit in dependency order so each commit builds, and
+  `contributing`, `integrations`. Commit in dependency order so each commit builds, and
   build an intermediate commit in a throwaway `git worktree` to prove it.
 - **README media:** follow CONTRIBUTING.md.
   - Board: `open build/DerivedData/Build/Products/Debug/Komodo.app --args -sampleTime artboard -homeWindowSize
@@ -589,7 +618,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
   - Lists: `-openListSheet new|edit|delete` (edit and delete act on the selected list) and `-deleteList <id>`,
     which pairs with `-openTrash <count>` for a list row in Trash.
   - Integrations, AI and MCP: `-openSettings integrations|ai|mcp`; `-sampleCalendar YES` stands in for macOS
-    Calendar; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
+    Calendar; `-sampleTodoist YES` stands in for Todoist, with `-connectTodoist YES` to connect the sample project,
+    `-openTodoistSheet YES|tested` for the token sheet and `-todoistToken <token>` for the Keychain; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
     points `komodo-mcp` at a scratch file (pipe JSON-RPC lines into
     `Komodo.app/Contents/Helpers/komodo-mcp`).
   - Assistant and voice: `-assistantPrompt "<text>"` (plus `-assistantApply YES`) runs the real on-device model,
@@ -681,8 +711,9 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
    use, and is a Google sign-in dependency acceptable (GoogleSignIn, about 1 MB), or should it be
    `ASWebAuthenticationSession` with PKCE and no dependency?
 2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
-3. **Token integrations:** which providers matter most, and can the maintainer share a test token (or sandbox
-   workspace) for each? Without one, a client can only be checked against recorded responses.
+3. **Token integrations:** Todoist came first (the maintainer's pick on 2026-10-02) and is built against
+   documented responses; tokens will come later. Which of Notion, Linear, ClickUp and Asana is next, and when can
+   the maintainer share a test token (or sandbox workspace) for Todoist and each of them?
 4. **Permission prompts:** may the next session show macOS's Calendar, microphone and speech-recognition prompts
    on this Mac to try calendar import and voice for real?
 5. **Claude key:** will the maintainer add one in Settings ▸ AI so the Assistant's Claude path can be tried?
