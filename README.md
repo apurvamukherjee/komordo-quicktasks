@@ -324,6 +324,20 @@ Komodo's look is **Obsidian Spectrum**: black is the canvas, color is earned, li
 | Project | Generated with XcodeGen, linted with swift-format |
 | Celebration GIFs | [Animated Noto Emoji](https://googlefonts.github.io/noto-emoji-animation/) by Google, CC BY 4.0 |
 
+## Download
+
+Grab the latest `.dmg` from [Releases](https://github.com/apurvamukherjee/komordo-quicktasks/releases/latest), open
+it, and drag **Komodo** onto **Applications**. It needs macOS 14 or later on Apple silicon.
+
+Komodo isn't notarized yet, so macOS blocks the first launch. Run this once in Terminal, then open it as usual:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Komodo.app
+```
+
+Everything stays on your Mac: your tasks live in `~/Library/Application Support/Komodo`, and nothing needs an
+account.
+
 ## Getting started
 
 ```bash
@@ -374,6 +388,7 @@ open Komodo.app --args -sampleTime artboard
 - [ ] Notion, Linear, ClickUp and Asana
 - [ ] Claude mode and the Review tab for Gmail → Calendar
 - [ ] Light appearance and Increase Contrast
+- [x] Downloadable preview build
 - [ ] Signed, notarized release with automatic updates
 
 ## Contributing
