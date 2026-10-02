@@ -37,6 +37,7 @@ public struct WorkSession: Hashable, Sendable {
 public enum TaskSource: String, Sendable {
     case gmail
     case calendar
+    case todoist
 }
 
 public struct TaskItem: Identifiable, Hashable, Sendable {
