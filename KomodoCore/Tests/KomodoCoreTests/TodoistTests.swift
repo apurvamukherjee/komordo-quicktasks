@@ -80,3 +80,39 @@ struct TodoistTests {
         #expect(response.projects.isEmpty)
     }
 }
+
+struct TodoistItemTests {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Kolkata") ?? .gmt
+        return calendar
+    }
+
+    @Test func wholeDaysFloatingTimesAndFixedTimesReadAsLocal() {
+        let day = LocalDate(year: 2026, month: 10, day: 2)
+        #expect(Todoist.Due(date: "2026-10-02").schedule(in: calendar)! == (day, nil))
+        #expect(Todoist.Due(date: "2026-10-02T15:00:00").schedule(in: calendar)! == (day, 900))
+        // 20:00 UTC is 01:30 the next morning in India.
+        #expect(
+            Todoist.Due(date: "2026-10-02T20:00:00.000000Z").schedule(in: calendar)!
+                == (day.adding(days: 1, calendar: calendar), 90))
+        #expect(Todoist.Due(date: "soon").schedule(in: calendar) == nil)
+    }
+
+    @Test func anItemBecomesAnExternalItem() throws {
+        let response = try TodoistFixtures.decode(TodoistFixtures.fullSync)
+        let post = ExternalItem(response.items[0], userID: "2671355", calendar: calendar)
+        #expect(post.title == "Write the launch post")
+        #expect(post.notes == "Draft in https://notes.example.com/launch")
+        #expect(post.date == LocalDate(year: 2026, month: 10, day: 2))
+        #expect(post.minute == 900)
+        #expect(post.dueDate == LocalDate(year: 2026, month: 10, day: 9))
+        #expect(post.estimate == 2_700)
+        #expect(post.isMine)
+        #expect(post.updatedAt == Date(timeIntervalSince1970: 1_790_847_000))
+        #expect(post.url?.absoluteString == "https://app.todoist.com/app/task/6X7rM8997g3RQmvh")
+        let demo = ExternalItem(response.items[1], userID: "2671355", calendar: calendar)
+        #expect(!demo.isMine)
+        #expect(demo.notes == nil && demo.date == nil && demo.estimate == nil)
+    }
+}
