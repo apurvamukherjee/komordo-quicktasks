@@ -13,6 +13,10 @@ struct SecureKeyField: View {
     var placeholder: String
     @Binding var secret: String
     var testState: TestState
+    /// What a passing test says, such as "Token works · 3 projects found".
+    var validLabel = "Key works"
+    /// Shown before the first test, when there's something worth saying.
+    var idleLabel: String?
     var onTest: () -> Void
 
     @State private var isRevealed = false
@@ -58,10 +62,14 @@ struct SecureKeyField: View {
 
     @ViewBuilder private var result: some View {
         switch testState {
-        case .idle, .testing:
+        case .idle:
+            if let idleLabel {
+                Text(idleLabel).font(.system(size: 12)).foregroundStyle(Palette.textSecondary)
+            }
+        case .testing:
             EmptyView()
         case .valid:
-            Label("Key works", systemImage: "checkmark.circle.fill")
+            Label(validLabel, systemImage: "checkmark.circle.fill")
                 .font(.system(size: 11.5, weight: .semibold))
                 .foregroundStyle(Palette.greenText)
         case .invalid(let message):
