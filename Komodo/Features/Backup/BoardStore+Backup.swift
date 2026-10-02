@@ -180,8 +180,8 @@ extension BoardStore {
         }
     }
 
-    /// Delete all data: an empty file and a first-launch board, and no backup password left in the Keychain.
-    /// There's no Google connection to drop yet.
+    /// Delete all data: an empty file and a first-launch board, with no backup password or Todoist token left in
+    /// the Keychain. There's no Google connection to drop yet.
     func deleteAllData() {
         guard let database else { return }
         do {
@@ -193,6 +193,7 @@ extension BoardStore {
         }
         reload()
         stopProtectingBackups()
+        todoistSync?.disconnect()
     }
 
     private static func write(_ database: AppDatabase, to destination: URL, password: String?) async throws {
