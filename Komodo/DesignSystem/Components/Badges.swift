@@ -74,9 +74,23 @@ struct SourceBadge: View {
     enum Source {
         case gmail
         case calendar
+        case todoist
 
-        var title: String { self == .gmail ? "Gmail" : "Calendar" }
-        var symbol: String { self == .gmail ? "envelope" : "calendar" }
+        var title: String {
+            switch self {
+            case .gmail: "Gmail"
+            case .calendar: "Calendar"
+            case .todoist: "Todoist"
+            }
+        }
+
+        var symbol: String {
+            switch self {
+            case .gmail: "envelope"
+            case .calendar: "calendar"
+            case .todoist: "checklist"
+            }
+        }
     }
 
     var source: Source
@@ -108,6 +122,7 @@ struct SourceBadge: View {
             CountBadge(count: 12, tint: Palette.lime, textColor: Palette.limeText)
             SourceBadge(source: .gmail)
             SourceBadge(source: .calendar)
+            SourceBadge(source: .todoist)
         }
     }
     .padding(Space.s8)

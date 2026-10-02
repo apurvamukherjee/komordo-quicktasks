@@ -17,10 +17,18 @@ extension BoardStore {
             hasNotes: task.hasNotes, linkCount: task.links.count, timing: timing(for: task),
             repeatText: task.repeatParentID == nil ? nil : repeatSummary(for: task),
             hasReminder: task.scheduledDate != nil && task.scheduledMinute != nil && task.remindsAtStart,
-            source: task.source.map { $0 == .gmail ? .gmail : .calendar }, outcome: outcome(for: task),
+            source: task.source.map(Self.badge), outcome: outcome(for: task),
             // Parked cards stay compact until there's something to track, as on the canvas.
             showsProgress: !hidesTimes && task.estimate != nil
                 && (taken > 0 || !task.subtasks.isEmpty || task.hasNotes || task.links.count > 0))
+    }
+
+    private static func badge(_ source: TaskSource) -> SourceBadge.Source {
+        switch source {
+        case .gmail: .gmail
+        case .calendar: .calendar
+        case .todoist: .todoist
+        }
     }
 
     func liveModel(for task: TaskItem) -> LiveTaskModel {
@@ -28,7 +36,7 @@ extension BoardStore {
         return LiveTaskModel(
             title: task.title, listLetter: list?.letter ?? "?",
             listColor: list.flatMap { ListColor(rawValue: $0.color) } ?? .lime,
-            source: task.source.map { $0 == .gmail ? "From Gmail" : "From Calendar" },
+            source: task.source.map { "From " + Self.badge($0).title },
             estimate: task.estimate ?? 3_600, flowStartedAt: focus.flowStartedAt,
             sprint: isPomodoroOn
                 ? .init(
