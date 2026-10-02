@@ -86,6 +86,11 @@ struct SettingsDataPage: View {
                 isSettingPassword = UserDefaults.standard.bool(forKey: "openBackupPassword")
             #endif
         }
+        .task(id: store.backupToOpen) {
+            guard let url = store.backupToOpen, store.database != nil else { return }
+            store.backupToOpen = nil
+            await open(url)
+        }
         .sheet(isPresented: Binding(get: { archive != nil }, set: { if !$0 { cancelRestore() } })) {
             if let archive {
                 RestoreBackupSheet(

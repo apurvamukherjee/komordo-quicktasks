@@ -572,6 +572,14 @@ import SwiftUI
         settingsRequests += 1
     }
 
+    /// A backup opened from Finder, waiting for Data & backup to check it and show the restore sheet.
+    var backupToOpen: URL?
+
+    func openBackupFile(_ url: URL) {
+        backupToOpen = url
+        showSettings(.data)
+    }
+
     // MARK: Derived
 
     var now: Date { clock() }

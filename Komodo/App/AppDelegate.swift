@@ -15,6 +15,8 @@ import notify
     private var store: BoardStore?
     /// A `komodo://start` that arrived before Home handed over the store, as when it launched Komodo.
     private var pendingStart: String?
+    /// A backup opened from Finder before the store was ready.
+    private var pendingBackup: URL?
     private var outsideWrites: Int32 = 0
     private let backupScheduler = NSBackgroundActivityScheduler(identifier: "app.komodo.Komodo.backup")
 
@@ -46,6 +48,10 @@ import notify
             pendingStart = nil
             start(id, in: store)
         }
+        if let url = pendingBackup {
+            pendingBackup = nil
+            store.openBackupFile(url)
+        }
     }
 
     // MARK: Local MCP server
@@ -61,7 +67,11 @@ import notify
     }
 
     /// `komodo://start?task=<id>` (ARCHITECTURE §4.1), which `start_focus` opens: the task goes live in Focus mode.
+    /// A `.kbak` opened in Finder goes to Settings ▸ Data & backup's restore.
     func application(_ application: NSApplication, open urls: [URL]) {
+        if let backup = urls.last(where: { $0.isFileURL && $0.pathExtension == BackupCrypto.fileExtension }) {
+            if let store { store.openBackupFile(backup) } else { pendingBackup = backup }
+        }
         for url in urls where url.scheme == "komodo" && url.host() == "start" {
             guard
                 let id = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
