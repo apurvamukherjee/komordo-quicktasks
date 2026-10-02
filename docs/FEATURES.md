@@ -452,6 +452,15 @@ Every integration runs inside the app, and tokens are kept in the macOS Keychain
 
 Imported tasks are placed by date: none or beyond this week → Backlog, this week → This week, today → Today.
 
+**Todoist** (as built): Settings → Integrations → **Connect** opens the token sheet. **Test** checks the personal API token and lists its open projects; the user picks the project and the list it syncs with, and **Save** keeps the token in the Keychain.
+- Each sync is one request to Todoist's API v1 sync endpoint: Komodo's changes go up and Todoist's come down. It runs at launch, on wake, every 5 minutes with **Auto sync** on, and on **Sync now**; after a failure it waits 1, 2, 4 … up to 30 minutes.
+- An open Todoist task joins the list placed by its date. Its due date and time become the schedule, its deadline the due date, its description the notes, and a duration in minutes the estimate. Completed and deleted tasks aren't imported, and neither is someone else's with **Only my items** on.
+- Tasks made in the list after connecting go to Todoist. Tasks made before stay in Komodo, and so do repeating tasks, since each occurrence would become its own Todoist task.
+- An edit on either side, completion included, reaches the other. Only the changed fields are sent, so an untouched Todoist repeat rule survives. When both sides changed a task since the last sync, the newer edit wins.
+- Deleting in Todoist, or moving the task to another project, only unlinks it here. Deleting here deletes in Todoist only with **Sync deletes** on. A change Todoist refuses is tried again on the next sync, and the card shows why.
+- An estimate on an undated task stays in Komodo, since Todoist keeps a duration only beside a due date. Todoist has one date and no statuses, so it has no date or status mapping.
+- **Disconnect** forgets the token and the links; imported tasks stay as ordinary tasks. Delete all data disconnects too.
+
 **Calendar import** reads macOS Calendar, so any account the Mac has (iCloud, Google, Exchange, Outlook.com) works with no sign-in inside Komodo. Settings → Integrations → **Connect** asks macOS for access once and selects every calendar; the Calendar import group then picks calendars by account, the list events join (default: the first list), the range (next 1, 2 or 3 weeks, default 2), and **Only accepted events**.
 - Each occurrence becomes one task: title, date, start time (all-day events have none), the event's length as the estimate, its notes, and the meeting link (the event's URL, or the first Meet, Zoom, Teams or Webex link in its location or notes) as the task's source link. Cancelled events are skipped.
 - Syncs run at launch, whenever Calendar's data changes, at day rollover, and on **Sync now**; there's no polling.
