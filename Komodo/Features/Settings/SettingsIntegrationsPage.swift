@@ -17,7 +17,7 @@ struct SettingsIntegrationsPage: View {
 
     private var sync: CalendarSync? { store.calendarSync }
     private var isImporting: Bool { store.settings.importsCalendars && sync?.access == .granted }
-    private var todoist: TodoistSync? { store.todoistSync }
+    private var todoist: ProviderSync? { store.providerSyncs[.todoist] }
     private var isTodoistConnected: Bool { store.settings[.todoist].sourceID != nil }
 
     @State private var isConnectingTodoist = false
@@ -86,9 +86,14 @@ struct SettingsIntegrationsPage: View {
             #endif
         }
         .sheet(isPresented: $isConnectingTodoist) {
-            TodoistTokenSheet(lists: store.lists, cancel: { isConnectingTodoist = false }) {
-                token, project, listID throws(KeychainError) in
-                try todoist?.connect(token: token, project: project, listID: listID)
+            TodoistTokenSheet(
+                lists: store.lists, cancel: { isConnectingTodoist = false },
+                test: { token throws(ProviderError) in
+                    guard let todoist else { throw .unreadable }
+                    return try await todoist.sources(token: token)
+                }
+            ) { token, source, listID throws(KeychainError) in
+                try todoist?.connect(token: token, source: source, listID: listID)
                 isConnectingTodoist = false
             }
         }

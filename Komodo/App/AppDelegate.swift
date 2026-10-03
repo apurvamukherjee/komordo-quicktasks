@@ -10,7 +10,7 @@ import notify
     let settingsWindow = SettingsWindowController()
     let hotKeys = GlobalHotKeys()
     let calendarSync = CalendarSync()
-    let todoistSync = TodoistSync()
+    let providerSyncs = Provider.allCases.map { ProviderSync($0) }
 
     private var store: BoardStore?
     /// A `komodo://start` that arrived before Home handed over the store, as when it launched Komodo.
@@ -43,7 +43,7 @@ import notify
         store.alerts = alerts
         watchForOutsideWrites(store)
         calendarSync.attach(store)
-        todoistSync.attach(store)
+        for sync in providerSyncs { sync.attach(store) }
         if let id = pendingStart {
             pendingStart = nil
             start(id, in: store)

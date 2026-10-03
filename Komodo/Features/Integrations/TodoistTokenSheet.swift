@@ -6,17 +6,18 @@ import SwiftUI
 struct TodoistTokenSheet: View {
     var lists: [TaskList]
     var cancel: () -> Void
-    var save: (_ token: String, _ project: Todoist.Project, _ listID: String) throws(KeychainError) -> Void
+    var test: (_ token: String) async throws(ProviderError) -> [ProviderSource] = { _ throws(ProviderError) in [] }
+    var save: (_ token: String, _ project: ProviderSource, _ listID: String) throws(KeychainError) -> Void
     /// Previews pass the projects in, as if Test had already passed.
-    var testedProjects: [Todoist.Project] = []
+    var testedProjects: [ProviderSource] = []
 
     @State private var token = ""
     @State private var testState = SecureKeyField.TestState.idle
-    @State private var projects: [Todoist.Project] = []
+    @State private var projects: [ProviderSource] = []
     @State private var projectID = ""
     @State private var listID = ""
 
-    private var project: Todoist.Project? { projects.first { $0.id == projectID } }
+    private var project: ProviderSource? { projects.first { $0.id == projectID } }
 
     var body: some View {
         FormSheet(symbol: "checklist", tint: Palette.teal, glyph: Palette.tealText, letter: "T") {
@@ -43,7 +44,7 @@ struct TodoistTokenSheet: View {
                 SecureKeyField(
                     placeholder: "API token", secret: $token, testState: testState,
                     validLabel: "Token works · \(projects.count) project\(projects.count == 1 ? "" : "s") found",
-                    idleLabel: "Not tested yet", onTest: test)
+                    idleLabel: "Not tested yet", onTest: runTest)
             }
             if testState == .valid {
                 VStack(spacing: Space.s2) {
@@ -85,7 +86,7 @@ struct TodoistTokenSheet: View {
             #if DEBUG
                 if UserDefaults.standard.string(forKey: "openTodoistSheet") == "tested" {
                     token = "0123456789abcdef0123456789abcdef0123c91e"
-                    test()
+                    runTest()
                 }
             #endif
         }
@@ -99,12 +100,12 @@ struct TodoistTokenSheet: View {
         }
     }
 
-    private func test() {
+    private func runTest() {
         testState = .testing
         let candidate = token
         Task {
             do throws(ProviderError) {
-                let found = try await TodoistSync.projects(token: candidate)
+                let found = try await test(candidate)
                 // Typing during the test makes the answer stale.
                 guard token == candidate else { return }
                 accept(found)
@@ -116,7 +117,7 @@ struct TodoistTokenSheet: View {
     }
 
     /// Inbox is where everything lands, so the first other project is the likelier pick.
-    private func accept(_ found: [Todoist.Project]) {
+    private func accept(_ found: [ProviderSource]) {
         projects = found
         projectID = (found.first { $0.name != "Inbox" } ?? found.first)?.id ?? ""
         testState = .valid
@@ -147,8 +148,8 @@ private struct KeychainNoteStyle: LabelStyle {
         TodoistTokenSheet(
             lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in },
             testedProjects: [
-                Todoist.Project(id: "1", name: "Inbox"), Todoist.Project(id: "2", name: "Komodo launch"),
-                Todoist.Project(id: "3", name: "Home"),
+                ProviderSource(id: "1", name: "Inbox"), ProviderSource(id: "2", name: "Komodo launch"),
+                ProviderSource(id: "3", name: "Home"),
             ])
     }
     .padding(Space.s8)

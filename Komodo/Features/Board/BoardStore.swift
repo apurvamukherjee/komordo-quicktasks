@@ -232,8 +232,8 @@ import SwiftUI
     private var timedAlert: Task<Void, Never>?
     /// macOS Calendar for calendar import; set by the app, absent in previews.
     var calendarSync: CalendarSync?
-    /// Todoist sync; set by the app, absent in previews.
-    var todoistSync: TodoistSync?
+    /// Task tool syncs by provider; set by the app, absent in previews.
+    var providerSyncs: [Provider: ProviderSync] = [:]
     /// Komodo Assistant's conversation, kept while its popover is closed.
     let assistant = AssistantModel()
     /// Sound and notifications; set by the app, absent in previews.
