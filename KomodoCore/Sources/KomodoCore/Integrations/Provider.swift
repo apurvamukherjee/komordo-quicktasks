@@ -27,7 +27,7 @@ public enum Provider: String, CaseIterable, Sendable {
     /// Providers whose items have statuses, rather than only open and done.
     public var hasStatusMapping: Bool { self == .notion || self == .linear || self == .clickup }
 
-    /// What each keeps of a task. Linear and Notion have no time estimate to map to, and Linear has no planned
+    /// What each keeps of a task. Linear, Notion and Asana have no time estimate to map to, and Linear has no planned
     /// date; its due date is the schedule. Notion's checkbox properties and Asana's subtasks are subtasks.
     public var shape: ExternalItem.Shape {
         var fields: Set<ExternalItem.Field> = [.title, .notes, .date, .minute, .dueDate, .estimate, .done]
@@ -35,7 +35,8 @@ public enum Provider: String, CaseIterable, Sendable {
         case .todoist: return .todoist
         case .notion: fields.subtract([.estimate])
         case .linear: fields.subtract([.minute, .dueDate, .estimate])
-        case .clickup, .asana: break
+        case .asana: fields.subtract([.estimate])
+        case .clickup: break
         }
         if hasStatusMapping { fields.insert(.column) }
         if self == .notion || self == .asana { fields.insert(.subtasks) }

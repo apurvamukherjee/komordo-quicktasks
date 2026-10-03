@@ -10,8 +10,8 @@ extension Todoist.Due {
     public func schedule(in calendar: Calendar) -> (day: LocalDate, minute: Int?)? {
         if date.hasSuffix("Z") {
             guard let instant = ExternalItem.instant(date) else { return nil }
-            let parts = calendar.dateComponents([.hour, .minute], from: instant)
-            return (LocalDate(instant, calendar: calendar), (parts.hour ?? 0) * 60 + (parts.minute ?? 0))
+            let schedule = ExternalItem.schedule(at: instant, calendar: calendar)
+            return (schedule.day, schedule.minute)
         }
         guard let day = LocalDate(iso: String(date.prefix(10))) else { return nil }
         let time = date.dropFirst(11).split(separator: ":").prefix(2).compactMap { Int($0) }

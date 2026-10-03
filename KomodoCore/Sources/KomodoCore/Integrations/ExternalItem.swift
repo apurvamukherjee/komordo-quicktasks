@@ -131,4 +131,16 @@ extension ExternalItem {
         let whole = text.replacingOccurrences(of: #"\.\d+"#, with: "", options: .regularExpression)
         return ISO8601DateFormatter().date(from: whole)
     }
+
+    /// The day an instant falls on here, and its minute after midnight.
+    static func schedule(at instant: Date, calendar: Calendar) -> (day: LocalDate, minute: Int) {
+        let parts = calendar.dateComponents([.hour, .minute], from: instant)
+        return (LocalDate(instant, calendar: calendar), (parts.hour ?? 0) * 60 + (parts.minute ?? 0))
+    }
+
+    /// A day and minute here as the UTC instant providers take: `2026-10-02T13:00:00Z`.
+    static func instantText(day: LocalDate, minute: Int, calendar: Calendar) -> String {
+        let instant = day.startOfDay(in: calendar).addingTimeInterval(TimeInterval(minute * 60))
+        return ISO8601DateFormatter().string(from: instant)
+    }
 }
