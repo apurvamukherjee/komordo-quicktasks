@@ -56,7 +56,7 @@ import OSLog
     // MARK: Connecting
 
     /// [Test] in the token sheet: the account's open projects, which also proves the token works.
-    static func projects(token: String) async throws(TodoistError) -> [Todoist.Project] {
+    static func projects(token: String) async throws(ProviderError) -> [Todoist.Project] {
         #if DEBUG
             if usesSamples { return sampleProjects }
         #endif
@@ -108,9 +108,9 @@ import OSLog
         defer { isSyncing = false }
         let token: String
         do {
-            guard let saved = try KeychainSecret.todoistToken.read() else { throw TodoistError.badToken }
+            guard let saved = try KeychainSecret.todoistToken.read() else { throw ProviderError.badToken }
             token = saved
-        } catch let error as TodoistError {
+        } catch let error as ProviderError {
             fail(error)
             return
         } catch {
@@ -153,7 +153,7 @@ import OSLog
 
     private func answer(
         token: String, from syncToken: String?, commands: [Todoist.Command]
-    ) async throws(TodoistError) -> Todoist.SyncResponse {
+    ) async throws(ProviderError) -> Todoist.SyncResponse {
         #if DEBUG
             if Self.usesSamples, let store {
                 return Self.sampleResponse(commands: commands, from: syncToken, today: store.today)
@@ -172,9 +172,9 @@ import OSLog
             connectedAt: store.settings[.todoist].connectedAt ?? store.now, week: store.week, now: store.now)
     }
 
-    private func fail(_ error: TodoistError?, _ message: String? = nil) {
+    private func fail(_ error: ProviderError?, _ message: String? = nil) {
         failures += 1
-        let text = message ?? error?.message ?? ""
+        let text = message ?? error?.message(for: .todoist) ?? ""
         Self.log.error("Todoist sync failed: \(text)")
         store?.settings[.todoist].problem = text
     }

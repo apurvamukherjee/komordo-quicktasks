@@ -103,14 +103,14 @@ struct TodoistTokenSheet: View {
         testState = .testing
         let candidate = token
         Task {
-            do throws(TodoistError) {
+            do throws(ProviderError) {
                 let found = try await TodoistSync.projects(token: candidate)
                 // Typing during the test makes the answer stale.
                 guard token == candidate else { return }
                 accept(found)
             } catch {
                 guard token == candidate else { return }
-                testState = .invalid(error.message)
+                testState = .invalid(error.message(for: .todoist))
             }
         }
     }
