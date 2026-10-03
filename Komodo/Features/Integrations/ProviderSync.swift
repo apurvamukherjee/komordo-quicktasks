@@ -170,11 +170,18 @@ import OSLog
         let context = context(for: store)
         let confirmed = ExternalSync.confirm(
             pushes, outcomes: answer.outcomes, links: links, board: store.tasks, context: context)
+        let failuresBefore = store.storageFailures
         store.saveImported(confirmed.saved)
         let pulled = ExternalSync.pull(
             answer.items, links: confirmed.links, board: store.tasks, known: store.knownTaskIDs, context: context,
             isEverything: answer.isEverything)
         store.saveImported(pulled.saved)
+        // Links to tasks that never reached the file would read as deletions after a relaunch, and with Sync deletes
+        // on they'd delete those items at the provider. The old links still match the file, so they stay.
+        guard store.storageFailures == failuresBefore else {
+            fail(nil, "Komodo couldn't save the \(name) tasks. It'll try again on the next sync.")
+            return
+        }
         saveLinks(pulled.links)
         store.settings[provider].cursor = answer.cursor
         store.settings[provider].userID = answer.userID ?? store.settings[provider].userID

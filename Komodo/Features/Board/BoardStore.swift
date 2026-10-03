@@ -382,7 +382,11 @@ import SwiftUI
         }
     }
 
+    /// How many writes have failed since launch, so a caller can tell whether its own write went through.
+    private(set) var storageFailures = 0
+
     private func reportStorage(_ error: any Error) {
+        storageFailures += 1
         Logger(subsystem: "app.komodo.Komodo", category: "storage").error("Couldn't save: \(error)")
         toasts.show(
             Toast(kind: .error, message: "Couldn't save your changes", detail: "They'll stay until you quit."))
