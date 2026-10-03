@@ -326,9 +326,9 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
   - A status only places an undated task; a dated one always goes by its date. Moving a dated task between columns
     sends no status.
   - Changing the date mapping agrees the links with the tasks first, so the provider's dates win on the next pull.
-  - If saving imported tasks fails (as the sample stand-ins' shared subtask IDs once made it), the links are still
-    saved. After a relaunch those tasks are missing, and with Sync deletes on the next sync would delete them at
-    the provider. Saving links and tasks in one transaction would close this; it applies to Todoist too.
+  - If saving imported tasks fails, the sync keeps the old links and the card says why (`storageFailures`), so a
+    task that never reached the file can't read as deleted. Links and tasks still aren't one transaction: a crash
+    between the two writes could leave links ahead of tasks.
 - **Todoist:**
   - Never tried against the real API: the fixtures follow the documented response shape (§9 question 3).
   - Todoist sub-tasks come in as ordinary tasks, not as subtasks: two-way subtasks need each Komodo subtask
@@ -653,7 +653,9 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     which pairs with `-openTrash <count>` for a list row in Trash.
   - Integrations, AI and MCP: `-openSettings integrations|ai|mcp`; `-sampleCalendar YES` stands in for macOS
     Calendar; `-sampleTodoist YES` stands in for Todoist, with `-connectTodoist YES` to connect the sample project,
-    `-openTodoistSheet YES|tested` for the token sheet and `-todoistToken <token>` for the Keychain; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
+    `-openTodoistSheet YES|tested` for the token sheet and `-todoistToken <token>` for the Keychain, and the other
+    task tools take the same flags (`-sampleNotion`, `-connectClickUp`, `-openLinearSheet`, `-asanaToken`);
+    `-settingsAtBottom YES` opens Settings pages scrolled to the end, for the provider groups; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
     points `komodo-mcp` at a scratch file (pipe JSON-RPC lines into
     `Komodo.app/Contents/Helpers/komodo-mcp`).
   - Assistant and voice: `-assistantPrompt "<text>"` (plus `-assistantApply YES`) runs the real on-device model,
