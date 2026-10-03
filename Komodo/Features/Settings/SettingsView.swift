@@ -37,12 +37,23 @@ struct SettingsView: View {
                         .transition(.opacity)
                 }
                 .scrollIndicators(.never)
+                .defaultScrollAnchor(Self.startsAtBottom ? .bottom : .top)
                 .animation(Motion.base, value: store.settingsSection)
             }
             .background(Palette.bg)
         }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
+    }
+
+    /// `-settingsAtBottom YES` opens each page scrolled to its end, so long pages can be captured without the
+    /// pointer.
+    private static var startsAtBottom: Bool {
+        #if DEBUG
+            UserDefaults.standard.bool(forKey: "settingsAtBottom")
+        #else
+            false
+        #endif
     }
 
     @ViewBuilder private var page: some View {

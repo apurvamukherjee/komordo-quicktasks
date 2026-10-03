@@ -79,6 +79,7 @@ struct SettingsCommand: Commands {
 /// - `-openReports overview|punctuality|time|sessions` shows Reports on that tab.
 /// - `-addScheduled "<title>"` adds that task with the Focus Panel's Scheduled today + and opens its Schedule popover.
 /// - `-exportSessions <file.pdf|file.csv>` writes Sessions' export there at launch, to check it without the panel.
+/// - `-settingsAtBottom YES` opens each Settings page scrolled to its end.
 /// - `-openSettings <page>` opens Settings on general, focus, alerts, celebration, shortcuts, integrations, data, ai, mcp or about. With
 ///   `data`, `-openRestore <zip|kbak>` checks that backup and shows its sheet (the password first for a .kbak),
 ///   `-openDeleteAll YES` the typed confirm, and `-openBackupPassword YES` the sheet that sets a backup password.
