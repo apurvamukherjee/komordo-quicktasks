@@ -1,3 +1,4 @@
+import KomodoCore
 import SwiftUI
 
 /// The colors a list can wear (DESIGN_SYSTEM §2.4).
@@ -71,29 +72,7 @@ struct CountBadge: View {
 
 /// Where a task came from, top-right on its card.
 struct SourceBadge: View {
-    enum Source {
-        case gmail
-        case calendar
-        case todoist
-
-        var title: String {
-            switch self {
-            case .gmail: "Gmail"
-            case .calendar: "Calendar"
-            case .todoist: "Todoist"
-            }
-        }
-
-        var symbol: String {
-            switch self {
-            case .gmail: "envelope"
-            case .calendar: "calendar"
-            case .todoist: "checklist"
-            }
-        }
-    }
-
-    var source: Source
+    var source: TaskSource
 
     var body: some View {
         HStack(spacing: 4) {
@@ -123,8 +102,34 @@ struct SourceBadge: View {
             SourceBadge(source: .gmail)
             SourceBadge(source: .calendar)
             SourceBadge(source: .todoist)
+            SourceBadge(source: .linear)
         }
     }
     .padding(Space.s8)
     .background(Palette.bg)
+}
+
+extension TaskSource {
+    var title: String {
+        switch self {
+        case .gmail: "Gmail"
+        case .calendar: "Calendar"
+        case .todoist: "Todoist"
+        case .notion: "Notion"
+        case .linear: "Linear"
+        case .clickup: "ClickUp"
+        case .asana: "Asana"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .gmail: "envelope"
+        case .calendar: "calendar"
+        case .todoist, .clickup: "checklist"
+        case .notion: "doc.text"
+        case .linear: "circle.dashed"
+        case .asana: "circle.grid.3x3"
+        }
+    }
 }

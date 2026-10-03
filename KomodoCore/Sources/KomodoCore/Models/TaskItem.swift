@@ -38,6 +38,10 @@ public enum TaskSource: String, Sendable {
     case gmail
     case calendar
     case todoist
+    case notion
+    case linear
+    case clickup
+    case asana
 }
 
 public struct TaskItem: Identifiable, Hashable, Sendable {

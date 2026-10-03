@@ -36,7 +36,7 @@ struct TaskCardModel: Identifiable, Sendable {
     var repeatText: String?
     /// A timed task that reminds at its start (DESIGN_SYSTEM §13.6, "Reminder on").
     var hasReminder = false
-    var source: SourceBadge.Source?
+    var source: TaskSource?
     /// Set once the task is done; drives the check disc and the result chip.
     var outcome: Outcome?
     /// Parked and repeating tasks hide the footer until they're worked on, as on the canvas.
