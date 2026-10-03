@@ -40,7 +40,8 @@ extension Provider {
         return switch self {
         case .todoist: TodoistAdapter(token: token)
         case .linear: LinearAdapter(token: token)
-        case .notion, .clickup, .asana: nil
+        case .asana: AsanaAdapter(token: token)
+        case .notion, .clickup: nil
         }
     }
 }
