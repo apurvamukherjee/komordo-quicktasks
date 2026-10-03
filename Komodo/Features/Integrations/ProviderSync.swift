@@ -60,7 +60,7 @@ import OSLog
         }
     }
 
-    private func adapter(token: String) -> (any ProviderAdapter)? {
+    private func adapter(token: String) -> any ProviderAdapter {
         #if DEBUG
             if usesSamples, let store { return SampleAdapter(provider: provider, today: store.today) }
         #endif
@@ -71,8 +71,7 @@ import OSLog
 
     /// [Test] in the token sheet: what the token can sync with, which also proves it works.
     func sources(token: String) async throws(ProviderError) -> [ProviderSource] {
-        guard let adapter = adapter(token: token) else { throw .unreadable }
-        return try await adapter.sources()
+        try await adapter(token: token).sources()
     }
 
     /// [Save]: the token goes to the Keychain and the source starts syncing with the list from scratch.
@@ -148,7 +147,7 @@ import OSLog
             fail(nil, "The Keychain wouldn't give Komodo the \(name) token.")
             return
         }
-        guard let adapter = adapter(token: token) else { return }
+        let adapter = adapter(token: token)
         let links = loadLinks()
         let before = context(for: store)
         let pushes =

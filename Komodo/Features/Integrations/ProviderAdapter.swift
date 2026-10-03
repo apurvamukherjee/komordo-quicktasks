@@ -34,15 +34,14 @@ protocol ProviderAdapter: Sendable {
 }
 
 extension Provider {
-    /// Nil for a provider whose client isn't built yet.
-    func adapter(token: String) -> (any ProviderAdapter)? {
+    func adapter(token: String) -> any ProviderAdapter {
         let token = token.trimmingCharacters(in: .whitespacesAndNewlines)
         return switch self {
         case .todoist: TodoistAdapter(token: token)
         case .linear: LinearAdapter(token: token)
         case .asana: AsanaAdapter(token: token)
         case .clickup: ClickUpAdapter(token: token)
-        case .notion: nil
+        case .notion: NotionAdapter(token: token)
         }
     }
 }
