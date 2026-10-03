@@ -5,7 +5,25 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Nothing yet.
+### Notion, Linear, ClickUp and Asana — 2026-10-03
+
+#### Added
+- **Notion** (two-way, one database's data source, API version 2026-03-11), **Linear** (import only, a team or one
+  of its projects), **ClickUp** (two-way, one list) and **Asana** (two-way, one project), each connected with a
+  personal token from the same token sheet as Todoist and kept in the Keychain.
+- **Schedule by** (Notion, ClickUp, Asana): the start or the due date schedules a task.
+- **Status mapping** (Notion, Linear, ClickUp): each status goes by date, to a column, or to Done; moving or
+  finishing an undated task sends the matching status back (Notion, ClickUp).
+- **Subtasks** from Notion checkbox properties and Asana subtasks, both ways.
+- A card and a settings group per provider on Integrations, and ClickUp and Asana in Settings search.
+- Debug flags per provider: `-sample<Provider>`, `-connect<Provider>`, `-open<Provider>Sheet`, `-<provider>Token`,
+  and `-settingsAtBottom` for captures of long Settings pages.
+
+#### Changed
+- Todoist runs through the same `ProviderAdapter` and `ProviderSync` loop as the new providers; its settings carry
+  over unchanged.
+- Each provider syncs only the fields it keeps (`ExternalItem.Shape`), so a field it lacks never reads as an edit.
+- A full read keeps links to finished items it doesn't list, instead of taking them for deleted.
 
 ## [0.9.0] — 2026-10-02
 
