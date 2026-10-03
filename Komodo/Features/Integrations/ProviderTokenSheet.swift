@@ -1,9 +1,11 @@
 import KomodoCore
 import SwiftUI
 
-/// Connect Todoist (DESIGN_SYSTEM §13.17, the token sheet in DataSheets.dc.html): paste the personal token, Test
-/// it, pick the project and the list it syncs with, then Save. Nothing reaches the Keychain until Save.
-struct TodoistTokenSheet: View {
+/// Connect a task tool (DESIGN_SYSTEM §13.17, the token sheet in DataSheets.dc.html, drawn there for Todoist):
+/// paste the personal token, Test it, pick what it syncs and the list it syncs with, then Save. Nothing reaches
+/// the Keychain until Save.
+struct ProviderTokenSheet: View {
+    var provider: Provider
     var lists: [TaskList]
     var cancel: () -> Void
     var test: (_ token: String) async throws(ProviderError) -> [ProviderSource] = { _ throws(ProviderError) in [] }
@@ -19,11 +21,18 @@ struct TodoistTokenSheet: View {
 
     private var project: ProviderSource? { projects.first { $0.id == projectID } }
 
+    /// "Token works · 3 projects found".
+    private var validLabel: String {
+        let noun = provider.sourceNoun.lowercased()
+        let plural = noun == "list" || noun == "team" || noun == "project" ? noun + "s" : "databases"
+        return "Token works · \(projects.count) \(projects.count == 1 ? noun : plural) found"
+    }
+
     var body: some View {
-        FormSheet(symbol: "checklist", tint: Palette.teal, glyph: Palette.tealText, letter: "T") {
+        FormSheet(symbol: "checklist", tint: Palette.teal, glyph: Palette.tealText, letter: provider.letter) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("Connect Todoist")
-                Text("Two-way · one project · polled every 5 min")
+                Text("Connect \(provider.name)")
+                Text(provider.sheetSubtitle)
                     .font(.system(size: 12))
                     .tracking(0)
                     .foregroundStyle(Palette.textSecondary)
@@ -31,26 +40,30 @@ struct TodoistTokenSheet: View {
         } content: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Paste your API token")
+                    Text("Paste your \(provider.tokenName)")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Palette.textBody)
                     Spacer()
-                    if let url = Todoist.tokenHelpURL {
+                    if let url = provider.tokenHelpURL {
                         Link("Where to find it ↗", destination: url)
                             .font(.system(size: 12))
                             .foregroundStyle(Palette.tealText)
                     }
                 }
                 SecureKeyField(
-                    placeholder: "API token", secret: $token, testState: testState,
-                    validLabel: "Token works · \(projects.count) project\(projects.count == 1 ? "" : "s") found",
+                    placeholder: provider.tokenName.prefix(1).uppercased() + provider.tokenName.dropFirst(),
+                    secret: $token, testState: testState, validLabel: validLabel,
                     idleLabel: "Not tested yet", onTest: runTest)
+                if let note = provider.tokenNote {
+                    Text(note).font(.system(size: 12)).foregroundStyle(Palette.textSecondary)
+                }
             }
             if testState == .valid {
                 VStack(spacing: Space.s2) {
-                    row("Project") {
+                    row(provider.sourceNoun) {
                         SettingsMenuPicker(
-                            title: "Project", selection: $projectID, options: projects.map { ($0.id, $0.name) })
+                            title: provider.sourceNoun, selection: $projectID,
+                            options: projects.map { ($0.id, $0.name) })
                     }
                     row("Sync with list") {
                         SettingsMenuPicker(
@@ -84,7 +97,7 @@ struct TodoistTokenSheet: View {
             listID = lists.first?.id ?? ""
             if !testedProjects.isEmpty { accept(testedProjects) }
             #if DEBUG
-                if UserDefaults.standard.string(forKey: "openTodoistSheet") == "tested" {
+                if UserDefaults.standard.string(forKey: "open\(provider.name)Sheet") == "tested" {
                     token = "0123456789abcdef0123456789abcdef0123c91e"
                     runTest()
                 }
@@ -142,15 +155,17 @@ private struct KeychainNoteStyle: LabelStyle {
     }
 }
 
-#Preview("Todoist token sheet") {
-    VStack(spacing: Space.s6) {
-        TodoistTokenSheet(lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in })
-        TodoistTokenSheet(
-            lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in },
+#Preview("Token sheets") {
+    HStack(alignment: .top, spacing: Space.s6) {
+        ProviderTokenSheet(provider: .todoist, lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in })
+        ProviderTokenSheet(
+            provider: .clickup, lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in },
             testedProjects: [
-                ProviderSource(id: "1", name: "Inbox"), ProviderSource(id: "2", name: "Komodo launch"),
-                ProviderSource(id: "3", name: "Home"),
+                ProviderSource(id: "1", name: "Marketing › Content"),
+                ProviderSource(id: "2", name: "Product › Komodo launch"),
+                ProviderSource(id: "3", name: "Personal › Errands"),
             ])
+        ProviderTokenSheet(provider: .notion, lists: BoardSamples.lists, cancel: {}, save: { _, _, _ in })
     }
     .padding(Space.s8)
     .background(Palette.bg)

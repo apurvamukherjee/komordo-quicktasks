@@ -1,12 +1,14 @@
 import Foundation
 
 /// A task tool connected with a personal token (FEATURES §5, ARCHITECTURE §8).
-public enum Provider: String, CaseIterable, Sendable {
+public enum Provider: String, CaseIterable, Identifiable, Sendable {
     case todoist
     case notion
     case linear
     case clickup
     case asana
+
+    public var id: Self { self }
 
     public var source: TaskSource {
         switch self {

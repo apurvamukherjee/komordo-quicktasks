@@ -86,8 +86,8 @@ struct SettingsIntegrationsPage: View {
             #endif
         }
         .sheet(isPresented: $isConnectingTodoist) {
-            TodoistTokenSheet(
-                lists: store.lists, cancel: { isConnectingTodoist = false },
+            ProviderTokenSheet(
+                provider: .todoist, lists: store.lists, cancel: { isConnectingTodoist = false },
                 test: { token throws(ProviderError) in
                     guard let todoist else { throw .unreadable }
                     return try await todoist.sources(token: token)
