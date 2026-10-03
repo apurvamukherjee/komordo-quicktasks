@@ -1,15 +1,13 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-10-02 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
+Last updated: 2026-10-03 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
 maintainer), all of Phase 1 except what depends on Gmail (Claude mode, the Review tab, reschedules) and the
-XCUITest smoke tests (they need the maintainer's screen), and most of Phase 2 (Komodo Assistant; voice input and
-voice notes; Todoist sync, tested against documented responses only). **Version 0.9.0** is the first downloadable
-build: every offline-only gap that needed no token, screen or design decision was closed, timers stopped redrawing
-in hidden windows, and `scripts/make-dmg.sh` makes the styled DMG for GitHub Releases. Next is the maintainer
-testing 0.9.0 end to end, then Gmail → Calendar and the other token integrations (Notion, Linear, ClickUp, Asana). §4 lists everything that remains, phase by
-phase. The maintainer committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new
-commits on top. `CHANGELOG.md` has the full list of what landed.
-
+XCUITest smoke tests (they need the maintainer's screen), and all of Phase 2's task tools: Todoist, Notion,
+Linear, ClickUp and Asana, every one built and tested against documented responses only, with no real token yet.
+Version 0.9.0 is the first downloadable build; the task tools are under Unreleased in `CHANGELOG.md`. Next is
+the maintainer testing 0.9.0 and sharing test tokens, so each provider can be tried for real; then Gmail →
+Calendar when the maintainer unparks it. §4 lists everything that remains, phase by phase. The maintainer
+committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 ---
 
 ## 1. Prompt for the next session
@@ -28,8 +26,8 @@ Follow every rule in them. The most important ones:
 - Before saying a task is done: xcodebuild with zero warnings, swift format lint --strict clean,
   swift test in KomodoCore passing.
 
-Then continue from docs/HANDOFF.md §4 "Next task": the remaining token integrations (Notion, Linear, ClickUp,
-Asana) on top of Todoist's ExternalSync core; ask me §9's questions first, since each needs my test token. §4 lists every phase that remains.
+Then continue from docs/HANDOFF.md §4 "Next task": trying Todoist, Notion, Linear, ClickUp and Asana against
+real accounts once I share test tokens; ask me §9's questions first. §4 lists every phase that remains.
 The XCUITest smoke tests wait until I give you the screen (they drive the pointer).
 Gmail → Calendar stays parked until I say so. Try
 persistence on a scratch file with -databasePath, never the real board. My own Komodo may be running: check
@@ -75,7 +73,8 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P2 | Komodo Assistant | ✅ | 2026-10-02; on-device or Claude, editable preview, @ commands, one Undo |
 | P2 | Voice input and voice notes | ✅ | 2026-10-02; on-device dictation; tried with a simulated voice only |
 | P2 | Todoist sync | ✅ | 2026-10-02; two-way, one project per list; documented responses only, no real token yet |
-| P2 | **Token integrations** | ⏭ **Next** | Notion · Linear · ClickUp · Asana; see §4 |
+| P2 | Notion, Linear, ClickUp, Asana | ✅ | 2026-10-03; one `ProviderAdapter` each on a shared `ProviderSync`; documented responses only, no real token yet |
+| P2 | **Task tools with real tokens** | ⏭ **Next** | Needs the maintainer's test tokens; see §4 |
 | P1 | Claude mode, Review tab, reschedules | ⏸ Parked | They're parts of Gmail → Calendar (FEATURES §4.0) |
 | P2 | Light appearance | ⏳ Later | DESIGN_SYSTEM §2: dark only so far |
 | — | Release: signing, notarizing, DMG, Sparkle | ⏳ Later | ARCHITECTURE §15; needs the maintainer's Developer ID |
@@ -87,7 +86,7 @@ Palette, Settings (General, Focus, Alerts & sounds, Celebration, Shortcuts, Inte
 Local MCP server, About), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5 and the
 Start tip), Reports, Assistant (all five states). Screens left: Gmail (connect, Overview, Settings, Activity,
 Review) and onboarding step 6, all parked with Gmail; Settings ▸ Gmail → Calendar (dimmed in the sidebar). The
-token sheet is built for Todoist; the other providers reuse it. Reports states left: loading (nothing loads slowly on a local
+token sheet serves all five task tools. Reports states left: loading (nothing loads slowly on a local
 database).
 
 ---
@@ -252,21 +251,15 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 
 ## 4. Next task, and everything that remains
 
-### Next task: the remaining token integrations (Phase 2)
+### Next task: the task tools against real accounts (Phase 2)
 
-**Notion · Linear · ClickUp · Asana** (FEATURES §5, ARCHITECTURE §8, DESIGN_SYSTEM §13.17), on Todoist's core:
-- `external_links` (schema v5), `ExternalItem` and `ExternalSync` (pull, pushes, confirm) already exist and are
-  provider-neutral. Each provider needs its response types, a mapping to `ExternalItem`, a way to send pushes,
-  a client, a `KeychainSecret`, a sync service and its card. With the second provider, pull the shared parts of
-  `TodoistSync` into a `ProviderAdapter` protocol (ARCHITECTURE §8) instead of copying it.
-- Linear is Linear → Komodo only: call `pull` and skip `pushes`. Notion, ClickUp and Asana have start and due
-  dates and statuses, so they need the Date mapping and Status mapping settings Todoist doesn't.
-- Notion's checkbox properties become subtasks (FEATURES §5), which `ExternalItem` doesn't carry yet.
-- Check each provider's current API version against its docs first. Each needs the maintainer's test token to
-  try for real (§9).
-- **Todoist with a real token:** once the maintainer shares one, connect a scratch database to a throwaway
-  project and try import, an edit each way, a completion each way, Sync deletes and a refused change. Record a
-  real response to replace the documented-shape fixtures in `TodoistTests`.
+Every provider is built against its documented responses, and none has met a real account. With the
+maintainer's test tokens, for each of Todoist, Notion, Linear, ClickUp and Asana: connect a scratch database
+(`-databasePath`) to a throwaway project, database, team or list, and try import, an edit each way, a completion
+each way, a status move (Notion, ClickUp), Schedule by both ways (Notion, ClickUp, Asana), subtasks (Notion,
+Asana), Sync deletes and a refused change. Record a real answer for each and swap it in for the
+documented-shape fixtures in `TodoistTests`, `LinearTests`, `AsanaTests`, `ClickUpTests` and `NotionTests`.
+§5 lists what each provider's docs left open.
 
 ### Everything that remains, by phase
 
@@ -288,7 +281,7 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
   the maintainer's go-ahead or setup.
 
 **Phase 2: what's left**
-- **Token integrations** (the next task above).
+- **Task tools against real accounts** (the next task above).
 - **Light appearance** (DESIGN_SYSTEM §2: "Light is P2"): Light values for every color set, and the Settings
   appearance choice. Increase Contrast variants are missing too (§5), which DESIGN_SYSTEM §8 expects. Neither has
   values in the spec yet (§9 question 7).
@@ -320,6 +313,22 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
 
 ## 5. Known gaps and placeholders
 
+- **Notion, Linear, ClickUp and Asana** (2026-10-03):
+  - None has been tried against a real account; the fixtures follow each provider's documented response shape.
+  - ClickUp leaves `due_date_time` and `start_date_time` out of some answers. Without the flag, a date counts as
+    timed unless it falls on midnight here; check what real answers carry.
+  - Asana: clearing a date sends `due_on: null` (or `start_on`) alone; whether that also clears a `due_at` isn't
+    documented. A start sent with no due date is sent as the due date too, since Asana refuses a lone start.
+  - Notion reads the first date property (by name) and the first people property; a database with several has no
+    way to pick another yet. A plain `select` called Status stands in when there's no status property. Notes stay
+    in Komodo, since Notion keeps them in the page body.
+  - Linear reads its first 20 pages (2,000 issues) per read, and the same cap applies to Asana, ClickUp and Notion.
+  - A status only places an undated task; a dated one always goes by its date. Moving a dated task between columns
+    sends no status.
+  - Changing the date mapping agrees the links with the tasks first, so the provider's dates win on the next pull.
+  - If saving imported tasks fails (as the sample stand-ins' shared subtask IDs once made it), the links are still
+    saved. After a relaunch those tasks are missing, and with Sync deletes on the next sync would delete them at
+    the provider. Saving links and tasks in one transaction would close this; it applies to Todoist too.
 - **Todoist:**
   - Never tried against the real API: the fixtures follow the documented response shape (§9 question 3).
   - Todoist sub-tasks come in as ordinary tasks, not as subtasks: two-way subtasks need each Komodo subtask
@@ -462,6 +471,12 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
 
 | Topic | Decision | Why |
 | --- | --- | --- |
+| Task tool UI | The four new providers reuse Todoist's card, token sheet and settings group, with their own words | No canvas draws them; DESIGN_SYSTEM §13.17 only describes the Coming soon tiles |
+| Schedule by | Due date by default; with it, Komodo's own due date stays local | Most ClickUp and Asana tasks have only a due date, and they'd all land in Backlog with Start date |
+| Status mapping | Places undated tasks only; a dated task goes by its date | FEATURES §5 "Imported tasks are placed by date"; the Board has no column for a dated task to sit in otherwise |
+| Linear dates | Its due date is the schedule | Linear has no planned date, and Todoist's due date is the schedule too |
+| Notion notes | Not synced | Notion keeps a page's text as blocks, not a property; reading blocks is a request per page |
+| Deletions | Every sync reads all open items for the four new providers | None lists deletions; finished items missing from the read stay linked |
 | Button heights | 28 / 34 / 40 pt | The canvas wins on pixels; DESIGN_SYSTEM text says 24/28/36 |
 | Switches, segmented pickers | Native | DESIGN_SYSTEM "native first"; the canvas draws custom ones |
 | Sprint state | A Sprint display choice: Task (default) or Sprint | The maintainer's pick. Task follows `Main.png` / `FocusPanel.png` (lime, estimate, sprint chip); Sprint follows DESIGN_SYSTEM §10.2 and FocusStates ④ (pink, sprint countdown). It lives in Quick Settings until Settings lands |
@@ -730,9 +745,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
    use, and is a Google sign-in dependency acceptable (GoogleSignIn, about 1 MB), or should it be
    `ASWebAuthenticationSession` with PKCE and no dependency?
 2. **README demo video:** the maintainer will offer the screen later (2026-09-29). Ask before recording.
-3. **Token integrations:** Todoist came first (the maintainer's pick on 2026-10-02) and is built against
-   documented responses; tokens will come later. Which of Notion, Linear, ClickUp and Asana is next, and when can
-   the maintainer share a test token (or sandbox workspace) for Todoist and each of them?
+3. **Test tokens:** all five task tools are built against documented responses. When can the maintainer share a
+   test token (or sandbox workspace) for Todoist, Notion, Linear, ClickUp and Asana?
 4. **Permission prompts:** may the next session show macOS's Calendar, microphone and speech-recognition prompts
    on this Mac to try calendar import and voice for real?
 5. **Claude key:** will the maintainer add one in Settings ▸ AI so the Assistant's Claude path can be tried?
