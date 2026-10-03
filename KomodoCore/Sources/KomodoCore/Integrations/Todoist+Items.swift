@@ -1,12 +1,6 @@
 import Foundation
 
 extension Todoist {
-    /// `2026-10-01T09:30:00.000000Z`. The fraction is dropped first, since the formatter only reads milliseconds.
-    static func instant(_ text: String) -> Date? {
-        let whole = text.replacingOccurrences(of: #"\.\d+"#, with: "", options: .regularExpression)
-        return ISO8601DateFormatter().date(from: whole)
-    }
-
     public static func taskURL(_ id: String) -> URL? { URL(string: "https://app.todoist.com/app/task/\(id)") }
 }
 
@@ -15,7 +9,7 @@ extension Todoist.Due {
     /// one (ending in `Z`) is moved into the Mac's zone.
     public func schedule(in calendar: Calendar) -> (day: LocalDate, minute: Int?)? {
         if date.hasSuffix("Z") {
-            guard let instant = Todoist.instant(date) else { return nil }
+            guard let instant = ExternalItem.instant(date) else { return nil }
             let parts = calendar.dateComponents([.hour, .minute], from: instant)
             return (LocalDate(instant, calendar: calendar), (parts.hour ?? 0) * 60 + (parts.minute ?? 0))
         }
@@ -37,7 +31,7 @@ extension ExternalItem {
             estimate: item.duration.flatMap { $0.unit == "minute" ? TimeInterval($0.amount * 60) : nil },
             isDone: item.checked, isDeleted: item.isDeleted,
             isMine: item.responsibleUID == nil || item.responsibleUID == userID, repeats: item.due?.isRecurring == true,
-            updatedAt: item.updatedAt.flatMap(Todoist.instant), url: Todoist.taskURL(item.id))
+            updatedAt: item.updatedAt.flatMap(ExternalItem.instant), url: Todoist.taskURL(item.id))
     }
 }
 

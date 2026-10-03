@@ -123,3 +123,12 @@ public struct ExternalItem: Equatable, Sendable {
         return parts.joined(separator: "\u{1F}")
     }
 }
+
+extension ExternalItem {
+    /// `2026-10-01T09:30:00.000000Z`, as every provider writes times. The fraction is dropped first, since the
+    /// formatter only reads milliseconds.
+    static func instant(_ text: String) -> Date? {
+        let whole = text.replacingOccurrences(of: #"\.\d+"#, with: "", options: .regularExpression)
+        return ISO8601DateFormatter().date(from: whole)
+    }
+}
