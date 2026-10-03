@@ -41,7 +41,8 @@ extension Provider {
         case .todoist: TodoistAdapter(token: token)
         case .linear: LinearAdapter(token: token)
         case .asana: AsanaAdapter(token: token)
-        case .notion, .clickup: nil
+        case .clickup: ClickUpAdapter(token: token)
+        case .notion: nil
         }
     }
 }
