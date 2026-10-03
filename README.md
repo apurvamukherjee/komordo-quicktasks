@@ -57,6 +57,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
 | 🗓️ | **Calendar import** | Meetings from any calendar on your Mac, iCloud, Google or Outlook, show up as tasks on the right day, with their time, length, reminder and call link | ✅ Available |
 | ✅ | **Todoist sync** | Sync a Todoist project with a list, both ways: new tasks, edits, completions and, if you like, deletes. Polled every 5 minutes, with your token in the Keychain | ✅ Available |
+| 🔗 | **Notion, Linear, ClickUp and Asana** | Sync a Notion database, a ClickUp list or an Asana project with a list, both ways, or import a Linear team's issues. Pick which date schedules a task and where each status lands | ✅ Available |
 | 🎙️ | **Voice input and voice notes** | Hold the mic to talk to the Assistant, or speak a note onto any task, transcribed on your Mac | ✅ Available |
 | ✨ | **Komodo Assistant** | Brain dump your day or say "move @Task to tomorrow", and see every change in an editable preview first. Runs on Apple's on-device model, or Claude with your own key | ✅ Available |
 | 🤖 | **Local MCP server** | Let Claude Desktop, Claude Code or Raycast read and plan your lists, add and finish tasks, log time and start a focus session. Runs on your Mac, with no login and no server | ✅ Available |
@@ -199,7 +200,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 
 <p align="center"><img src="docs/media/calendar-import.png" alt="The Board with imported calendar events: a standup in Scheduled today, a design review and a dentist appointment in This week, and quarterly planning in the Backlog, each with a Calendar chip, its time, length and reminder" width="100%"></p>
 
-<p align="center"><img src="docs/media/settings-integrations.png" alt="Settings on Integrations: Calendar import active with two calendars and Sync now, the Local MCP server card, and the calendars to import grouped by account" width="100%"></p>
+<p align="center"><img src="docs/media/settings-integrations.png" alt="Settings on Integrations: Calendar import, Todoist and Linear active with their last sync times, Notion, ClickUp and Asana ready to connect, the Local MCP server card, and Gmail to Calendar coming soon" width="100%"></p>
 
 - **Every calendar you already have.** Komodo reads the calendars on your Mac, so iCloud, Google and Outlook all work with no extra sign-in. Pick the calendars, the list they join and how far ahead to look.
 - **Meetings land where they belong.** Each event becomes a task on its day and time, with its length as the estimate and a reminder when it starts. Starting it opens the call link.
@@ -214,6 +215,17 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Paste a token, pick a project.** Test shows how many projects your token can see. Choose one and the list it syncs with, and the token goes to your Keychain, never into a backup.
 - **Both ways.** Todoist tasks join the list placed by their date, and tasks you add to the list go to Todoist. Renames, notes, dates, estimates and completions follow in both directions, and when both sides changed, the newer edit wins.
 - **Nothing lost.** Deleting in Todoist only unlinks the task here, keeping its notes and sessions. Deleting here reaches Todoist only with Sync deletes on.
+
+## Notion, Linear, ClickUp and Asana
+
+<p align="center"><img src="docs/media/task-tools-sheet.png" alt="The Connect Notion sheet over Integrations: an integration secret that passed its test with 3 databases found, a reminder to share the database with the integration, Reading list chosen as the database and Personal as the list" width="100%"></p>
+
+<p align="center"><img src="docs/media/settings-task-tools.png" alt="Settings on Integrations: the ClickUp card active with Product › Komodo launch, and the ClickUp group with the list, Sync with list, Schedule by Due date, and Status mapping sending To do by date, In progress and In review to Today, and Done to Done" width="100%"></p>
+
+- **The tools your team already uses.** Sync a Notion database, a ClickUp list or an Asana project with a list, both ways, or bring a Linear team's issues, or one project's, into Komodo.
+- **Your dates, your columns.** Choose whether the start or the due date puts a task on your Board, and where each status lands: In progress to Today, Done to Done, the rest by date. Finish a task here and it's marked done there.
+- **Subtasks come along.** A Notion page's checkboxes and an Asana task's subtasks show up as subtasks, and ticking one here ticks it there.
+- **Same promises as Todoist.** Your token stays in the Keychain, deleting at the provider only unlinks, and Komodo only deletes there with Sync deletes on.
 
 ## Komodo Assistant
 
@@ -385,7 +397,7 @@ open Komodo.app --args -sampleTime artboard
 - [x] Komodo Assistant
 - [x] Voice input and voice notes
 - [x] Todoist sync
-- [ ] Notion, Linear, ClickUp and Asana
+- [x] Notion, Linear, ClickUp and Asana
 - [ ] Claude mode and the Review tab for Gmail → Calendar
 - [ ] Light appearance and Increase Contrast
 - [x] Downloadable preview build
