@@ -4,7 +4,7 @@
 
     /// Stands in for any provider with `-sample<Provider> YES`: three sources, and three tasks on the first sync,
     /// dated from the board's own day so `-sampleTime` places them as it would real ones. Later syncs accept every
-    /// push and change nothing.
+    /// push and change nothing. Subtask IDs are unique across the whole database, so they carry the provider.
     struct SampleAdapter: ProviderAdapter {
         var provider: Provider
         var today: LocalDate
@@ -48,7 +48,7 @@
                         estimate: provider.shape(connection.dateMapping).fields.contains(.estimate) ? 2_700 : nil,
                         updatedAt: stamp, url: url("1"),
                         subtasks: provider.shape(connection.dateMapping).fields.contains(.subtasks)
-                            ? [Subtask(id: "sample-1:a", title: "Reviewed", isDone: true)] : nil),
+                            ? [Subtask(id: "\(provider.rawValue)-sample-1:a", title: "Reviewed", isDone: true)] : nil),
                     ExternalItem(
                         id: "sample-2", title: "Record the demo", date: today.adding(days: 2, calendar: calendar),
                         updatedAt: stamp, url: url("2")),
