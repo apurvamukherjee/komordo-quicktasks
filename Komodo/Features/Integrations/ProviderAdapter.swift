@@ -39,7 +39,8 @@ extension Provider {
         let token = token.trimmingCharacters(in: .whitespacesAndNewlines)
         return switch self {
         case .todoist: TodoistAdapter(token: token)
-        case .notion, .linear, .clickup, .asana: nil
+        case .linear: LinearAdapter(token: token)
+        case .notion, .clickup, .asana: nil
         }
     }
 }

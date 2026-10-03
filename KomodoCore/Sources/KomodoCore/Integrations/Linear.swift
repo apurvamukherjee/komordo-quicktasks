@@ -11,6 +11,11 @@ public enum Linear {
     public struct Request: Encodable, Sendable {
         public var query: String
         public var variables: [String: JSONValue]
+
+        public init(query: String, variables: [String: JSONValue]) {
+            self.query = query
+            self.variables = variables
+        }
     }
 
     /// Every response has `data`, or `errors` with a message each.
@@ -38,7 +43,7 @@ public enum Linear {
     public static let teamsQuery = """
         query Teams {
           viewer { id }
-          teams(first: 100) { nodes { id name projects(first: 100) { nodes { id name state } } } }
+          teams(first: 100) { nodes { id name projects(first: 100) { nodes { id name status { type } } } } }
         }
         """
 
@@ -60,8 +65,14 @@ public enum Linear {
     public struct Project: Decodable, Sendable {
         public var id: String
         public var name: String
-        /// `planned`, `started`, `paused`, `completed`, `canceled` …
-        public var state: String?
+        public var status: Status?
+
+        public struct Status: Decodable, Sendable {
+            /// `backlog`, `planned`, `started`, `paused`, `completed` or `canceled`.
+            public var type: String
+        }
+
+        public var isFinished: Bool { ["completed", "canceled"].contains(status?.type ?? "") }
     }
 
     /// The source ID: a team, or a team's project as `team/project`.
