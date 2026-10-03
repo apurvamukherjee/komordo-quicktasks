@@ -28,8 +28,9 @@ public enum Provider: String, CaseIterable, Sendable {
     public var hasStatusMapping: Bool { self == .notion || self == .linear || self == .clickup }
 
     /// What each keeps of a task. Linear, Notion and Asana have no time estimate to map to, and Linear has no planned
-    /// date; its due date is the schedule. Notion's checkbox properties and Asana's subtasks are subtasks.
-    public var shape: ExternalItem.Shape {
+    /// date; its due date is the schedule. Notion's checkbox properties and Asana's subtasks are subtasks. When the
+    /// due date schedules a task, Komodo's own due date has nothing to sync with.
+    public func shape(_ mapping: DateMapping) -> ExternalItem.Shape {
         var fields: Set<ExternalItem.Field> = [.title, .notes, .date, .minute, .dueDate, .estimate, .done]
         switch self {
         case .todoist: return .todoist
@@ -38,6 +39,7 @@ public enum Provider: String, CaseIterable, Sendable {
         case .asana: fields.subtract([.estimate])
         case .clickup: break
         }
+        if hasDateMapping, mapping == .due { fields.remove(.dueDate) }
         if hasStatusMapping { fields.insert(.column) }
         if self == .notion || self == .asana { fields.insert(.subtasks) }
         return ExternalItem.Shape(fields: fields)

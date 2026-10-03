@@ -302,11 +302,11 @@ struct ExternalSyncShapeTests {
     let now = Date(timeIntervalSince1970: 1_790_841_600)
     var today: LocalDate { LocalDate(now, calendar: calendar) }
 
-    func context(_ provider: Provider) -> ExternalSync.Context {
+    func context(_ provider: Provider, _ mapping: DateMapping = .start) -> ExternalSync.Context {
         ExternalSync.Context(
             connectionID: provider.rawValue, source: provider.source, listID: "work", sourceTitle: "Launch",
             onlyMine: false, syncsDeletes: false, connectedAt: now.addingTimeInterval(-86_400),
-            week: WeekRange(containing: today, calendar: calendar), now: now, shape: provider.shape)
+            week: WeekRange(containing: today, calendar: calendar), now: now, shape: provider.shape(mapping))
     }
 
     @Test func todoistLinksFromBeforeTheNewFieldsReadTheSame() {
@@ -370,6 +370,15 @@ struct ExternalSyncShapeTests {
         ticked.subtasks[0].isDone = false
         let pushes = ExternalSync.pushes(links: first.links, board: [ticked], known: [], trash: [], context: notion)
         #expect(pushes == [.update(externalID: "p", task: ticked, changes: [.subtasks])])
+    }
+
+    @Test func withDueMappingKomodosDueDateStaysLocal() {
+        let asana = context(.asana, .due)
+        let first = ExternalSync.pull(
+            [ExternalItem(id: "1", title: "Brief", date: today)], links: [], board: [], known: [], context: asana)
+        var task = first.saved[0]
+        task.dueDate = today
+        #expect(ExternalSync.pushes(links: first.links, board: [task], known: [], trash: [], context: asana).isEmpty)
     }
 
     @Test func aFullReadKeepsFinishedItemsItDoesntList() {
