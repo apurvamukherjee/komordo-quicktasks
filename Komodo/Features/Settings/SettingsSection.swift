@@ -99,7 +99,8 @@ enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .celebration: ["success", "gif", "confetti"]
         case .shortcuts: ["keyboard", "global", "hotkey"]
         case .gmail: ["calendar", "email"]
-        case .integrations: ["calendar", "google", "outlook", "icloud", "notion", "todoist", "linear"]
+        case .integrations:
+            ["calendar", "google", "outlook", "icloud", "notion", "todoist", "linear", "clickup", "asana"]
         case .data: ["backup", "export", "restore", "delete"]
         case .ai: ["claude", "api key", "apple intelligence"]
         case .mcp: ["claude", "raycast"]
