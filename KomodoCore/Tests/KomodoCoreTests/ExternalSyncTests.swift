@@ -290,3 +290,98 @@ struct ExternalSyncEstimateTests {
         #expect(result.saved.first?.estimate == 1_800)
     }
 }
+
+struct ExternalSyncShapeTests {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        return calendar
+    }
+
+    // Thursday 1 October 2026, 08:00 UTC.
+    let now = Date(timeIntervalSince1970: 1_790_841_600)
+    var today: LocalDate { LocalDate(now, calendar: calendar) }
+
+    func context(_ provider: Provider) -> ExternalSync.Context {
+        ExternalSync.Context(
+            connectionID: provider.rawValue, source: provider.source, listID: "work", sourceTitle: "Launch",
+            onlyMine: false, syncsDeletes: false, connectedAt: now.addingTimeInterval(-86_400),
+            week: WeekRange(containing: today, calendar: calendar), now: now, shape: provider.shape)
+    }
+
+    @Test func todoistLinksFromBeforeTheNewFieldsReadTheSame() {
+        let item = ExternalItem(id: "1", title: "Write post", date: today, minute: 900, estimate: 2_700)
+        #expect(
+            item.snapshot == ["Write post", "", today.description, "900", "", "45", "0"].joined(separator: "\u{1F}"))
+        #expect(ExternalItem.changes(from: item.snapshot, to: item.snapshot + "\u{1F}\u{1F}").isEmpty)
+    }
+
+    @Test func aFieldTheProviderDoesntKeepStaysAsKomodoHasIt() {
+        let linear = context(.linear)
+        let imported = ExternalSync.pull(
+            [ExternalItem(id: "ENG-1", title: "Fix login", date: today)], links: [], board: [], known: [],
+            context: linear)
+        var task = imported.saved[0]
+        task.estimate = 1_800
+        task.dueDate = today
+        #expect(ExternalItem.snapshot(of: task, linear.shape) == imported.links[0].snapshot)
+        let renamed = ExternalItem(id: "ENG-1", title: "Fix the login", date: today, updatedAt: now)
+        let pulled = ExternalSync.pull(
+            [renamed], links: imported.links, board: [task], known: [], context: linear)
+        #expect(pulled.saved.first?.estimate == 1_800 && pulled.saved.first?.dueDate == today)
+    }
+
+    @Test func anUndatedItemGoesToTheColumnItsStatusMapsTo() {
+        let clickup = context(.clickup)
+        let items = [
+            ExternalItem(id: "1", title: "Doing", bucket: .today),
+            ExternalItem(id: "2", title: "Dated", date: today.adding(days: 3, calendar: calendar), bucket: .today),
+            ExternalItem(id: "3", title: "Open"),
+        ]
+        let board = ExternalSync.pull(items, links: [], board: [], known: [], context: clickup).saved
+        #expect(board.map { $0.column(in: clickup.week) } == [.today, .week, .backlog])
+    }
+
+    @Test func movingAnUndatedTaskToAnotherColumnIsAnEdit() {
+        let clickup = context(.clickup)
+        let first = ExternalSync.pull(
+            [ExternalItem(id: "1", title: "Doing", bucket: .today)], links: [], board: [], known: [],
+            context: clickup)
+        var moved = first.saved[0]
+        moved.bucket = .week
+        let pushes = ExternalSync.pushes(links: first.links, board: [moved], known: [], trash: [], context: clickup)
+        #expect(pushes == [.update(externalID: "1", task: moved, changes: [.column])])
+        let todoist = context(.todoist)
+        let plain = ExternalSync.pull(
+            [ExternalItem(id: "1", title: "Doing")], links: [], board: [], known: [], context: todoist)
+        var dragged = plain.saved[0]
+        dragged.bucket = .today
+        #expect(
+            ExternalSync.pushes(links: plain.links, board: [dragged], known: [], trash: [], context: todoist).isEmpty)
+    }
+
+    @Test func subtasksComeFromProvidersThatHaveThem() {
+        let notion = context(.notion)
+        let item = ExternalItem(
+            id: "p", title: "Ship", subtasks: [Subtask(id: "p:a", title: "Reviewed", isDone: true)])
+        let first = ExternalSync.pull([item], links: [], board: [], known: [], context: notion)
+        #expect(first.saved[0].subtasks.map(\.title) == ["Reviewed"])
+        var ticked = first.saved[0]
+        ticked.subtasks[0].isDone = false
+        let pushes = ExternalSync.pushes(links: first.links, board: [ticked], known: [], trash: [], context: notion)
+        #expect(pushes == [.update(externalID: "p", task: ticked, changes: [.subtasks])])
+    }
+
+    @Test func aFullReadKeepsFinishedItemsItDoesntList() {
+        let asana = context(.asana)
+        var done = ExternalItem(id: "1", title: "Sent", isDone: true)
+        let first = ExternalSync.pull(
+            [ExternalItem(id: "1", title: "Sent"), ExternalItem(id: "2", title: "Gone")], links: [], board: [],
+            known: [], context: asana)
+        done.updatedAt = now
+        let finished = ExternalSync.pull([done], links: first.links, board: first.saved, known: [], context: asana)
+        let full = ExternalSync.pull(
+            [], links: finished.links, board: first.saved, known: [], context: asana, isEverything: true)
+        #expect(full.links.map(\.externalID) == ["1"])
+    }
+}

@@ -17,10 +17,12 @@ public enum ExternalSync {
         public var connectedAt: Date
         public var week: WeekRange
         public var now: Date
+        /// What the provider keeps of a task.
+        public var shape: ExternalItem.Shape
 
         public init(
             connectionID: String, source: TaskSource, listID: String, sourceTitle: String, onlyMine: Bool,
-            syncsDeletes: Bool, connectedAt: Date, week: WeekRange, now: Date
+            syncsDeletes: Bool, connectedAt: Date, week: WeekRange, now: Date, shape: ExternalItem.Shape = .todoist
         ) {
             self.connectionID = connectionID
             self.source = source
@@ -31,6 +33,7 @@ public enum ExternalSync {
             self.connectedAt = connectedAt
             self.week = week
             self.now = now
+            self.shape = shape
         }
 
         /// Imported tasks take their item's ID, so a lost link or a restored backup can't import one twice.
@@ -42,8 +45,8 @@ public enum ExternalSync {
     /// - Parameters:
     ///   - board: open and done tasks on the Board.
     ///   - known: every task ID Komodo has, Trash and archive included, so those never come back.
-    ///   - isEverything: `items` is every open item rather than what changed, as in a full sync, so a linked item
-    ///     missing from it was deleted (or finished) meanwhile.
+    ///   - isEverything: `items` is every open item rather than what changed, as in a full sync, so a linked open
+    ///     item missing from it was deleted meanwhile. A finished one may just not be listed, and stays linked.
     /// - Returns: the tasks to save and the connection's links afterwards.
     public static func pull(
         _ items: [ExternalItem], links: [ExternalLink], board: [TaskItem], known: Set<String>, context: Context,
@@ -57,7 +60,8 @@ public enum ExternalSync {
         if isEverything {
             // A full sync lists no deletions, so a missing item would otherwise stay linked until it changed.
             let listed = Set(items.map(\.id))
-            items += links.filter { !listed.contains($0.externalID) }.map {
+            items += links.filter { !listed.contains($0.externalID) && !ExternalItem.isDone(snapshot: $0.snapshot) }.map
+            {
                 ExternalItem(id: $0.externalID, title: "", isDeleted: true)
             }
         }
@@ -76,7 +80,7 @@ public enum ExternalSync {
                 }
                 links[index].remoteUpdatedAt = item.updatedAt
                 // In Trash or archived: left alone until it's back.
-                guard var task = byID[link.taskID], item.snapshot != link.snapshot else { continue }
+                guard var task = byID[link.taskID], item.snapshot(context.shape) != link.snapshot else { continue }
                 if task.isDone, !item.isDone, item.repeats {
                     // Completing a repeating item moves it to its next date. The finished task keeps its sessions
                     // as history, and the next occurrence becomes a task of its own.
@@ -88,7 +92,7 @@ public enum ExternalSync {
                     var next = TaskItem(
                         id: id, listID: task.listID, title: item.title, bucket: .backlog, rank: 0,
                         createdAt: context.now)
-                    apply(item, to: &next, now: context.now)
+                    apply(item, to: &next, context: context)
                     next.source = context.source
                     next.sourceTitle = context.sourceTitle
                     next.rank = ends.rank(for: next.column(in: context.week))
@@ -96,16 +100,16 @@ public enum ExternalSync {
                     links.append(
                         ExternalLink(
                             connectionID: context.connectionID, externalID: item.id, taskID: id,
-                            remoteUpdatedAt: item.updatedAt, snapshot: item.snapshot))
+                            remoteUpdatedAt: item.updatedAt, snapshot: item.snapshot(context.shape)))
                     continue
                 }
-                let editedHere = ExternalItem.snapshot(of: task) != link.snapshot
+                let editedHere = ExternalItem.snapshot(of: task, context.shape) != link.snapshot
                 // Both sides changed: the newer edit wins. A task with no edit time loses, since a provider's
                 // `updated_at` is always known.
                 if editedHere, (item.updatedAt ?? .distantPast) <= (task.editedAt ?? .distantPast) { continue }
-                apply(item, to: &task, now: context.now)
+                apply(item, to: &task, context: context)
                 saved.append(task)
-                links[index].snapshot = item.snapshot
+                links[index].snapshot = item.snapshot(context.shape)
                 continue
             }
             guard !item.isDeleted, !item.isDone, item.isMine || !context.onlyMine else { continue }
@@ -113,7 +117,7 @@ public enum ExternalSync {
             guard !known.contains(id) else { continue }
             var task = TaskItem(
                 id: id, listID: context.listID, title: item.title, bucket: .backlog, rank: 0, createdAt: context.now)
-            apply(item, to: &task, now: context.now)
+            apply(item, to: &task, context: context)
             task.source = context.source
             task.sourceTitle = context.sourceTitle
             task.rank = ends.rank(for: task.column(in: context.week))
@@ -121,7 +125,7 @@ public enum ExternalSync {
             links.append(
                 ExternalLink(
                     connectionID: context.connectionID, externalID: item.id, taskID: id,
-                    remoteUpdatedAt: item.updatedAt, snapshot: item.snapshot))
+                    remoteUpdatedAt: item.updatedAt, snapshot: item.snapshot(context.shape)))
         }
         return (saved, links)
     }
@@ -148,7 +152,8 @@ public enum ExternalSync {
         var pushes: [Push] = []
         for link in links {
             if let task = byID[link.taskID] {
-                let changes = ExternalItem.changes(from: link.snapshot, to: ExternalItem.snapshot(of: task))
+                let changes = ExternalItem.changes(
+                    from: link.snapshot, to: ExternalItem.snapshot(of: task, context.shape))
                 if !changes.isEmpty {
                     pushes.append(.update(externalID: link.externalID, task: task, changes: changes))
                 }
@@ -220,7 +225,7 @@ public enum ExternalSync {
                 links.append(
                     ExternalLink(
                         connectionID: context.connectionID, externalID: externalID, taskID: sent.id,
-                        remoteUpdatedAt: nil, snapshot: ExternalItem.snapshot(of: sent)))
+                        remoteUpdatedAt: nil, snapshot: ExternalItem.snapshot(of: sent, context.shape)))
                 guard var task = board.first(where: { $0.id == sent.id }) else { continue }
                 task.source = context.source
                 task.sourceTitle = context.sourceTitle
@@ -228,7 +233,7 @@ public enum ExternalSync {
                 saved.append(task)
             case .update(let externalID, let task, _):
                 if let index = links.firstIndex(where: { $0.externalID == externalID }) {
-                    links[index].snapshot = ExternalItem.snapshot(of: task)
+                    links[index].snapshot = ExternalItem.snapshot(of: task, context.shape)
                 }
             case .delete(let externalID):
                 links.removeAll { $0.externalID == externalID }
@@ -243,18 +248,24 @@ public enum ExternalSync {
         task.sourceURL = nil
     }
 
-    private static func apply(_ item: ExternalItem, to task: inout TaskItem, now: Date) {
+    /// Writes what the provider keeps; a field it doesn't keep stays as Komodo has it.
+    private static func apply(_ item: ExternalItem, to task: inout TaskItem, context: Context) {
+        let has = context.shape.fields.contains
         task.title = item.title
-        if (task.notes ?? "") != (item.notes ?? "") {
+        if has(.notes), (task.notes ?? "") != (item.notes ?? "") {
             task.notes = item.notes
             // The formatted copy would show the old text in the editor.
             task.notesRTF = nil
         }
-        task.scheduledDate = item.date
-        task.scheduledMinute = item.date == nil ? nil : item.minute
-        task.dueDate = item.dueDate
-        if item.date != nil { task.estimate = item.estimate }
-        if item.isDone != task.isDone { task.completedAt = item.isDone ? item.updatedAt ?? now : nil }
+        if has(.date) {
+            task.scheduledDate = item.date
+            if has(.minute) || item.date == nil { task.scheduledMinute = item.date == nil ? nil : item.minute }
+        }
+        if has(.dueDate) { task.dueDate = item.dueDate }
+        if has(.estimate), item.date != nil || !context.shape.estimateNeedsDate { task.estimate = item.estimate }
+        if has(.column), task.scheduledDate == nil, !item.isDone { task.bucket = item.bucket ?? .backlog }
+        if has(.subtasks), let subtasks = item.subtasks { task.subtasks = subtasks }
+        if item.isDone != task.isDone { task.completedAt = item.isDone ? item.updatedAt ?? context.now : nil }
         task.sourceURL = item.url
     }
 }
