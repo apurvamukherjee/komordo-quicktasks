@@ -89,8 +89,10 @@ struct SettingsCommand: Commands {
 ///   once the preview arrives. `-assistantListening YES` opens it listening; `-voiceSample "<text>"` speaks
 ///   that text instead of the microphone, and `-voiceNote <seconds>` with `-openInspector` records a voice note.
 /// - `-sampleTodoist YES` stands in for Todoist with three projects and three tasks; `-connectTodoist YES` connects
-///   the sample project to the first list, and `-openTodoistSheet YES` (or `tested`) shows the token sheet on
-///   Integrations. `-todoistToken <token>` stands in for the Keychain's token.
+///   the second sample project to the first list, and `-openTodoistSheet YES` (or `tested`) shows the token sheet
+///   on Integrations. `-todoistToken <token>` stands in for the Keychain's token. Notion, Linear, ClickUp and Asana
+///   take the same flags with their own names: `-sampleNotion`, `-connectLinear`, `-openClickUpSheet`,
+///   `-asanaToken` (the token flag is lowercase: `-clickupToken`).
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
 enum LaunchOptions {
