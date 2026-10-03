@@ -17,7 +17,7 @@ import OSLog
     @ObservationIgnored private var unsavedLinks: [ExternalLink] = []
     private static let log = Logger(subsystem: "app.komodo.Komodo", category: "todoist")
 
-    var isConnected: Bool { store?.settings.todoistProjectID != nil }
+    var isConnected: Bool { store?.settings[.todoist].sourceID != nil }
 
     func attach(_ store: BoardStore) {
         self.store = store
@@ -69,14 +69,14 @@ import OSLog
         guard let store else { return }
         try KeychainSecret.todoistToken.save(token.trimmingCharacters(in: .whitespacesAndNewlines))
         saveLinks([])
-        store.settings.todoistProjectID = project.id
-        store.settings.todoistProjectName = project.name
-        store.settings.todoistListID = listID
-        store.settings.todoistSyncToken = nil
-        store.settings.todoistUserID = nil
-        store.settings.todoistConnectedAt = store.now
-        store.settings.lastTodoistSync = nil
-        store.settings.todoistProblem = nil
+        store.settings[.todoist].sourceID = project.id
+        store.settings[.todoist].sourceName = project.name
+        store.settings[.todoist].listID = listID
+        store.settings[.todoist].cursor = nil
+        store.settings[.todoist].userID = nil
+        store.settings[.todoist].connectedAt = store.now
+        store.settings[.todoist].lastSync = nil
+        store.settings[.todoist].problem = nil
         Task { await sync() }
     }
 
@@ -89,21 +89,21 @@ import OSLog
             Self.log.error("Couldn't remove the Todoist token: \(error)")
         }
         saveLinks([])
-        store.settings.todoistProjectID = nil
-        store.settings.todoistSyncToken = nil
-        store.settings.todoistProblem = nil
+        store.settings[.todoist].sourceID = nil
+        store.settings[.todoist].cursor = nil
+        store.settings[.todoist].problem = nil
     }
 
     // MARK: Syncing
 
     private func syncIfAuto() {
-        guard store?.settings.todoistAutoSync == true else { return }
+        guard store?.settings[.todoist].autoSync == true else { return }
         Task { await sync() }
     }
 
     /// Sync now, and each poll: Komodo's changes go up, then Todoist's come down in the same answer.
     func sync() async {
-        guard let store, let projectID = store.settings.todoistProjectID, !isSyncing else { return }
+        guard let store, let projectID = store.settings[.todoist].sourceID, !isSyncing else { return }
         isSyncing = true
         defer { isSyncing = false }
         let token: String
@@ -125,29 +125,29 @@ import OSLog
         let response: Todoist.SyncResponse
         do {
             response = try await answer(
-                token: token, from: store.settings.todoistSyncToken, commands: batch.commands)
+                token: token, from: store.settings[.todoist].cursor, commands: batch.commands)
         } catch {
             fail(error)
             return
         }
         // Disconnected or reconnected while the request was out.
-        guard store.settings.todoistProjectID == projectID else { return }
+        guard store.settings[.todoist].sourceID == projectID else { return }
 
         let context = context(for: store)
         let confirmed = ExternalSync.confirm(
             pushes, outcomes: batch.outcomes(response, linked: Set(links.map(\.externalID))), links: links,
             board: store.tasks, context: context)
         store.saveImported(confirmed.saved)
-        let userID = response.user?.id ?? store.settings.todoistUserID
+        let userID = response.user?.id ?? store.settings[.todoist].userID
         let pulled = ExternalSync.pull(
             response.items(in: projectID, userID: userID, calendar: store.calendar), links: confirmed.links,
             board: store.tasks, known: store.knownTaskIDs, context: context, isEverything: response.fullSync)
         store.saveImported(pulled.saved)
         saveLinks(pulled.links)
-        store.settings.todoistSyncToken = response.syncToken
-        store.settings.todoistUserID = userID
-        store.settings.lastTodoistSync = store.now
-        store.settings.todoistProblem = confirmed.refusals.first.map { "Todoist refused a change: \($0)" }
+        store.settings[.todoist].cursor = response.syncToken
+        store.settings[.todoist].userID = userID
+        store.settings[.todoist].lastSync = store.now
+        store.settings[.todoist].problem = confirmed.refusals.first.map { "Todoist refused a change: \($0)" }
         failures = 0
     }
 
@@ -164,19 +164,19 @@ import OSLog
     }
 
     private func context(for store: BoardStore) -> ExternalSync.Context {
-        let listID = store.lists.first { $0.id == store.settings.todoistListID }?.id ?? store.lists.first?.id ?? ""
+        let listID = store.lists.first { $0.id == store.settings[.todoist].listID }?.id ?? store.lists.first?.id ?? ""
         return ExternalSync.Context(
             connectionID: Self.connectionID, source: .todoist, listID: listID,
-            sourceTitle: store.settings.todoistProjectName, onlyMine: store.settings.todoistOnlyMine,
-            syncsDeletes: store.settings.todoistSyncsDeletes,
-            connectedAt: store.settings.todoistConnectedAt ?? store.now, week: store.week, now: store.now)
+            sourceTitle: store.settings[.todoist].sourceName, onlyMine: store.settings[.todoist].onlyMine,
+            syncsDeletes: store.settings[.todoist].syncsDeletes,
+            connectedAt: store.settings[.todoist].connectedAt ?? store.now, week: store.week, now: store.now)
     }
 
     private func fail(_ error: TodoistError?, _ message: String? = nil) {
         failures += 1
         let text = message ?? error?.message ?? ""
         Self.log.error("Todoist sync failed: \(text)")
-        store?.settings.todoistProblem = text
+        store?.settings[.todoist].problem = text
     }
 
     // MARK: Links

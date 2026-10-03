@@ -18,7 +18,7 @@ struct SettingsIntegrationsPage: View {
     private var sync: CalendarSync? { store.calendarSync }
     private var isImporting: Bool { store.settings.importsCalendars && sync?.access == .granted }
     private var todoist: TodoistSync? { store.todoistSync }
-    private var isTodoistConnected: Bool { store.settings.todoistProjectID != nil }
+    private var isTodoistConnected: Bool { store.settings[.todoist].sourceID != nil }
 
     @State private var isConnectingTodoist = false
 
@@ -131,7 +131,7 @@ struct SettingsIntegrationsPage: View {
     }
 
     @ViewBuilder private var todoistCard: some View {
-        let problem = isTodoistConnected ? store.settings.todoistProblem : nil
+        let problem = isTodoistConnected ? store.settings[.todoist].problem : nil
         IntegrationCard(
             name: "Todoist",
             detail: problem.map {
@@ -163,8 +163,8 @@ struct SettingsIntegrationsPage: View {
 
     /// "Komodo launch · Synced 9:41 AM".
     private var todoistSyncLine: String {
-        let project = store.settings.todoistProjectName
-        guard let last = store.settings.lastTodoistSync else { return project }
+        let project = store.settings[.todoist].sourceName
+        guard let last = store.settings[.todoist].lastSync else { return project }
         return project + " · Synced " + last.formatted(.dateTime.hour().minute())
     }
 
@@ -239,7 +239,7 @@ struct SettingsIntegrationsPage: View {
     private var todoistSettings: some View {
         SettingsGroup(title: "TODOIST") {
             SettingsRow("Project", detail: "To sync another project, disconnect and connect again.") {
-                Text(store.settings.todoistProjectName)
+                Text(store.settings[.todoist].sourceName)
                     .font(.system(size: 12.5, weight: .semibold))
                     .foregroundStyle(Palette.textPrimary)
             }
@@ -250,18 +250,20 @@ struct SettingsIntegrationsPage: View {
             }
             SettingsRow(
                 "Auto sync", detail: "Check Todoist for changes every 5 minutes.",
-                isOn: Binding(get: { store.settings.todoistAutoSync }, set: { store.settings.todoistAutoSync = $0 }))
+                isOn: Binding(
+                    get: { store.settings[.todoist].autoSync }, set: { store.settings[.todoist].autoSync = $0 }))
             SettingsRow(
                 "Sync deletes",
                 detail: "Deleting a task here deletes it in Todoist too. Deleting in Todoist only unlinks it here.",
                 isOn: Binding(
-                    get: { store.settings.todoistSyncsDeletes }, set: { store.settings.todoistSyncsDeletes = $0 }))
+                    get: { store.settings[.todoist].syncsDeletes }, set: { store.settings[.todoist].syncsDeletes = $0 })
+            )
             SettingsRow(
                 "Only my items", detail: "Skip tasks assigned to someone else.",
                 isOn: Binding(
-                    get: { store.settings.todoistOnlyMine },
+                    get: { store.settings[.todoist].onlyMine },
                     set: {
-                        store.settings.todoistOnlyMine = $0
+                        store.settings[.todoist].onlyMine = $0
                         Task { await todoist?.sync() }
                     }))
             SettingsRow("Stop syncing", detail: "Tasks already imported stay on the Board.") {
@@ -273,8 +275,8 @@ struct SettingsIntegrationsPage: View {
 
     private var todoistListChoice: Binding<String> {
         Binding(
-            get: { store.settings.todoistListID ?? store.lists.first?.id ?? "" },
-            set: { store.settings.todoistListID = $0 })
+            get: { store.settings[.todoist].listID ?? store.lists.first?.id ?? "" },
+            set: { store.settings[.todoist].listID = $0 })
     }
 
     private var accounts: [String] {

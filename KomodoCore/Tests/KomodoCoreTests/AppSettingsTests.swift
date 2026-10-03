@@ -54,19 +54,36 @@ struct AppSettingsTests {
         settings.calendarWeeks = 3
         settings.calendarAcceptedOnly = true
         settings.lastCalendarSync = Date(timeIntervalSince1970: 1_790_090_000)
-        settings.todoistProjectID = "6Jf8VQXxpwv56VQ8"
-        settings.todoistProjectName = "Komodo launch"
-        settings.todoistListID = "work"
-        settings.todoistAutoSync = false
-        settings.todoistSyncsDeletes = true
-        settings.todoistOnlyMine = true
-        settings.todoistSyncToken = "TnYUZEpuzf2FMA9qzyY3j4xky6dXiYejmSO85S5paZ_a9y1FI85mBbIWZGpW"
-        settings.todoistUserID = "2671355"
-        settings.todoistConnectedAt = Date(timeIntervalSince1970: 1_790_000_100)
-        settings.lastTodoistSync = Date(timeIntervalSince1970: 1_790_090_100)
-        settings.todoistProblem = "Item not found"
+        settings[.todoist].sourceID = "6Jf8VQXxpwv56VQ8"
+        settings[.todoist].sourceName = "Komodo launch"
+        settings[.todoist].listID = "work"
+        settings[.todoist].autoSync = false
+        settings[.todoist].syncsDeletes = true
+        settings[.todoist].onlyMine = true
+        settings[.todoist].cursor = "TnYUZEpuzf2FMA9qzyY3j4xky6dXiYejmSO85S5paZ_a9y1FI85mBbIWZGpW"
+        settings[.todoist].userID = "2671355"
+        settings[.todoist].connectedAt = Date(timeIntervalSince1970: 1_790_000_100)
+        settings[.todoist].lastSync = Date(timeIntervalSince1970: 1_790_090_100)
+        settings[.todoist].problem = "Item not found"
+        settings[.clickup].sourceID = "901506"
+        settings[.clickup].dateMapping = .start
+        settings[.clickup].statuses = [
+            ProviderStatus(name: "to do", kind: .todo), ProviderStatus(name: "in review", kind: .active),
+            ProviderStatus(name: "complete", kind: .done),
+        ]
+        settings[.clickup].statusTargets = ["in review": .week, "to do": .backlog]
         settings.shortcuts[.findTimer] = KeyCombo(keyCode: 3, modifiers: [.control, .option], key: "f")
         #expect(AppSettings(stored: settings.stored) == settings)
+    }
+
+    @Test func aTodoistConnectionFromBeforeOtherProvidersCarriesOver() {
+        let settings = AppSettings(stored: [
+            "todoistProjectID": "6Jf8", "todoistProjectName": "Komodo launch", "todoistSyncToken": "abc",
+            "lastTodoistSync": "1790090100.0",
+        ])
+        #expect(settings[.todoist].sourceID == "6Jf8" && settings[.todoist].cursor == "abc")
+        #expect(settings[.todoist].lastSync == Date(timeIntervalSince1970: 1_790_090_100))
+        #expect(!settings[.notion].isConnected)
     }
 
     @Test func aResetShortcutReadsBackAsTheDefault() {
