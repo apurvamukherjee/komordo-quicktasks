@@ -95,6 +95,7 @@ struct SettingsCommand: Commands {
 ///   `-asanaToken` (the token flag is lowercase: `-clickupToken`).
 /// - `-claudeKey <key>` stands in for the Keychain's Claude key, as `-backupPassword <pw>` does for backups.
 /// - `-backupPassword <pw>` stands in for the Keychain's backup password, so scratch runs never touch the Keychain.
+/// - `-offline YES` stands in for a Mac with no network: task tools wait and show Offline, and Claude answers at once.
 enum LaunchOptions {
     @MainActor static func opening(_ store: BoardStore) -> BoardStore {
         #if DEBUG
