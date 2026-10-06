@@ -75,6 +75,7 @@ struct SettingsCommand: Commands {
 ///   `ended` is End Day with the queue still full, for the end-of-day review.
 /// - `-openTrash <count>` moves that many sample tasks to Trash and shows it; `-deleteList <list id>` also puts
 ///   a list there first.
+/// - `-openArchive YES` shows the Archive; `-archiveList <list id>` archives a list first.
 /// - `-openListSheet new|edit|delete` opens the list sheet, on the selected list for edit and delete.
 /// - `-openReports overview|punctuality|time|sessions` shows Reports on that tab.
 /// - `-addScheduled "<title>"` adds that task with the Focus Panel's Scheduled today + and opens its Schedule popover.
@@ -148,6 +149,9 @@ enum LaunchOptions {
                 for task in store.tasks.prefix(trashed) { store.delete(task.id) }
                 store.page = .trash
             }
+            // `-archiveList <list id>` archives a list first; `-openArchive YES` shows the Archive.
+            if let id = defaults.string(forKey: "archiveList") { store.archiveList(id) }
+            if defaults.bool(forKey: "openArchive") { store.page = .archive }
         #endif
         return store
     }
