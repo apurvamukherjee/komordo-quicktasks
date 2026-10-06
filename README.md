@@ -33,6 +33,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Estimates you can trust.** Every task has an estimate and every session is timed. Reports show where your day actually went.
 - **Delight at the finish line, silence during the work.** Celebrations play on *Done*, never mid-task.
 - **Your data stays yours.** No account, no server. Everything lives in SQLite on your Mac and exports as a zip at any time.
+- **Works offline.** Planning, focus, reports, backups and the on-device Assistant need no network. Synced tools wait quietly and catch up when you're back.
 
 ## Features
 
