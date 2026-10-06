@@ -7,6 +7,8 @@ struct IntegrationCard<Logo: View, Footer: View>: View {
         case none
         case active(String)
         case attention
+        /// No network: muted and hollow, like StatusDot's offline (DESIGN_SYSTEM §2.3 neutral).
+        case offline
         case off
         case comingSoon
     }
@@ -59,6 +61,11 @@ struct IntegrationCard<Logo: View, Footer: View>: View {
         case .none: EmptyView()
         case .active(let label): dot(label, color: Palette.green, text: Palette.greenText)
         case .attention: dot("Needs attention", color: Palette.danger, text: Palette.dangerText)
+        case .offline:
+            HStack(spacing: 6) {
+                Circle().strokeBorder(Palette.textMuted, lineWidth: 1.5).frame(width: 7, height: 7)
+                Text("Offline").font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.textTertiary)
+            }
         case .off: Chip("Off", tint: .outline, size: .compact)
         case .comingSoon: Chip("Coming soon", size: .compact)
         }
@@ -92,6 +99,16 @@ struct IntegrationCard<Logo: View, Footer: View>: View {
         } footer: {
             Spacer()
             Button("Open System Settings") {}.buttonStyle(.komodo(.dangerOutline, size: .small))
+        }
+        IntegrationCard(
+            name: "Todoist", detail: Text("Sync one project with a list, both ways."), status: .offline,
+            tint: Palette.textSecondary
+        ) {
+            Text("T")
+        } footer: {
+            Text("Komodo launch · Synced 9:41 AM").font(.system(size: 12)).foregroundStyle(Palette.textBody)
+            Spacer()
+            Button("Sync now") {}.buttonStyle(.komodo(.secondary, size: .small)).disabled(true)
         }
         IntegrationCard(
             name: "Notion", detail: Text("Sync a database."), status: .comingSoon, tint: Palette.textTertiary
