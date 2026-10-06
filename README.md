@@ -51,7 +51,7 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 | 📅 | **Scheduling and repeats** | Pick a day, a time and a repeat in two steps. Recurring tasks get stable IDs, so nothing duplicates and a deleted copy stays gone | ✅ Available |
 | 🔔 | **Menu bar, reminders and global shortcuts** | The live task's time in the menu bar, reminders that fire even with Komodo closed, and ⌘⇧B, ⌘⇧T and ⌘⇧P from any app | ✅ Available |
 | ⚙️ | **Settings** | Every preference in one window that applies as you change it: the Dock, the panel's screen, Pomodoros, alerts and sounds, celebrations and shortcuts | ✅ Available |
-| 🗑️ | **Trash and archive** | Deleted lists and tasks wait 30 days with Restore, and archived ones leave the Board but stay in your history | ✅ Available |
+| 🗑️ | **Trash and archive** | Deleted lists and tasks wait 30 days with Restore, and archived ones leave the Board but stay in your history, on their own page to bring back any time | ✅ Available |
 | 📊 | **Reports** | Work days, hours and your most productive hour, day and month; estimate accuracy week by week; hours by list; and every session and break, editable and exportable to PDF or CSV | ✅ Available |
 | ⌨️ | **Keyboard first** | Command palette, quick add from anywhere and a shortcut for every action, global ones included | ✅ Available |
 | 💾 | **Backup and restore** | One-click zip export, a daily automatic backup, and a restore that checks the file and saves your current data first | ✅ Available |
@@ -227,6 +227,10 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Subtasks come along.** A Notion page's checkboxes and an Asana task's subtasks show up as subtasks, and ticking one here ticks it there.
 - **Same promises as Todoist.** Your token stays in the Keychain, deleting at the provider only unlinks, and Komodo only deletes there with Sync deletes on.
 
+<p align="center"><img src="docs/media/settings-offline.png" alt="Integrations with no network: the Todoist and Notion cards read Offline with Sync now dimmed, while Calendar import and the Local MCP server work as usual" width="100%"></p>
+
+- **Offline is fine.** No network, no red cards. Connected tools read Offline and wait, and everything else in Komodo keeps working. The moment you're back, they catch up.
+
 ## Komodo Assistant
 
 <p align="center"><img src="docs/media/assistant.png" alt="Three Assistant popovers: the welcome with suggestions, a brain dump previewed as Gym tomorrow at 7 for 1 hour, Deck today for 3 hours and Call Apurva today, and the same three tasks added with Undo" width="100%"></p>
@@ -288,13 +292,17 @@ Most to-do apps stop at the list. Komodo keeps going: the list becomes the timer
 - **Every session, on the record.** Work and breaks a day at a time. Fix a session, log work you did away from your Mac, and export to PDF or CSV.
 - **Filter anything.** One list or all of them, today, this week, the last 30 days or any range. Open with ⌘2.
 
-## Trash
+## Trash and archive
 
 <p align="center"><img src="docs/media/trash.png" alt="Trash in place of the Board: deleted tasks and a deleted Growth list with its badge and List chip, where each came from, when it was deleted and the days left" width="100%"></p>
 
 - **Nothing is gone by accident.** Deleted lists and tasks wait 30 days, with the last three days in amber. Restore puts a task back where it was, and a list back in its place with all its tasks.
 - **Deleting a list asks twice.** Type the list's name to confirm, then Undo is still one click away.
 - **Archive, don't delete.** Archive a finished project, or a single task, and it leaves the Board but stays in your history.
+
+<p align="center"><img src="docs/media/archive.png" alt="The Archive in place of the Board: an archived Growth list above finished tasks kept for Reports, each with the list it came from and the day it was archived" width="100%"></p>
+
+- **Bring anything back.** The Archive lists every archived list and task. Restore puts it back on the Board, or Move to Trash when you're sure you're done with it.
 
 ## The design system
 
