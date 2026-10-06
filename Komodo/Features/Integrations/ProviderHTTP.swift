@@ -25,6 +25,8 @@ enum ProviderError: Error, Equatable {
 /// whole sync, while any other answer, a 404 or a refused change included, goes back to the client to judge.
 enum ProviderHTTP {
     static func send(_ request: URLRequest) async throws(ProviderError) -> (data: Data, status: Int) {
+        // Without a path the request would only fail after its 30 s timeout, leaving Test or Sync now spinning.
+        guard await Connectivity.shared.isOnline else { throw .offline }
         let data: Data
         let response: URLResponse
         do {
