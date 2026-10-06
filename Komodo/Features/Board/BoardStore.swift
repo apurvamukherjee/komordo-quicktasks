@@ -1571,9 +1571,12 @@ import SwiftUI
         } else {
             arming(.timesUp, in: remaining)?.timesUp(in: remaining, task: live.title, estimate: estimate)
         }
+        let title = live.title
         timesUpAlert = Task { [weak self] in
             guard (try? await Task.sleep(for: .seconds(remaining))) != nil, let self else { return }
             play(.glass)
+            // The digits are `.updatesFrequently`, so VoiceOver never reads the switch to +MM:SS (DESIGN_SYSTEM §8).
+            AccessibilityNotification.Announcement("Time's up. \(title)").post()
         }
     }
 
