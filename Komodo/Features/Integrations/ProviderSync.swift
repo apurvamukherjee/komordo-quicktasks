@@ -131,9 +131,10 @@ import OSLog
         Task { await sync() }
     }
 
-    /// Sync now, and each poll.
+    /// Sync now, and each poll. Offline it waits for the network rather than failing (ARCHITECTURE §4.4).
     func sync() async {
-        guard let store, let sourceID = store.settings[provider].sourceID, !isSyncing else { return }
+        guard let store, let sourceID = store.settings[provider].sourceID, !isSyncing, Connectivity.shared.isOnline
+        else { return }
         isSyncing = true
         defer { isSyncing = false }
         let token: String
@@ -201,6 +202,8 @@ import OSLog
     }
 
     private func fail(_ error: ProviderError?, _ message: String? = nil) {
+        // The network went while the request was out: nothing needs attention, and it catches up once it's back.
+        if error == .offline, !Connectivity.shared.isOnline { return }
         failures += 1
         let text = message ?? error?.message(for: provider) ?? ""
         Self.log.error("\(self.name, privacy: .public) sync failed: \(text)")
