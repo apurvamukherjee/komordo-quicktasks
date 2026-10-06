@@ -17,7 +17,9 @@ struct ProviderCard: View {
             name: provider.name,
             detail: problem.map { Text(provider.cardDetail + " ") + Text($0).foregroundColor(Palette.dangerText) }
                 ?? Text(provider.cardDetail),
-            status: problem != nil ? .attention : connection.isConnected ? .active("Active") : .none,
+            // A problem outranks being offline, which only means the next sync waits.
+            status: !connection.isConnected
+                ? .none : problem != nil ? .attention : Connectivity.shared.isOnline ? .active("Active") : .offline,
             tint: Palette.textSecondary
         ) {
             Text(provider.letter)
@@ -31,6 +33,7 @@ struct ProviderCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Sync now") { Task { await sync?.sync() } }
                     .buttonStyle(.komodo(.secondary, size: .small, isBusy: sync?.isSyncing == true))
+                    .disabled(!Connectivity.shared.isOnline)
             } else {
                 Spacer()
                 Button("Connect", action: connect)
