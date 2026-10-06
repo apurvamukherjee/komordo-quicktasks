@@ -157,6 +157,14 @@ private struct TrashRow: View {
                 switch item {
                 case .list(let list):
                     ListBadge(letter: list.letter, color: color(of: list))
+                case .task(let task) where task.completedAt != nil:
+                    // The Board's done mark, since most archived tasks are finished ones kept for Reports.
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 9, weight: .heavy))
+                        .foregroundStyle(Palette.onAccent)
+                        .frame(width: 18, height: 18)
+                        .background(Palette.green, in: Circle())
+                        .accessibilityLabel("Done")
                 case .task:
                     RoundedRectangle(cornerRadius: 6)
                         .strokeBorder(Color.white.opacity(0.25), lineWidth: 1.5)
