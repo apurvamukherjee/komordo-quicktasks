@@ -1360,10 +1360,12 @@ import SwiftUI
         focus.taskID = nil
         let task = tasks[index]
         if settings.playsSuccessSound, playsSounds { KomodoSound.playSuccess(volume: settings.volume) }
+        let message = CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now))
+        // Announced once, as DESIGN_SYSTEM §8 asks, whether or not the success screen shows.
+        AccessibilityNotification.Announcement("\(task.title). \(message)").post()
         focus.celebration = Celebration(
             taskID: id, title: task.title,
-            message: CelebrationCopy.message(estimate: task.estimate, taken: task.timeTaken(at: now)),
-            nextTitle: layout.upNext.first?.title,
+            message: message, nextTitle: layout.upNext.first?.title,
             inARow: settings.showsStreaks ? DaySummary.onEstimateRun(everyListLayout.doneToday, now: now) : 0)
         // With the success screen off, Done goes straight to the next task.
         if !settings.showsSuccessScreen { finishCelebration() }
