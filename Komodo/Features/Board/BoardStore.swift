@@ -47,7 +47,7 @@ import SwiftUI
         }
     }
 
-    /// One row in Trash (FEATURES §4.20).
+    /// One row in Trash (FEATURES §4.20) or the Archive.
     enum TrashItem: Identifiable {
         case task(TaskItem)
         case list(TaskList)
@@ -63,6 +63,13 @@ import SwiftUI
             switch self {
             case .task(let task): task.deletedAt ?? .distantPast
             case .list(let list): list.deletedAt ?? .distantPast
+            }
+        }
+
+        var archivedAt: Date {
+            switch self {
+            case .task(let task): task.archivedAt ?? .distantPast
+            case .list(let list): list.archivedAt ?? .distantPast
             }
         }
     }
@@ -901,6 +908,15 @@ import SwiftUI
         let listIDs = Set(lists.map(\.id))
         let items = lists.map(TrashItem.list) + trash.filter { !listIDs.contains($0.listID) }.map(TrashItem.task)
         return items.sorted { $0.deletedAt > $1.deletedAt }
+    }
+
+    /// The Archive's rows, newest first, shaped like Trash's: an archived list holds its tasks, while a task
+    /// archived on its own keeps its own row.
+    var archiveItems: [TrashItem] {
+        let lists = allLists.filter { $0.archivedAt != nil && $0.deletedAt == nil }
+        let listIDs = Set(lists.map(\.id))
+        let items = lists.map(TrashItem.list) + archived.filter { !listIDs.contains($0.listID) }.map(TrashItem.task)
+        return items.sorted { $0.archivedAt > $1.archivedAt }
     }
 
     /// Items past their 30 days leave for good; checked at launch and each new day.
