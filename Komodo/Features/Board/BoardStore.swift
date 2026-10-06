@@ -885,6 +885,15 @@ import SwiftUI
         }
     }
 
+    /// The Archive's Move to Trash: the task waits there for 30 days like any deleted one.
+    func trashArchived(_ id: String) {
+        guard let index = archived.firstIndex(where: { $0.id == id }) else { return }
+        var task = archived.remove(at: index)
+        task.archivedAt = nil
+        task.deletedAt = now
+        trash.insert(task, at: 0)
+    }
+
     /// Trash's Restore: the task goes back where it was, with Undo returning it to Trash.
     func restore(_ id: String, announces: Bool = true) {
         guard let index = trash.firstIndex(where: { $0.id == id }) else { return }
@@ -1097,6 +1106,16 @@ import SwiftUI
     func unarchiveList(_ id: String) {
         guard allLists.contains(where: { $0.id == id && $0.archivedAt != nil && $0.deletedAt == nil }) else { return }
         bringBackList(id)
+    }
+
+    /// The Archive's Move to Trash for a list: its tasks are already shelved, so only the flag changes, in one write.
+    func trashArchivedList(_ id: String) {
+        guard let index = allLists.firstIndex(where: { $0.id == id && $0.archivedAt != nil && $0.deletedAt == nil })
+        else { return }
+        var list = allLists[index]
+        list.archivedAt = nil
+        list.deletedAt = now
+        allLists[index] = list
     }
 
     /// Delete now or 30 days up: the list goes for good with every task that was in it.
