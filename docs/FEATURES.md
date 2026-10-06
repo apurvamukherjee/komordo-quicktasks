@@ -396,6 +396,8 @@ Global shortcuts can be changed in Settings. A shortcut already taken by another
 
 Deleted lists and tasks stay in **Trash** for 30 days, with **Restore** and **Delete now** buttons, then disappear for good.
 
+**Archive:** archived lists and tasks are listed on their own page, shown in the sidebar above Trash once anything is archived. Each has **Restore** (back to the Board, or onto its list's shelf while that list is away) and **Move to Trash**. Archived items keep counting in Reports and never expire.
+
 ### 4.21 Backup and export (P0)
 
 There is no Komodo account or server. Everything lives in one SQLite database on the Mac.
@@ -427,7 +429,9 @@ There is no Komodo account or server. Everything lives in one SQLite database on
 
 ## 5. Integrations
 
-Every integration runs inside the app, and tokens are kept in the macOS Keychain. With no server, changes are fetched by **polling** while Komodo runs, with a catch-up on launch and wake. Each list can link one account per provider, and imported items are ordinary tasks.
+Every integration runs inside the app, and tokens are kept in the macOS Keychain. With no server, changes are fetched by **polling** while Komodo runs, with a catch-up on launch and wake.
+
+**Offline:** everything except syncing and Claude works with no network. While offline, connected task tools read **Offline**, skip their polls without needing attention, and catch up as soon as the network is back. Each list can link one account per provider, and imported items are ordinary tasks.
 
 | Provider | Direction | What syncs | Connect with | Priority |
 | --- | --- | --- | --- | --- |
