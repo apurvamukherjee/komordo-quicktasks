@@ -1,12 +1,14 @@
 # Handoff: where Komodo stands and where to continue
 
-Last updated: 2026-10-03 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
+Last updated: 2026-10-06 (end of session). On `main`: every P0 milestone except Gmail → Calendar (parked by the
 maintainer), all of Phase 1 except what depends on Gmail (Claude mode, the Review tab, reschedules) and the
 XCUITest smoke tests (they need the maintainer's screen), and all of Phase 2's task tools: Todoist, Notion,
 Linear, ClickUp and Asana, every one built and tested against documented responses only, with no real token yet.
-Version 0.9.0 is the first downloadable build; the task tools are under Unreleased in `CHANGELOG.md`. Next is
-the maintainer testing 0.9.0 and sharing test tokens, so each provider can be tried for real; then Gmail →
-Calendar when the maintainer unparks it. §4 lists everything that remains, phase by phase. The maintainer
+The 2026-10-06 wrap-up made Komodo dependable offline (task tools wait and catch up, every network call answers at
+once without a path), added the Archive page and the VoiceOver announcements, and set the version to 0.10.0
+(build 2); `CHANGELOG.md` has it as 0.10.0, not yet built as a DMG or released. Next is the maintainer testing
+0.10.0 and sharing test tokens, so each provider can be tried for real; then Gmail → Calendar when the maintainer
+unparks it. §4 lists everything that remains, phase by phase. The maintainer
 committed and pushed most of 5c as one commit (`4d5db3a`); leave it as it is and build new commits on top.
 ---
 
@@ -74,6 +76,7 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 | P2 | Voice input and voice notes | ✅ | 2026-10-02; on-device dictation; tried with a simulated voice only |
 | P2 | Todoist sync | ✅ | 2026-10-02; two-way, one project per list; documented responses only, no real token yet |
 | P2 | Notion, Linear, ClickUp, Asana | ✅ | 2026-10-03; one `ProviderAdapter` each on a shared `ProviderSync`; documented responses only, no real token yet |
+| — | Offline pass, Archive page, VoiceOver announcements | ✅ | 2026-10-06; `Connectivity` (NWPathMonitor); version 0.10.0 |
 | P2 | **Task tools with real tokens** | ⏭ **Next** | Needs the maintainer's test tokens; see §4 |
 | P1 | Claude mode, Review tab, reschedules | ⏸ Parked | They're parts of Gmail → Calendar (FEATURES §4.0) |
 | P2 | Light appearance | ⏳ Later | DESIGN_SYSTEM §2: dark only so far |
@@ -83,7 +86,7 @@ The build order follows DESIGN_HANDOFF §3 and §6 step 3.
 
 Screens done: Main, Inspector, Quick add, Schedule, Focus Panel, FocusStates, Floating timer, Celebration,
 Palette, Settings (General, Focus, Alerts & sounds, Celebration, Shortcuts, Integrations, Data & backup, AI,
-Local MCP server, About), System (menu bar, notifications), Trash, DataSheets, Onboarding (steps 1–5 and the
+Local MCP server, About), System (menu bar, notifications), Trash, Archive (no canvas), DataSheets, Onboarding (steps 1–5 and the
 Start tip), Reports, Assistant (all five states). Screens left: Gmail (connect, Overview, Settings, Activity,
 Review) and onboarding step 6, all parked with Gmail; Settings ▸ Gmail → Calendar (dimmed in the sidebar). The
 token sheet serves all five task tools. Reports states left: loading (nothing loads slowly on a local
@@ -95,7 +98,7 @@ database).
 
 ```
 Komodo/
-  App/                KeychainSecret (one generic Keychain item per secret, with a Debug launch-flag override),
+  App/                Connectivity (NWPathMonitor, backOnline), KeychainSecret (one generic Keychain item per secret, with a Debug launch-flag override),
                       KomodoApp (scenes incl. MenuBarExtra, commands, LaunchOptions), AppDelegate (attaches the
                       store; Dock policy, hotkeys, day rollover, notification actions), FocusAlerts
                       (notifications, reminders), GlobalHotKeys (Carbon), Sounds (KomodoSound.play),
@@ -121,7 +124,8 @@ Komodo/
                       General, Focus, Alerts, Celebration, Shortcuts (key recorder), Integrations, Data, AI,
                       Local MCP server, About
   Features/MenuBar/   MenuBarView (MenuBarLabel with the live time; MenuBarMenu with the live task and items)
-  Features/Trash/     TrashView (shown in place of the Board when store.page is .trash): task and list rows
+  Features/Trash/     TrashView (shown in place of the Board when store.page is .trash, or .archive with
+                      shelf: .archive): task and list rows
   Features/Lists/     ListEditorSheet (new, rename, color & icon), DeleteListSheet (typed name)
   Features/Reports/   ReportsView (header, filters, tabs), OverviewReport, PunctualityReport, TimeSpentReport,
                       SessionsReport, SessionSheet, SessionsExport (PDF, CSV), ReportTable, ReportsFormat,
@@ -244,6 +248,12 @@ design/               previews/*.png (pixel truth) and screens/*.dc.html (exact 
 - **Assistant:** a brain returns an `AssistantPlan`; `AssistantResolver` keeps it to the user's words (per-phrase
   values, `@` commands, grounding, skipped phrases) and builds the preview; `applyAssistant` saves it with one undo.
   The resolver, not the model, decides days, times and lengths.
+- **Offline:** `Connectivity.shared.isOnline` is the one answer. `ProviderHTTP.send`, the Assistant's Claude path
+  and `ClaudeKeyCheck` fail at once without a path; `ProviderSync` skips offline polls with no problem or back-off
+  and syncs on `Connectivity.backOnline`. `-offline YES` simulates it in Debug.
+- **Archive:** `archiveItems` reuses Trash's `TrashItem` rows (an archived list holds its tasks); `unarchive`,
+  `unarchiveList`, `trashArchived` and `trashArchivedList` are its actions. The sidebar row reads `hasArchive`, which
+  doesn't sort.
 - **Narrow widths:** `ViewThatFits` fallbacks keep the Today column readable at the 1200 pt default window.
   The wide layout is the one that matches the canvas.
 
@@ -298,7 +308,7 @@ documented-shape fixtures in `TodoistTests`, `LinearTests`, `AsanaTests`, `Click
   shared framework instead of twice.
 
 **Polish carried in §5** (no phase of their own), each waiting on a design decision (§9 question 7) or its
-screen: list image icons and the backup's `assets/`, an Archive screen, onboarding's moving drawings, the floating
+screen: list image icons and the backup's `assets/`, a canvas for the Archive (built from Trash's), onboarding's moving drawings, the floating
 card's GIF and "in a row" pill, the shared table, suggestion card and page-dot components, Komodo's own sounds,
 and the Reports loading state. Done in 0.9.0: Load earlier, the pulsing rings, the panel's Scheduled today **+**
 and row dragging, the won card's sparks, the `.kbak` type, saved list and Pomodoro count, A4 PDFs.
@@ -369,8 +379,15 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
     exports were checked through `-exportSessions`, and breaks on a scratch database with `-focusState break`.
   - PDF pages follow the Mac's default paper (A4 here). The loading state isn't built, since a local database
     answers at once.
-- **Archive:** archived tasks and lists are kept for Reports; nothing shows them yet, and Undo is the only way
-  back. A task restored from Trash into an archived list goes quietly onto that list's shelf.
+- **Archive** (2026-10-06): its own page, built from Trash's table since no canvas draws it. Captured with
+  `-archiveList growth -openArchive YES`; Restore and Move to Trash weren't clicked (pointer), only read through.
+  A task restored from Trash or the Archive into an archived list goes quietly onto that list's shelf. Archived
+  items never expire. Sample data archives nine months of finished tasks, so the sample Archive is long.
+- **Offline** (2026-10-06): tried with `-offline YES` (cards read Offline, Sync now held); a real loss of network
+  wasn't tried. A captive portal has a path, so it still fails as "Couldn't reach …" and backs off. At launch the
+  first poll may run before the monitor's first answer; a failure then is dropped as offline if the path is gone.
+- **VoiceOver:** Time's Up and Done are announced (`AccessibilityNotification.Announcement`), not yet heard with
+  VoiceOver on. Gmail results wait for Gmail.
 - **Lists:**
   - No Create List tile on Home (FEATURES §4.1): `Main.png` draws none; the sidebar **+** and File ▸ New List
     cover it. No palette command either, since DESIGN_SYSTEM §13.7 lists none.
@@ -460,7 +477,6 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
   inside onboarding and Data & backup, not as shared components. Build each with the screen that uses it.
 - **README recording** (`board.gif`) still shows the old sidebar mark (clock hand, no check).
 - **Increase Contrast:** the color sets have dark and universal values only, no Increase Contrast variants.
-- **Archive:** no screen shows archived lists or tasks; it needs a design (§9 question 7).
 - **Test file:** the original scaffold test file (`KomodoCoreTests.swift`) was replaced before it was ever
   committed. Its contents are unknown, and the current suites cover FocusClock, TimerFormat, DurationFormat,
   EstimateParser, BoardLayout, DayPlan, DaySummary and FocusHistory.
@@ -610,6 +626,13 @@ the `xattr` step in the notes. The Release app measured 34 MB on disk and the DM
 | Assistant shortcut | ⌘J | DESIGN_SYSTEM gives none; J was free in Home |
 | Voice note in the editor | Inserted into the live text view, as typing | Reloading the editor with new notes left the old text on screen |
 | Voice in the Assistant | Hold to talk, release sends; VoiceOver toggles | Assistant.png ②'s "hold mic to talk" |
+| Archive screen | Trash's table on its own page, Restore and Move to Trash, no expiry | No canvas (§9 q7); an archived item had no way back but Undo, which made Komodo hard to use for a whole project |
+| Archive in the sidebar | A row above Trash only once something is archived, with no count | Keeps `Main.png`'s sidebar for boards that never archive; archived history runs to hundreds of tasks |
+| Archive copy | "Archived items still count in Reports", "Nothing archived.", "Archive a list or task to keep it for Reports, off the Board.", "Move to Trash" | No spec copy; written in DESIGN_SYSTEM §7's voice |
+| Offline task tools | Skip polls quietly, card reads Offline, catch up on `backOnline` | ARCHITECTURE §6.6's offline row; DESIGN_SYSTEM §2.3 lists Offline as a neutral state |
+| Offline vs a problem | Needs attention outranks Offline | A problem needs the user; being offline doesn't |
+| Done announcement | Task title plus the celebration line | DESIGN_SYSTEM §8 asks for Done to be announced; the celebration line is existing copy |
+| Version | 0.10.0, build 2 | Task tools plus the offline pass are a minor release before 1.0 |
 
 ---
 
@@ -658,6 +681,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
     `-settingsAtBottom YES` opens Settings pages scrolled to the end, for the provider groups; `-claudeKey <key>` and `-backupPassword <pw>` stand in for the Keychain; `KOMODO_DATABASE=<file>`
     points `komodo-mcp` at a scratch file (pipe JSON-RPC lines into
     `Komodo.app/Contents/Helpers/komodo-mcp`).
+  - Archive and offline: `-openArchive YES` with `-archiveList <list id>`; `-offline YES` with a connected sample
+    provider for the Offline card.
   - Assistant and voice: `-assistantPrompt "<text>"` (plus `-assistantApply YES`) runs the real on-device model,
     about 15 s; `-assistantListening YES` and `-voiceNote <seconds>` with `-voiceSample "<text>"` simulate the
     microphone.
@@ -754,6 +779,8 @@ swift format lint --strict --recursive Komodo KomodoCore/Sources KomodoCore/Test
 5. **Claude key:** will the maintainer add one in Settings ▸ AI so the Assistant's Claude path can be tried?
 6. **Release:** when should signing, notarizing and Sparkle happen, and with which Developer ID team? 0.9.0 is ad
    hoc signed.
-7. **Designs needed:** Light values and Increase Contrast variants for every color set, an Archive screen (where
-   archived lists and tasks show, and how they come back), how a list picks an image icon, and Komodo's own sound
+7. **Designs needed:** Light values and Increase Contrast variants for every color set, a canvas for the Archive
+   (built from Trash's for now; replace it if the design differs), how a list picks an image icon, and Komodo's own sound
    files. Each is code-only once there's a spec.
+8. **0.10.0 release:** should it go out as a DMG on GitHub Releases now (ad hoc signed like 0.9.0), or wait for the
+   real-token tries?
