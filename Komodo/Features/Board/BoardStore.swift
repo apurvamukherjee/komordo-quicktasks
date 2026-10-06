@@ -115,6 +115,7 @@ import SwiftUI
     enum Page: Sendable {
         case board
         case trash
+        case archive
         case reports
     }
 

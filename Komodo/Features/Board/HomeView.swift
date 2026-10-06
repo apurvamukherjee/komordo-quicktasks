@@ -19,6 +19,7 @@ struct HomeView: View {
                 switch store.page {
                 case .board: BoardView(store: store)
                 case .trash: TrashView(store: store)
+                case .archive: TrashView(store: store, shelf: .archive)
                 case .reports: ReportsView(store: store)
                 }
             }
