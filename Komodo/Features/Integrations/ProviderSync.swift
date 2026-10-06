@@ -34,6 +34,10 @@ import OSLog
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.syncIfAuto() }
         }
+        NotificationCenter.default.addObserver(forName: Connectivity.backOnline, object: nil, queue: .main) {
+            [weak self] _ in
+            MainActor.assumeIsolated { self?.syncIfAuto() }
+        }
         #if DEBUG
             // `-connectTodoist YES` with `-sampleTodoist YES` connects the second sample source to the first list.
             if usesSamples, UserDefaults.standard.bool(forKey: "connect" + flagName), !isConnected,
