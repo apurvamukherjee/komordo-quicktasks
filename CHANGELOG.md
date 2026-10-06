@@ -5,6 +5,31 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-10-06
+
+Every task tool, plus a pass to make Komodo dependable with no network. Gmail → Calendar is still parked, so this
+is still a preview.
+
+### Offline and archive — 2026-10-06
+
+#### Added
+- **Archive page**: archived lists and tasks on their own page, opened from an Archive row above Trash once
+  anything is archived, with **Restore** and **Move to Trash**. Archived items keep counting in Reports. Debug
+  flags `-openArchive YES` and `-archiveList <list id>`.
+- **Offline status** on task tool cards: "Offline" with a hollow dot, and Sync now held until the network is back.
+- **VoiceOver announcements** for Time's Up and Done (DESIGN_SYSTEM §8).
+- Debug flag `-offline YES`, which stands in for a Mac with no network.
+
+#### Changed
+- Task tools wait out being offline: polls are skipped without Needs attention or back-off, and a sync runs as
+  soon as the network returns (`NWPathMonitor`, ARCHITECTURE §6.6).
+- Finished tasks in Trash and the Archive show the Board's green done mark.
+- Version 0.10.0, build 2.
+
+#### Fixed
+- A token test, Sync now, the Assistant's Claude request and the Claude key test no longer wait out their 15–120 s
+  timeouts offline; each answers at once with its "Couldn't reach …" message.
+
 ### Notion, Linear, ClickUp and Asana — 2026-10-03
 
 #### Added
