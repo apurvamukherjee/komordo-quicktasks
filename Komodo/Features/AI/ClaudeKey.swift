@@ -9,6 +9,7 @@ extension KeychainSecret {
 /// refused one and a model the key can't use each get their own answer.
 enum ClaudeKeyCheck {
     static func run(_ key: String, model: String) async -> SecureKeyField.TestState {
+        guard await Connectivity.shared.isOnline else { return unreachable }
         guard let url = URL(string: "https://api.anthropic.com/v1/models/\(model)") else {
             return .invalid("Komodo couldn't build the request.")
         }
@@ -25,7 +26,10 @@ enum ClaudeKeyCheck {
                 return .invalid("Anthropic answered \(status.map(String.init) ?? "oddly"). Try again soon.")
             }
         } catch {
-            return .invalid("Couldn't reach Anthropic. Check your connection.")
+            return unreachable
         }
     }
+
+    private static let unreachable = SecureKeyField.TestState.invalid(
+        "Couldn't reach Anthropic. Check your connection.")
 }
