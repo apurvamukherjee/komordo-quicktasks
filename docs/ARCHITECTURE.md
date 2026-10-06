@@ -398,6 +398,7 @@ protocol ProviderAdapter: Sendable {
   - `ExternalItem.Shape` says which fields a provider keeps; snapshots, pulls and pushes only touch those, so a field it lacks never reads as an edit. Two fields joined the snapshot, the column of an open undated task and the subtasks, and trailing empty parts are left off so older Todoist links read the same.
   - Notion, Linear, ClickUp and Asana list no deletions, so each sync reads every open item (`isEverything`). A linked item missing from that is unlinked unless its snapshot says it was finished.
   - Statuses: `ProviderStatus` (todo, active, done) and `StatusTarget` (by date, a column, or Done) make the status mapping; `ProviderConnection.status(for:isDone:)` picks the status a push sends.
+  - Offline: `Connectivity` (app target) wraps one `NWPathMonitor` and posts `backOnline` when a path returns. `ProviderHTTP.send` fails with `.offline` at once without a path, `ProviderSync` skips polls while offline without a problem or back-off and syncs on `backOnline`, and the Claude calls (Assistant, key check) answer at once too. A request that fails because the path went mid-flight counts as offline, not as a failure.
 
 ## 9. On-device assistant and voice (P2)
 - **Komodo Assistant:** uses the on-device model when available, otherwise Claude with the user's key. It only **proposes** changes. The user confirms them in a preview, and they go through the normal stores.
