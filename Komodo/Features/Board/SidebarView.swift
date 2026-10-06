@@ -72,6 +72,13 @@ struct SidebarView: View {
                 .padding(.horizontal, 2)
                 .padding(.bottom, 10)
 
+            // Only once something is archived, so a board that never archives keeps Main.png's sidebar.
+            if store.hasArchive {
+                NavRow(title: "Archive", symbol: "archivebox", isSelected: store.page == .archive, height: 32) {
+                    store.inspect(nil)
+                    store.page = .archive
+                }
+            }
             NavRow(
                 title: "Trash", symbol: "trash", count: store.trashItems.isEmpty ? nil : store.trashItems.count,
                 isSelected: store.page == .trash, height: 32

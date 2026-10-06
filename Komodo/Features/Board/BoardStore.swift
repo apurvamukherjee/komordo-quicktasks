@@ -942,6 +942,9 @@ import SwiftUI
         return items.sorted { $0.archivedAt > $1.archivedAt }
     }
 
+    /// Whether the sidebar offers the Archive. Cheaper than sorting `archiveItems` on every sidebar pass.
+    var hasArchive: Bool { !archived.isEmpty || allLists.contains { $0.archivedAt != nil && $0.deletedAt == nil } }
+
     /// Items past their 30 days leave for good; checked at launch and each new day.
     private func purgeTrash() {
         let expired = trash.filter { task in
