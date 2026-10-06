@@ -22,6 +22,8 @@ enum AssistantBrain: Equatable {
             guard #available(macOS 26, *) else { throw .noBrain }
             return try await OnDeviceAssistant.plan(text, instructions: instructions)
         case .claude:
+            // A 120 s request timeout would otherwise hold the thinking row up long after the answer is known.
+            guard await Connectivity.shared.isOnline else { throw .unreachable }
             let key: String?
             do {
                 key = try KeychainSecret.claudeKey.read()
