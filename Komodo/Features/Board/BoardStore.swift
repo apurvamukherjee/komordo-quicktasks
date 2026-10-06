@@ -872,6 +872,19 @@ import SwiftUI
         }
     }
 
+    /// The Archive's Restore: back on the Board, or onto its list's shelf while that list is away. Archiving it
+    /// again is the way back, so there's no Undo.
+    func unarchive(_ id: String) {
+        guard let index = archived.firstIndex(where: { $0.id == id }) else { return }
+        var task = archived.remove(at: index)
+        task.archivedAt = nil
+        if list(for: task)?.isActive == false {
+            shelved.append(task)
+        } else {
+            putBack(task)
+        }
+    }
+
     /// Trash's Restore: the task goes back where it was, with Undo returning it to Trash.
     func restore(_ id: String, announces: Bool = true) {
         guard let index = trash.firstIndex(where: { $0.id == id }) else { return }
@@ -1078,6 +1091,12 @@ import SwiftUI
             store.allLists[index].deletedAt = deletedAt
             store.leaveList(id)
         }
+    }
+
+    /// The Archive's Restore for a list: back in its place in the sidebar with the tasks it took along.
+    func unarchiveList(_ id: String) {
+        guard allLists.contains(where: { $0.id == id && $0.archivedAt != nil && $0.deletedAt == nil }) else { return }
+        bringBackList(id)
     }
 
     /// Delete now or 30 days up: the list goes for good with every task that was in it.
